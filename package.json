@@ -2,7 +2,7 @@
   "name": "inteliqo",
   "version": "4.0.0",
   "description": "Inteliqo HMS",
-  "homepage": "http://localhost:8080/test",
+  "homepage": "http://tm.medicity.co.in",
   "license": "MIT",
   "author": "Travancore Medicity",
   "scripts": {
