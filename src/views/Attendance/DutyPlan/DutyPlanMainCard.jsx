@@ -52,6 +52,7 @@ const DutyPlanMainCard = () => {
     const shiftBaseDateFormat = useMemo(() => shiftDate, [shiftDate]);
     const updatedPlanDetl = useMemo(() => newPlanDetl, [newPlanDetl]); // from modal updation
 
+
     useEffect(() => {
         Object.keys(shiftPlanData).length > 0 ? setPlan(shiftPlanData) : setPlan([]);
         Object.keys(shiftBaseDateFormat).length > 0 ? setDateFormat(shiftBaseDateFormat) : setDateFormat([]);

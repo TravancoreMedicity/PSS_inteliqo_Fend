@@ -337,14 +337,15 @@ const ShiftUpdation = () => {
                 month: monthStartDate,
                 section: section
             }
-            //console.log(postData)
             const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postData);
             const { success, data } = checkPunchMarkingHr.data
+
             if (success === 0 || success === 1) {
-                // console.log(data)
+
                 const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
                 const lastDay_month = format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd')
-
+                // console.log(lastUpdateDate === lastDay_month);
+                // console.log(lastUpdateDate > lastDay_month);
                 if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
                     warningNofity("Punch Marking Monthly Process Done !! can't do the Process !! ")
                     setDisable(true)
@@ -355,19 +356,23 @@ const ShiftUpdation = () => {
                         toDate_punchMaster: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         empList: [emply.em_no]
                     }
+                    // console.log("getPunchMast_PostData", getPunchMast_PostData);
                     const punch_master_data = await axioslogin.post("/attendCal/getPunchMasterDataSectionWise/", getPunchMast_PostData); //GET PUNCH MASTER DATA
                     const { success, planData } = punch_master_data.data;
-                    // console.log(success, planData)
+
+                    // console.log("planData", planData);
                     if (success === 1) {
                         const tb = planData?.map((e) => {
 
                             const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
                             const crossDayStat = crossDay?.shft_cross_day ?? 0;
 
+
                             let shiftIn = `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_in), 'HH:mm')}`;
                             let shiftOut = crossDayStat === 0 ? `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}` :
                                 `${format(addDays(new Date(e.duty_day), 1), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}`;
-
+                            // console.log("shiftIn", shiftIn);
+                            // console.log("shiftOut", shiftOut);
                             // GET THE HOURS WORKED IN MINITS
                             let interVal = intervalToDuration({
                                 start: isValid(new Date(e.punch_in)) ? new Date(e.punch_in) : 0,
@@ -406,6 +411,7 @@ const ShiftUpdation = () => {
                     }
                     setOpenBkDrop(false)
                 } else {
+                    // console.log("else part");
                     // console.log(lastUpdateDate)
                     const today = format(new Date(), 'yyyy-MM-dd');
                     const selectedDate = format(new Date(value), 'yyyy-MM-dd');
@@ -436,6 +442,7 @@ const ShiftUpdation = () => {
                         setPunchData(punchaData)
                         const empList = [emply.em_no]
                         // PUNCH MARKING HR PROCESS START
+                        // console.log(shiftInformation);
                         const result = await processShiftPunchMarkingHrFunc(
                             postData_getPunchData,
                             punchaData,
@@ -447,7 +454,7 @@ const ShiftUpdation = () => {
                         )
                         const { status, message, errorMessage, punchMastData } = result;
                         if (status === 1) {
-
+                            //console.log("punchMastData", punchMastData);
                             const tb = punchMastData?.map((e) => {
                                 // console.log(e)
                                 const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
@@ -488,7 +495,9 @@ const ShiftUpdation = () => {
                                     duty_desc: e.duty_desc
                                 }
                             })
+                            // console.log("tb", tb);
                             const array = tb.sort((a, b) => new Date(a.duty_day) - new Date(b.duty_day));
+                            //console.log("array", array);
                             setTableArray(array)
                             setOpenBkDrop(false)
                             succesNofity('Punch Master Updated Successfully')

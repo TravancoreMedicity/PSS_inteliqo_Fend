@@ -105,7 +105,8 @@ const AllView = ({ em_id }) => {
                                 }
                             }),
                             totalDays: dateRange?.length,
-                            totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
+                            // totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
+                            totalP: (empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0) * 2 + (empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0),
                             totalWOFF: empArray?.filter(el => el.lvereq_desc === "WOFF").length ?? 0,
                             totalNOFF: empArray?.filter(el => el.lvereq_desc === "NOFF").length ?? 0,
                             totalLC: empArray?.filter(el => el.lvereq_desc === "LC").length ?? 0,
