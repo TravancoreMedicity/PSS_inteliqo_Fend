@@ -837,7 +837,7 @@ const CommonSettingNew = () => {
                                 </Box>
                                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', px: 10, mt: 0.5 }}>
                                     <Box sx={{ flex: 1, px: 0.5 }} >
-                                        <Typography level="body1"> Min Days Of NOFF</Typography>
+                                        <Typography level="body1">Number of NOFF Shift Count</Typography>
                                     </Box>
                                     <Box sx={{ flex: 1, px: 0.5 }} >
                                         <InputComponent
