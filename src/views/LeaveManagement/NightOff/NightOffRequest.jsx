@@ -9,7 +9,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { warningNofity, succesNofity } from 'src/views/CommonCode/Commonfunc';
 import { Button, CssVarsProvider, Input, Typography } from '@mui/joy';
-import { addDays, differenceInDays, format, isAfter, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
 import { ToastContainer } from 'react-toastify';
 import { setCommonSetting } from 'src/redux/actions/Common.Action'
 import DeptSectionSelect from './DeptSectionSelect';
@@ -39,19 +39,15 @@ const NightOffRequest = () => {
     const commonState = useSelector((state) => state.getCommonSettings);
     const commonSettings = useMemo(() => commonState, [commonState]);
 
-    const HandleRequiredDate = useCallback((newValue) => {
-        const reqDate = moment(newValue).format('YYYY-MM-DD');
-        setRequireDate(reqDate);
-    }, []);
 
-    useEffect(() => {
-        const todate = subDays(new Date(requiredate), 1)
-        const tdate = moment(todate).format('DD-MM-YYYY');
-        const fromdate = subDays(new Date(requiredate), commonSettings.noff_selct_day_count)
-        const fdate = moment(fromdate).format('DD-MM-YYYY');
-        setToDate(tdate)
-        setFromDate(fdate)
-    }, [requiredate, commonSettings])
+    const HandleRequireDate = useCallback((newValue) => {
+        setRequireDate(newValue)
+        const todateValue = subDays(new Date(newValue), 1);
+        const fromdateValue = subDays(new Date(newValue), parseInt(commonSettings?.noff_selct_day_count))
+        setFromDate(fromdateValue)
+        setToDate(todateValue)
+    }, [commonSettings, setFromDate, setToDate])
+
 
     const submitRequest = useCallback(async () => {
         const empdata = {
@@ -59,49 +55,43 @@ const NightOffRequest = () => {
             todate: moment(todate).format('yyyy-MM-DD'),
             em_no: hod === 0 && incharge === 0 ? em_no : employee
         }
-        // if (isAfter(new Date(requiredate), new Date(todate))) {
-        // console.log(new Date(todate))
-        console.log("todate", todate)
-        console.log("fromdate", fromdate);
 
-        // console.log("commonSettings.noff_count", commonSettings.noff_count);
-
-
-        // if (differenceInDays(new Date(todate), new Date(fromdate)) === commonSettings.noff_count) {
         const result = await axioslogin.post('/attandancemarking/getnightoffdata', empdata)
         const { success, data } = result.data
-        console.log("data", result.data);
-        if (success === 1) {
-            const submitdata = {
-                duty_day: moment(requiredate).format('yyyy-MM-DD'),
-                duty_desc: 'NOFF',
-                duty_status: 1,
-                lve_tble_updation_flag: 1,
-                em_no: hod === 0 && incharge === 0 ? em_no : employee,
-                frmdate: moment(fromdate).format('yyyy-MM-DD'),
-                todate: moment(todate).format('yyyy-MM-DD')
+
+        const countNoff = data?.filter(val => val.night_off_flag).length;
+
+        if (parseInt(countNoff) >= parseInt(commonSettings?.noff_count)) {
+            if (success === 1) {
+                const submitdata = {
+                    duty_day: moment(requiredate).format('yyyy-MM-DD'),
+                    duty_desc: 'NOFF',
+                    lvereq_desc: 'NOFF',
+                    duty_status: 1,
+                    lve_tble_updation_flag: 1,
+                    em_no: hod === 0 && incharge === 0 ? em_no : employee,
+                    frmdate: moment(fromdate).format('yyyy-MM-DD'),
+                    todate: moment(todate).format('yyyy-MM-DD')
+                }
+                console.log("submitdata", submitdata);
+
+                const result = await axioslogin.patch('/attandancemarking/updatenightoff', submitdata)
+                const { success } = result.data
+                if (success === 1) {
+                    succesNofity("NOFF Requested Sucessfully");
+                    setRequireDate(new Date())
+                    setFromDate('')
+                    setToDate('')
+                }
+            } else {
+                warningNofity('Plaese mark Punch In Out!')
             }
-            console.log(submitdata);
-            // const result = await axioslogin.patch('/attandancemarking/updatenightoff', submitdata)
-            // const { success } = result.data
-            // if (success === 1) {
-            //     succesNofity("NOFF Requested Sucessfully");
-            //     setRequireDate(new Date())
-            //     setFromDate(new Date())
-            //     setToDate(new Date())
-            // }
-        } else {
-            warningNofity('Plaese mark Punch In Out!')
+
+        }
+        else {
+            warningNofity('Less Night duties Under Selected Dates,Not Applicable for NOFF')
         }
 
-        // }
-        // else {
-        //     warningNofity('Less Night duties Under Selected Dates,Not Applicable for NOFF')
-        // }
-
-        // } else {
-        //     warningNofity("Plase Select Required date after to Date!!")
-        // }
 
         // *************Previous Code*******************
         // const result = await axioslogin.post('/attandancemarking/getnightoffdata', empdata)
@@ -144,7 +134,7 @@ const NightOffRequest = () => {
                 {hod === 1 || incharge === 1 ?
                     <Box sx={{ display: 'flex', flexDirection: 'row', width: '100%' }}>
                         <Box sx={{ mt: 0.5, px: 0.3, flex: 1 }} >
-                            <DeptSectionSelect em_id={413} value={deptSection} setValue={setDeptSection} />
+                            <DeptSectionSelect em_id={em_id} value={deptSection} setValue={setDeptSection} />
                         </Box>
                         <Box sx={{ mt: 0.5, px: 0.3, flex: 1 }} >
                             <EmployeeUderDeptSec value={employee} setValue={setEmployee} deptSect={deptSection} />
@@ -195,7 +185,7 @@ const NightOffRequest = () => {
                                     value={requiredate}
                                     size="small"
                                     onChange={(newValue) => {
-                                        HandleRequiredDate(newValue);
+                                        HandleRequireDate(newValue);
                                     }}
                                     renderInput={({ inputRef, inputProps, InputProps }) => (
                                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -210,19 +200,52 @@ const NightOffRequest = () => {
                         </Box>
                         <Box sx={{ flex: 1, alignItems: 'center', px: 0.3 }} >
                             <Typography sx={{ fontWeight: "bold", pl: 3, color: "#686D76" }}>From</Typography>
-                            <Input
-                                value={fromdate}
-                                disabled
-                            />
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    views={['day']}
+                                    inputFormat="dd-MM-yyyy"
+                                    value={subDays(new Date(requiredate), 1)}
+                                    size="small"
+                                    disabled={true}
+                                    onChange={(newValue) => {
+                                        setFromDate(newValue);
+                                    }}
+                                    renderInput={({ inputRef, inputProps, InputProps }) => (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', }}>
+                                            <CssVarsProvider>
+                                                <Input ref={inputRef} {...inputProps} style={{ width: "100%" }} disabled={true} color='primary' />
+                                            </CssVarsProvider>
+                                            {InputProps?.endAdornment}
+                                        </Box>
+                                    )}
+                                />
+                            </LocalizationProvider>
                         </Box>
                         <Box sx={{ flex: 1, alignItems: 'center', px: 0.3 }} >
                             <Typography sx={{ fontWeight: "bold", pl: 3, color: "#686D76" }}>To</Typography>
-                            <Input
-                                value={todate}
-                                disabled
-                            />
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    views={['day']}
+                                    inputFormat="dd-MM-yyyy"
+                                    value={subDays(new Date(requiredate), parseInt(commonSettings?.noff_selct_day_count))}
+                                    size="small"
+                                    disabled={true}
+                                    onChange={(newValue) => {
+                                        setToDate(newValue);
+                                    }}
+                                    renderInput={({ inputRef, inputProps, InputProps }) => (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', }}>
+                                            <CssVarsProvider>
+                                                <Input ref={inputRef} {...inputProps} style={{ width: "100%" }} disabled={true} color='primary' />
+                                            </CssVarsProvider>
+                                            {InputProps?.endAdornment}
+                                        </Box>
+                                    )}
+                                />
+                            </LocalizationProvider>
                         </Box>
-                        <Box sx={{ mt: 3 }}>
+
+                        <Box sx={{ flex: 1, mt: 3, px: 2 }}>
                             <CssVarsProvider>
                                 <Button
                                     variant="outlined"
@@ -235,58 +258,7 @@ const NightOffRequest = () => {
                                 </Button>
                             </CssVarsProvider>
                         </Box>
-                        {/* <Box sx={{ pt: 1, pl: 0.5 }}>
-                            <Typography sx={{ fontSize: 18, fontWeight: 350 }}>From Date: </Typography>
-                        </Box>
-                        <Box sx={{ flex: 1, pl: 0.5 }}>
-                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                < DatePicker
-                                    views={['day']}
-                                    value={fromdate}
-                                    size="small"
-                                    onChange={(newValue) => {
-                                        setFromDate(newValue);
-                                    }}
-                                    renderInput={({ inputRef, inputProps, InputProps }) => (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', }}>
-                                            <CssVarsProvider>
-                                                <Input ref={inputRef} {...inputProps} disabled={true} style={{ width: "100%" }} />
-                                            </CssVarsProvider>
-                                            {InputProps?.endAdornment}
-                                        </Box>
-                                    )}
-                                />
-                            </LocalizationProvider>
-                        </Box>
-                        <Box sx={{ pt: 1, pl: 0.5 }}>
-                            <CssVarsProvider>
-                                <Typography sx={{ fontSize: 18, fontWeight: 350 }}>To Date: </Typography>
-                            </CssVarsProvider>
-                        </Box>
-                        <Box sx={{ flex: 1, pl: 0.5 }}>
-                            <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                < DatePicker
-                                    views={['day']}
-                                    minDate={addDays(new Date(fromdate), commonSettings.noff_count)}
-                                    value={todate}
-                                    size="small"
-                                    onChange={(newValue) => {
-                                        setToDate(newValue);
-                                    }}
-
-                                    renderInput={({ inputRef, inputProps, InputProps }) => (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', }}>
-                                            <CssVarsProvider>
-                                                <Input ref={inputRef} {...inputProps} disabled={true} style={{ width: "100%" }} />
-                                            </CssVarsProvider>
-                                            {InputProps?.endAdornment}
-                                        </Box>
-                                    )}
-                                />
-                            </LocalizationProvider>
-                        </Box> */}
                     </Box>
-
                 </Box>
             </Paper>
         </CustomLayout >

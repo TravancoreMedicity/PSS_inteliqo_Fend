@@ -208,7 +208,7 @@ export const processPunchMarkingHrFunc = async (
 }
 
 export const getAttendanceCalculation = async (
-    punch_In, shift_in, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, defaultShift, NAShift, NightOffShift, WoffShift, salaryLimit, maximumLateInTime, shft_duty_day
+    punch_In, shift_in, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, defaultShift, NAShift, NightOffShift, WoffShift, salaryLimit, maximumLateInTime, shft_duty_day, break_shift_status
 ) => {
     const {
         // hrsWorked, 
@@ -224,7 +224,7 @@ export const getAttendanceCalculation = async (
     const halfDayInMinits = totalShiftInMInits / 2;
     const halfDayStartTime = addMinutes(shift_in, halfDayInMinits - 1)
 
-    if (checkShiftIdStatus === true) {
+    if (checkShiftIdStatus === true && break_shift_status !== 1) {
         // This condition not included  ( !== default shift , !== not applicable shift , !== Night off , !== week off) 
         if (isValid(punch_In) === true && isValid(punch_out) === true) {
 
@@ -377,7 +377,19 @@ export const getAttendanceCalculation = async (
                 { duty_status: 1, duty_desc: 'H', lvereq_desc: 'H', duty_remark: 'holiday' } :
                 { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Absent' }
         }
-    } else {
+    }
+
+    //break Duty checking
+    if (checkShiftIdStatus === true && parseInt(break_shift_status) === 1) {
+        console.log("punch_In, shift_in, punch_out, shift_out", punch_In, shift_in, punch_out, shift_out);
+
+        // return earlyOut === 0 && (lateIn === 0 || lateIn <= cmmn_grace_period) && isBeforeHafDayInTime === true ?
+        //     { duty_status: 1, duty_desc: 'P', lvereq_desc: 'P', duty_remark: 'Present' } : 0
+
+
+
+    }
+    else {
         return shiftId === defaultShift ? { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no duty plan' } :
             shiftId === WoffShift ? { duty_status: 1, duty_desc: 'WOFF', lvereq_desc: 'WOFF', duty_remark: 'week off' } :
                 shiftId === NightOffShift ? { duty_status: 1, duty_desc: 'NOFF', lvereq_desc: 'NOFF', duty_remark: 'night off' } :
@@ -516,6 +528,7 @@ export const processShiftPunchMarkingHrFunc = async (
                         shft_chkout_end: sortedShiftData?.shft_chkout_end,
                         shft_cross_day: sortedShiftData?.shft_cross_day,
                         shft_duty_day: sortedShiftData?.shft_duty_day,
+                        break_shift_status: sortedShiftData?.break_shift_status,
                         gross_salary: sortedSalaryData?.gross_salary,
                         earlyGoingMaxIntervl: cmmn_early_out,
                         gracePeriodInTime: cmmn_grace_period,
@@ -536,6 +549,7 @@ export const processShiftPunchMarkingHrFunc = async (
                 const punchMasterMappedData = data?.map((e) => e.value)
                 return Promise.allSettled(
                     punchMasterMappedData?.map(async (val) => {
+
                         const holidayStatus = val.holiday_status;
                         const punch_In = val.punch_in === null ? null : new Date(val.punch_in);
                         const punch_out = val.punch_out === null ? null : new Date(val.punch_out);
@@ -544,6 +558,7 @@ export const processShiftPunchMarkingHrFunc = async (
                         const shift_out = new Date(val.shift_out);
 
                         const shft_duty_day = val.shft_duty_day;
+                        const break_shift_status = val.break_shift_status;
                         //SALARY LINMIT
                         const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
 
@@ -564,7 +579,8 @@ export const processShiftPunchMarkingHrFunc = async (
                             val.woff,
                             salaryLimit,
                             val.maximumLateInTime,
-                            shft_duty_day
+                            shft_duty_day,
+                            break_shift_status
                         )
 
                         // console.log("getAttendanceStatus", getAttendanceStatus);

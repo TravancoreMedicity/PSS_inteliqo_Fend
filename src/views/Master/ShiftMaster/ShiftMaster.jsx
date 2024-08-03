@@ -118,9 +118,10 @@ const ShiftMaster = () => {
         earlyincalculation: '1',
         earlyoutcalculation: '1',
         shift_status: true,
-        nightoff: false
+        nightoff: false,
+        break_shift_status: false
     })
-    const { shift_name, shift_code, crossday, dutyday, earlyincalculation, earlyoutcalculation, shift_status, nightoff } = formData
+    const { shift_name, shift_code, crossday, dutyday, earlyincalculation, earlyoutcalculation, shift_status, nightoff, break_shift_status } = formData
     const defaultState = {
         shift_name: "",
         shift_code: "",
@@ -129,7 +130,8 @@ const ShiftMaster = () => {
         earlyincalculation: '1',
         earlyoutcalculation: '1',
         shift_status: true,
-        nightoff: false
+        nightoff: false,
+        break_shift_status: false
     }
     //getting form Data
     const updateShiftmasterData = async (e) => {
@@ -185,7 +187,8 @@ const ShiftMaster = () => {
         shift_start_in_min: checkinminutes,
         shift_end_in_min: crossday === '1' ? checkoutminutescrossday : checkoutinminutes,
         night_off_flag: nightoff === false ? 0 : 1,
-        shft_status: shift_status === false ? 0 : 1
+        shft_status: shift_status === false ? 0 : 1,
+        break_shift_status: break_shift_status === false ? 0 : 1
     }
     //saving shift master
     const submitFormData = async (e) => {
@@ -576,7 +579,7 @@ const ShiftMaster = () => {
                                         </div>
                                     </div>
                                     <div className="row g-1 d-flex justify-content-start">
-                                        <div className="col-md-1 pb-2">
+                                        <div className="col-md-2 pb-2">
                                             <FormControlLabel
                                                 className=""
                                                 control={
@@ -594,7 +597,7 @@ const ShiftMaster = () => {
                                         </div>
 
 
-                                        <div className="col-md-5 ">
+                                        <div className="col-md-2 ">
                                             <FormControlLabel
                                                 className=""
                                                 control={
@@ -608,6 +611,23 @@ const ShiftMaster = () => {
                                                     />
                                                 }
                                                 label="Shift Status"
+                                            />
+                                        </div>
+
+                                        <div className="col-md-2 ">
+                                            <FormControlLabel
+                                                className=""
+                                                control={
+                                                    <Checkbox
+                                                        name="break_shift_status"
+                                                        color="secondary"
+                                                        value={break_shift_status}
+                                                        checked={break_shift_status}
+                                                        className="ml-2"
+                                                        onChange={(e) => updateShiftmasterData(e)}
+                                                    />
+                                                }
+                                                label="Break Duty Status"
                                             />
                                         </div>
                                     </div>
