@@ -378,7 +378,7 @@ const ShiftUpdation = () => {
                                 start: isValid(new Date(e.punch_in)) ? new Date(e.punch_in) : 0,
                                 end: isValid(new Date(e.punch_out)) ? new Date(e.punch_out) : 0
                             })
-                            console.log(formatDuration({ hours: interVal.hours, minutes: interVal.minutes }));
+                            // console.log(formatDuration({ hours: interVal.hours, minutes: interVal.minutes }));
                             return {
                                 punch_slno: e.punch_slno,
                                 duty_day: e.duty_day,

@@ -172,6 +172,7 @@ const PunchMarkingHR = () => {
 
     //UPDATE ATTENDANDE PROCESS START HERE
     const updateAttendanceProcesss = async (deptID, sectID, lastUpdateDate) => {
+
         setOpenBkDrop(true)
         const weekOffPolicyCountMax = weekoff_policy_max_count;
         const holidayPolicyCount = holiday_policy_count;
@@ -183,6 +184,7 @@ const PunchMarkingHR = () => {
         const getGrossSalaryEmpWise = await axioslogin.get(`/common/getgrossSalaryByEmployeeNo/${sectID}`);
         const { su, dataa } = getGrossSalaryEmpWise.data;
         if (su === 1) setEmpSalary(dataa)
+
         //GET GROSS SALARY END
 
         if (today < new Date(format(new Date(value), 'yyyy-MM-dd'))) {
@@ -275,7 +277,7 @@ const PunchMarkingHR = () => {
                                 ?.filter((e) => e.lvereq_desc === 'HD' && e.duty_desc === 'LC')
                                 ?.map((e) => e.punch_slno)
 
-                            // console.log(filterLcData)
+                            //console.log("filterLcData", filterLcData)
                             //UPDATE IN TO PUNCH MASTER TABLE 
                             if (filterLcData !== null && filterLcData !== undefined && filterLcData?.length > 0) {
                                 await axioslogin.post("/attendCal/updateLCPunchMaster/", filterLcData); // added on 27/06/2024 10:00 PM (Ajith)

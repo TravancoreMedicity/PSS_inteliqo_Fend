@@ -32,7 +32,7 @@ export const processPunchMarkingHrFunc = async (
     if (succes === 1 && shiftdetail?.length > 0) {
         const dutyplanInfo = shiftdetail; //DUTY PLAN
         const dutyPlanSlno = dutyplanInfo?.map(e => e.plan_slno) //FIND THE DUTY PLAN SLNO
-        // console.log(postData_getPunchData)
+        // console.log("dutyPlanSlno", dutyPlanSlno)
         const { fromDate, toDate } = postData_getPunchData;
         const punch_master_data = await axioslogin.post("/attendCal/getPunchMasterDataSectionWise/", postData_getPunchData); //GET PUNCH MASTER DATA
         const { success, planData } = punch_master_data.data;
@@ -41,8 +41,11 @@ export const processPunchMarkingHrFunc = async (
             const punchMasterFilterData = await planData?.filter((e) => new Date(fromDate) <= new Date(e.duty_day) && new Date(e.duty_day) <= new Date(toDate))
             // console.log(punchMasterFilterData?.filter((e) => e.em_no === 4516))
             const punchMasterData = punchMasterFilterData; //PUNCHMSTER DATA
+            // console.log("punchMasterFilterData", punchMasterFilterData);
+
             return Promise.allSettled(
                 punchMasterData?.map(async (data, index) => {
+                    //console.log("inside data", data);
                     // console.log(data)
                     const sortedShiftData = shiftInformation?.find((e) => e.shft_slno === data.shift_id)// SHIFT DATA
                     const sortedSalaryData = empSalary?.find((e) => e.em_no === data.em_no) //SALARY DATA
@@ -62,17 +65,27 @@ export const processPunchMarkingHrFunc = async (
                         naShift: notapplicable_shift,
                         defaultShift: default_shift,
                         noff: noff,
-                        holidayStatus: sortedShiftData?.holiday_status
+                        holidayStatus: sortedShiftData?.holiday_status,
+                        break_shift_status: sortedShiftData?.break_shift_status,
+                        first_half_in: sortedShiftData?.first_half_in,
+                        first_half_out: sortedShiftData?.first_half_out,
+                        second_half_in: sortedShiftData?.second_half_in,
+                        second_half_out: sortedShiftData?.second_half_out
                     }
                     const employeeBasedPunchData = punchaData?.filter((e) => e.emp_code == data.em_no)
+                    //console.log("employeeBasedPunchData", employeeBasedPunchData);
+
                     //FUNCTION FOR MAPPING THE PUNCH IN AND OUT 
                     return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
                 })
             ).then((data) => {
+                //console.log('data', data);
                 const punchMasterMappedData = data?.map((e) => e.value)
                 // console.log(punchMasterMappedData?.filter((e) => e.em_no === 4516))
                 return Promise.allSettled(
                     punchMasterMappedData?.map(async (val) => {
+                        //console.log("val", val);
+
                         const holidayStatus = val.holiday_status;
                         const punch_In = val.punch_in === null ? null : new Date(val.punch_in);
                         const punch_out = val.punch_out === null ? null : new Date(val.punch_out);
@@ -82,6 +95,23 @@ export const processPunchMarkingHrFunc = async (
 
                         //SALARY LINMIT
                         const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
+
+                        const shft_duty_day = val.shft_duty_day;
+                        //break duty
+
+                        const break_shift_status = val.break_shift_status;
+
+                        //emp punch
+                        const break_first_punch_in = val.break_first_punch_in;
+                        const break_first_punch_out = val.break_first_punch_out;
+                        const break_second_punch_in = val.break_second_punch_in;
+                        const break_second_punch_out = val.break_second_punch_out;
+
+                        //shift details
+                        const first_shift_in = `${format(new Date(val.first_shift_in), 'yyyy-MM-dd HH:mm')} `
+                        const first_shift_out = `${format(new Date(val.first_shift_out), 'yyyy-MM-dd HH:mm')} `
+                        const second_shift_in = `${format(new Date(val.second_shift_in), 'yyyy-MM-dd HH:mm')} `
+                        const second_shift_out = `${format(new Date(val.second_shift_out), 'yyyy-MM-dd HH:mm')} `
 
                         const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
 
@@ -99,7 +129,17 @@ export const processPunchMarkingHrFunc = async (
                             val.noff,
                             val.woff,
                             salaryLimit,
-                            val.maximumLateInTime
+                            val.maximumLateInTime,
+                            shft_duty_day,
+                            break_shift_status,
+                            break_first_punch_in,
+                            break_first_punch_out,
+                            break_second_punch_in,
+                            break_second_punch_out,
+                            first_shift_in,
+                            first_shift_out,
+                            second_shift_in,
+                            second_shift_out
                         )
                         return {
                             em_no: val.em_no,
@@ -119,8 +159,8 @@ export const processPunchMarkingHrFunc = async (
                         }
                     })
                 ).then(async (element) => {
-                    // REMOVE LEAVE REQUESTED DATA FROM THIS DATA
 
+                    // REMOVE LEAVE REQUESTED DATA FROM THIS DATA
                     const elementValue = element?.map((e) => e.value);
                     const processedData = elementValue?.filter((v) => v.lve_tble_updation_flag === 0)
                     const punchMaterDataBasedOnPunchSlno = processedData?.map((e) => e.punch_slno)
@@ -172,6 +212,8 @@ export const processPunchMarkingHrFunc = async (
                         // console.log(PunchMAsterPolicyBasedFilterResult)
                         // console.log(punchMaterDataBasedOnPunchSlno)
                         const processedPostData = PunchMAsterPolicyBasedFilterResult?.filter((e) => punchMaterDataBasedOnPunchSlno?.some((el) => el === e.punch_slno))
+                        //console.log("processedPostData", processedPostData);
+
                         // console.log(processedPostData?.filter(e => e.em_no === 4516))
                         const updatePunchMaster = await axioslogin.post("/attendCal/updatePunchMaster/", processedPostData);
                         const { success, message } = updatePunchMaster.data;
@@ -393,15 +435,6 @@ export const getAttendanceCalculation = async (
 
         if (break_first_punch_in !== null && break_first_punch_out !== null && break_second_punch_in !== null && break_second_punch_out !== null) {
 
-            // break_first_punch_in,
-            // break_first_punch_out,
-            // break_second_punch_in,
-            // break_second_punch_out,
-            // first_shift_in,
-            // first_shift_out,
-            // second_shift_in,
-            // second_shift_out
-
             const FirstHalfIn = (isBefore(new Date(break_first_punch_in), new Date(first_shift_in)) || isEqual(new Date(break_first_punch_in), new Date(first_shift_in)))
 
             const FirstHalfOut = (isAfter(new Date(break_first_punch_out), new Date(first_shift_out)) || isEqual(new Date(break_first_punch_out), new Date(first_shift_out)))
@@ -439,6 +472,19 @@ export const getAttendanceCalculation = async (
 
             const SecondisBeforeHafDayInTime = isBefore(new Date(second_shift_in), SecondhalfDayStartTime); //for check -> punch in before half day start in time
             const SecondisAfterHalfDayOutTime = isBefore(new Date(second_shift_out), SecondhalfDayStartTime)
+            console.log("Second Half Early go", (earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && SecondisBeforeHafDayInTime === true && halfDayWorkingHour === true);
+
+            console.log("(earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && SecondisBeforeHafDayInTime === true && halfDayWorkingHour === true)");
+
+            console.log("earlyOut", earlyOut);
+            console.log("lateIn", lateIn);
+
+
+            console.log("maximumLateInTime", maximumLateInTime);
+
+            console.log("SecondisBeforeHafDayInTime", SecondisBeforeHafDayInTime);
+
+            console.log("halfDayWorkingHour", halfDayWorkingHour);
 
             // console.log("SecondisBeforeHafDayInTime", SecondisBeforeHafDayInTime);
             // console.log("SecondisAfterHalfDayOutTime", SecondisBeforeHafDayInTime);
@@ -457,20 +503,18 @@ export const getAttendanceCalculation = async (
                         earlyOut === 0 && lateIn > maximumLateInTime && FirstHalfIn === false && FirstHalfOut === false && SecondHalfIn === true && SecondHalfOut === true ?
                             { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Late in and punch in after half day limit' } :
                             // { out time greater than 0 minit  ~~First shift early out less than 30 minits ~~ intime lessthan or equal to 30  ~~ intime  and outtime should be before and after half day in time  }
-                            FirstHalfEarlyOut >= earlyOut ?
+                            earlyOut === 0 && lateIn > maximumLateInTime && FirstHalfEarlyOut >= earlyOut ?
                                 { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going First Half' } :
                                 // { out time greater than 0 minit  ~~Second shift early out less than 30 minits ~~ intime lessthan or equal to 30  ~~ intime  and outtime should be before and after half day in time  }
-                                SecondHalfEarlyOut >= earlyOut ?
+                                earlyOut === 0 && lateIn > maximumLateInTime && SecondHalfEarlyOut >= earlyOut ?
                                     { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going Second Half' } :
-
                                     // { outtime greater than 0 minit  ~~ early out less than 30 minits ~~ intime greater than 30  ~~ intime  and outtime should be before and after half day in time  }
-                                    FirstisBeforeHafDayInTime === true && halfDayWorkingHour === true ?
-                                        { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'Half day latein and late out' } :
+                                    (earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && FirstisBeforeHafDayInTime === true && halfDayWorkingHour === true ?
+                                        { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'first-Half day latein and late out' } :
                                         //Second shift late in
                                         SecondisBeforeHafDayInTime === true && halfDayWorkingHour === true ?
-                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'Half day latein and late out' } :
-
-                                            //                 // { outtime greater than 0 minit  ~~ early out greater than 30 minits ~~ intime greater than or equal 30  ~~ intime  and outtime should be before and after half day in time  }
+                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'Second-Half day latein and late out' } :
+                                            // { outtime greater than 0 minit  ~~ early out greater than 30 minits ~~ intime greater than or equal 30  ~~ intime  and outtime should be before and after half day in time  }
                                             // first half
                                             (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn <= maximumLateInTime && FirstisAfterHalfDayOutTime === true && halfDayWorkingHour === true ?
                                                 { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going Half day latein and late out' } :
@@ -483,13 +527,10 @@ export const getAttendanceCalculation = async (
 
                                                         { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Lose off Pay' }
 
-
         }
         else {
             return { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Absent' }
         }
-
-
     }
     else {
         return shiftId === defaultShift ? { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no duty plan' } :
@@ -746,6 +787,7 @@ export const processShiftPunchMarkingHrFunc = async (
                     //FUNCTION FOR MAPPING THE PUNCH IN AND OUT 
                     return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
                 })
+
             ).then((data) => {
 
                 const punchMasterMappedData = data?.map((e) => e.value)
