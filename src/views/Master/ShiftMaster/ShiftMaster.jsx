@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
 import TextInput from 'src/views/Component/TextInput';
 import PageLayoutSave from 'src/views/CommonCode/PageLayoutSave';
 import { useHistory } from 'react-router';
@@ -10,6 +10,8 @@ import { axioslogin } from 'src/views/Axios/Axios';
 import { errorNofity, getTotalShiftHours, succesNofity, warningNofity } from 'src/views/CommonCode/Commonfunc';
 import ShiftMasterTable from './ShiftMasterTable';
 import { addHours, subHours } from 'date-fns';
+import { setCommonSetting } from 'src/redux/actions/Common.Action';
+import { useDispatch, useSelector } from 'react-redux';
 const ShiftMaster = () => {
     // const classes = useStyles()
     const history = useHistory()
@@ -119,7 +121,9 @@ const ShiftMaster = () => {
         earlyoutcalculation: '1',
         shift_status: true,
         nightoff: false,
-        break_shift_status: false
+        break_shift_status: false,
+        // noff_min_days: 0,
+        // noff_max_days: 0
     })
     const { shift_name, shift_code, crossday, dutyday, earlyincalculation, earlyoutcalculation, shift_status, nightoff, break_shift_status } = formData
     const defaultState = {
@@ -131,13 +135,52 @@ const ShiftMaster = () => {
         earlyoutcalculation: '1',
         shift_status: true,
         nightoff: false,
-        break_shift_status: false
+        break_shift_status: false,
+        // noff_min_days: 0,
+        // noff_max_days: 0
     }
+
     //getting form Data
     const updateShiftmasterData = async (e) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
         setFormData({ ...formData, [e.target.name]: value })
     }
+
+    const dispatch = useDispatch();
+
+    const state = useSelector((state) => state?.getCommonSettings)
+    const commonSetting = useMemo(() => state, [state])
+    const { noff_selct_day_count, noff_count } = commonSetting;
+
+    useEffect(() => {
+        dispatch(setCommonSetting())
+    }, [dispatch])
+
+    const [noff_min_days, setnoff_min_days] = useState(0)
+    const [noff_max_days, setnoff_max_days] = useState(0)
+
+    const TosetMinDays = useCallback((e) => {
+        const mindays = e.target.value;
+        if (mindays < noff_count) {
+            warningNofity(`Night off Min Days: The selected date  must be within ${noff_count} to ${noff_selct_day_count} days`)
+            setnoff_min_days(0)
+        }
+        else {
+            setnoff_min_days(mindays)
+        }
+    }, [noff_count])
+
+    const TosetMaxDays = useCallback((e) => {
+        const maxdays = e.target.value;
+        if (maxdays < noff_count) {
+            warningNofity(`Night off Min Days: The selected date  must be within ${noff_count} to ${noff_selct_day_count} days`)
+            setnoff_max_days(0)
+        }
+        else {
+            setnoff_max_days(maxdays)
+        }
+    }, [noff_count])
+
     //caslculating the shift duration in minutes
     const x = moment(checkIn).format("YYYY-MM-DD HH:mm:ss")
     const xx = moment(x)
@@ -188,8 +231,11 @@ const ShiftMaster = () => {
         shift_end_in_min: crossday === '1' ? checkoutminutescrossday : checkoutinminutes,
         night_off_flag: nightoff === false ? 0 : 1,
         shft_status: shift_status === false ? 0 : 1,
-        break_shift_status: break_shift_status === false ? 0 : 1
+        break_shift_status: break_shift_status === false ? 0 : 1,
+        noff_min_days: parseInt(noff_min_days),
+        noff_max_days: parseInt(noff_max_days),
     }
+
     //saving shift master
     const submitFormData = async (e) => {
         e.preventDefault()
@@ -215,6 +261,8 @@ const ShiftMaster = () => {
             setfirsthalfcheckout(new Date())
             setSecondhalfcheckin(new Date())
             SetSecondhalfcheckout(new Date())
+            setnoff_min_days(0)
+            setnoff_max_days(0)
         }
         else if (success === 2) {
             warningNofity(message)
@@ -631,6 +679,74 @@ const ShiftMaster = () => {
                                             />
                                         </div>
                                     </div>
+                                    {nightoff === true ?
+                                        <div className="row g-1">
+                                            <div className="col-md-1">
+                                                <label className="form-label">
+                                                    Min NOFF Days
+                                                </label>
+                                            </div>
+                                            <div className="col-md-2">
+                                                <FormControl
+                                                    fullWidth
+                                                    margin="dense"
+                                                    className="mt-0"
+                                                >
+                                                    <Select
+                                                        name="noff_min_days"
+                                                        value={noff_min_days}
+                                                        onChange={(e) => TosetMinDays(e)}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        className="ml-1"
+                                                        defaultValue={0}
+                                                        style={{ minHeight: 10, maxHeight: 27, paddingTop: 0, paddingBottom: 4 }}
+                                                    >
+                                                        <MenuItem value='0'>Min</MenuItem>
+                                                        <MenuItem value='1'>1</MenuItem>
+                                                        <MenuItem value='2'>2</MenuItem>
+                                                        <MenuItem value='3'>3</MenuItem>
+                                                        <MenuItem value='4'>4</MenuItem>
+                                                        <MenuItem value='5'>5</MenuItem>
+                                                        <MenuItem value='6'>6</MenuItem>
+                                                        <MenuItem value='7'>7</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </div>
+                                            <div className="col-md-1">
+                                                <label className="form-label">
+                                                    Max NOFF Days
+                                                </label>
+                                            </div>
+                                            <div className="col-md-2" >
+                                                <FormControl
+                                                    fullWidth
+                                                    margin="dense"
+                                                    className="mt-0"
+                                                >
+                                                    <Select
+                                                        name="noff_max_days"
+                                                        value={noff_max_days}
+                                                        onChange={(e) => TosetMaxDays(e)}
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        className="ml-1"
+                                                        defaultValue={0}
+                                                        style={{ minHeight: 10, maxHeight: 27, paddingTop: 0, paddingBottom: 4 }}
+                                                    >
+                                                        <MenuItem value='0'>Max</MenuItem>
+                                                        <MenuItem value='1'>1</MenuItem>
+                                                        <MenuItem value='2'>2</MenuItem>
+                                                        <MenuItem value='3'>3</MenuItem>
+                                                        <MenuItem value='4'>4</MenuItem>
+                                                        <MenuItem value='5'>5</MenuItem>
+                                                        <MenuItem value='6'>6</MenuItem>
+                                                        <MenuItem value='7'>7</MenuItem>
+                                                    </Select>
+                                                </FormControl>
+                                            </div>
+                                        </div>
+                                        : null}
                                 </div>
                             </div>
                         </div>

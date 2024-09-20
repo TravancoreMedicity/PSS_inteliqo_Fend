@@ -11,6 +11,7 @@ import { Actiontypes } from 'src/redux/constants/action.type'
 
 const ReportLayout = ({ children, title, displayClose, data }) => {
 
+
     const history = useHistory();
     const dispatch = useDispatch()
 
@@ -19,6 +20,8 @@ const ReportLayout = ({ children, title, displayClose, data }) => {
     }
 
     const download = useCallback(() => {
+        console.log(data);
+
         if (data.length === 0) {
             warningNofity("Please Click The Search Button After Selecting the Options")
         }

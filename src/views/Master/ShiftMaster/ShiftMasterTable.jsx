@@ -18,26 +18,39 @@ const ShiftMasterTable = ({ update }) => {
         },
         {
             title: 'Shift Name', field: 'shft_desc', cellStyle: {
-                minWidth: 300,
-                maxWidth: 500
+                minWidth: 200,
+                maxWidth: 300
             }
         },
         {
             title: 'Shift Code', field: 'shft_code', cellStyle: {
                 minWidth: 200,
-                maxWidth: 250
+                maxWidth: 300
             }
         },
         {
             title: 'ChecK In Time', field: 'shft_chkin_time', cellStyle: {
                 minWidth: 200,
-                maxWidth: 250
+                maxWidth: 300
             }
         },
         {
             title: 'ChecK Out Time', field: 'shft_chkout_time', cellStyle: {
                 minWidth: 200,
-                maxWidth: 250
+                maxWidth: 300
+            }
+        },
+
+        {
+            title: 'NOFF Min Days', field: 'noff_min_days', cellStyle: {
+                minWidth: 1,
+                maxWidth: 2
+            }
+        },
+        {
+            title: 'NOFF Max Days', field: 'noff_max_days', cellStyle: {
+                minWidth: 1,
+                maxWidth: 2
             }
         },
         {
