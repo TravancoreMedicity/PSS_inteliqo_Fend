@@ -22,6 +22,8 @@ import { screenInnerHeight } from 'src/views/Constant/Constant';
 const isOdd = (number) => number % 2 !== 0
 
 const AllView = ({ em_id }) => {
+    console.log("AllView");
+
 
     // const history = useHistory();
     const dispatch = useDispatch();
@@ -105,7 +107,8 @@ const AllView = ({ em_id }) => {
                                 }
                             }),
                             totalDays: dateRange?.length,
-                            totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
+                            // totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
+                            totalP: (empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0) * 2 + (empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0),
                             totalWOFF: empArray?.filter(el => el.lvereq_desc === "WOFF").length ?? 0,
                             totalNOFF: empArray?.filter(el => el.lvereq_desc === "NOFF").length ?? 0,
                             totalLC: empArray?.filter(el => el.lvereq_desc === "LC").length ?? 0,
@@ -119,6 +122,10 @@ const AllView = ({ em_id }) => {
                             totaHP: grossSalary <= salary_above ? (empArray?.filter(el => el.lvereq_desc === "HP").length ?? 0) * 2 : (empArray?.filter(el => el.lvereq_desc === "H").length ?? 0),
                         }
                     })
+
+
+                    console.log("resultss", resultss);
+
                     settableArray(resultss)
                     setdaysStr(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.daysAry)
                     setdaysNum(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.dateAray)

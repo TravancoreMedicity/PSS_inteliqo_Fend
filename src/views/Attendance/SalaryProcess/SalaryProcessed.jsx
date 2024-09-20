@@ -299,7 +299,7 @@ const SalaryProcessed = () => {
 
 
     return (
-        <ReportLayout title="Salary Reports" data={[]} displayClose={true} >
+        <ReportLayout title="Salary Reports" data={[column]} displayClose={true} >
             <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column' }} >
                 <Box sx={{ mt: 1, ml: 0.5, display: 'flex', flex: { xs: 4, sm: 4, md: 4, lg: 4, xl: 3, }, flexDirection: 'row', }}>
                     <Box sx={{ flex: 1, px: 0.5 }} >

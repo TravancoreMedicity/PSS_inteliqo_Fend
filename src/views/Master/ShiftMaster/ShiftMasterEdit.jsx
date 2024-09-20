@@ -16,6 +16,7 @@ import { addHours } from 'date-fns/esm';
 const ShiftMasterEdit = () => {
     const history = useHistory()
     const { id } = useParams()
+
     //use State for Setting Initial State
     const [formData, setFormData] = useState({
         shift_name: "",
@@ -25,9 +26,12 @@ const ShiftMasterEdit = () => {
         earlyincalculation: '1',
         earlyoutcalculation: '1',
         shift_status: true,
-        nightoff: false
+        nightoff: false,
+        break_shift_status: false,
+        noff_min_days: 0,
+        noff_max_days: 0
     })
-    const { shift_name, shift_code, crossday, dutyday, earlyincalculation, earlyoutcalculation, nightoff, shift_status } = formData
+    const { shift_name, shift_code, crossday, dutyday, earlyincalculation, earlyoutcalculation, nightoff, shift_status, break_shift_status, noff_min_days, noff_max_days } = formData
     //default State
     const defaultState = {
         shift_name: "",
@@ -37,26 +41,26 @@ const ShiftMasterEdit = () => {
         earlyincalculation: '1',
         earlyoutcalculation: '1',
         shift_status: true,
-        nightoff: false
+        nightoff: false,
+        break_shift_status: false,
+        noff_min_days: 0,
+        noff_max_days: 0
     }
     //use State For Check In
     const [checkIn, setCheckIn] = useState(new Date());
     const SetcheckInTime = useCallback((val) => {
         setCheckIn(val)
         const result = subHours(new Date(val), 8)
+
+        console.log("check in time", result);
+
         setcheckInStart(result)
         const result2 = addHours(new Date(val), 4)
         setcheckInEnd(result2)
     }, [])
     //use State For Check Out
     const [checkOut, setCheckOut] = useState(new Date());
-    const SetcheckOutTime = useCallback((val) => {
-        setCheckOut(val)
-        const result = subHours(new Date(val), 2)
-        setcheckOutStart(result)
-        const result2 = addHours(new Date(val), 8)
-        setcheckOutEnd(result2)
-    }, [])
+
     //use State For Check In Start
     const [checkInStart, setcheckInStart] = useState(new Date());
     // const SetcheckInTimeStart = (val) => {
@@ -127,6 +131,41 @@ const ShiftMasterEdit = () => {
     const SetSecondhalfcheckOutTime = useCallback((val) => {
         SetSecondhalfcheckout(val)
     }, [])
+
+
+
+    console.log("new Date()", new Date());
+
+
+    const SetcheckOutTime = useCallback((val) => {
+        console.log("jhgfjrdfgjhfgjkjkfgfjkhjfgh");
+
+        setCheckOut(val)
+        const result = subHours(new Date(val), 2)
+        setcheckOutStart(result)
+        const result2 = addHours(new Date(val), 4)
+        console.log("val", val);
+
+        console.log("result2", result2);
+
+        setcheckOutEnd(result2)
+    }, [])
+
+    console.log("checkOutEnd", checkOutEnd);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //FUNCTION TO GET TO TOMORROW DATE
     const nextdate = new Date(new Date(checkOut).setDate(new Date().getDate() + 1));
     const checkoutstartcrossday = new Date(new Date(checkOutStart).setDate(new Date().getDate() + 1));
@@ -160,7 +199,10 @@ const ShiftMasterEdit = () => {
                     second_half_in,
                     second_half_out,
                     night_off_flag,
-                    shft_status
+                    shft_status,
+                    break_shift_status,
+                    noff_min_days,
+                    noff_max_days
                 } = data[0]
 
                 const frmData = {
@@ -171,7 +213,10 @@ const ShiftMasterEdit = () => {
                     earlyincalculation: shft_early_in_criteria,
                     earlyoutcalculation: shft_late_out_criteria,
                     nightoff: night_off_flag === 1 ? true : false,
-                    shift_status: shft_status === 1 ? true : false
+                    shift_status: shft_status === 1 ? true : false,
+                    break_shift_status: break_shift_status === 1 ? true : false,
+                    noff_min_days: parseInt(noff_min_days),
+                    noff_max_days: parseInt(noff_max_days),
                 }
                 setCheckIn(new Date(shft_chkin_time))
                 setCheckOut(new Date(shft_chkout_time))
@@ -250,6 +295,9 @@ const ShiftMasterEdit = () => {
         shift_end_in_min: crossday === '1' ? checkoutminutescrossday : checkoutinminutes,
         night_off_flag: nightoff === false ? 0 : 1,
         shft_status: shift_status === true ? 1 : 0,
+        break_shift_status: break_shift_status === true ? 1 : 0,
+        noff_min_days: parseInt(noff_min_days),
+        noff_max_days: parseInt(noff_max_days),
     }
     // console.log('checkIn')
 
@@ -636,7 +684,7 @@ const ShiftMasterEdit = () => {
                                         </div>
                                     </div>
                                     <div className="row g-1 d-flex justify-content-start">
-                                        <div className="col-md-1 pb-2">
+                                        <div className="col-md-2 pb-2">
                                             <FormControlLabel
                                                 className=""
                                                 control={
@@ -652,7 +700,7 @@ const ShiftMasterEdit = () => {
                                                 label="Night Off"
                                             />
                                         </div>
-                                        <div className="col-md-5 ">
+                                        <div className="col-md-2 ">
                                             <FormControlLabel
                                                 className=""
                                                 control={
@@ -668,6 +716,90 @@ const ShiftMasterEdit = () => {
                                                 label="Shift Status"
                                             />
                                         </div>
+
+                                        <div className="col-md-2 ">
+                                            <FormControlLabel
+                                                className=""
+                                                control={
+                                                    <Checkbox
+                                                        name="break_shift_status"
+                                                        color="secondary"
+                                                        value={break_shift_status}
+                                                        checked={break_shift_status}
+                                                        className="ml-2"
+                                                        onChange={(e) => updateShiftmasterData(e)}
+                                                    />
+                                                }
+                                                label="Break Duty Status"
+                                            />
+                                        </div>
+                                        {nightoff === true ?
+                                            <div className="row g-1">
+                                                <div className="col-md-1">
+                                                    <label className="form-label">
+                                                        Min NOFF Days
+                                                    </label>
+                                                </div>
+                                                <div className="col-md-2">
+                                                    <FormControl
+                                                        fullWidth
+                                                        margin="dense"
+                                                        className="mt-0"
+                                                    >
+                                                        <Select
+                                                            name="noff_min_days"
+                                                            value={noff_min_days}
+                                                            onChange={(e) => updateShiftmasterData(e)}
+                                                            fullWidth
+                                                            variant="outlined"
+                                                            className="ml-1"
+                                                            defaultValue={0}
+                                                            style={{ minHeight: 10, maxHeight: 27, paddingTop: 0, paddingBottom: 4 }}
+                                                        >
+                                                            <MenuItem value='1'>1</MenuItem>
+                                                            <MenuItem value='2'>2</MenuItem>
+                                                            <MenuItem value='3'>3</MenuItem>
+                                                            <MenuItem value='4'>4</MenuItem>
+                                                            <MenuItem value='5'>5</MenuItem>
+                                                            <MenuItem value='6'>6</MenuItem>
+                                                            <MenuItem value='7'>7</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </div>
+                                                <div className="col-md-1">
+                                                    <label className="form-label">
+                                                        Max NOFF Days
+                                                    </label>
+                                                </div>
+                                                <div className="col-md-2" >
+                                                    <FormControl
+                                                        fullWidth
+                                                        margin="dense"
+                                                        className="mt-0"
+                                                    >
+                                                        <Select
+                                                            name="noff_max_days"
+                                                            value={noff_max_days}
+                                                            onChange={(e) => updateShiftmasterData(e)}
+                                                            fullWidth
+                                                            variant="outlined"
+                                                            className="ml-1"
+                                                            defaultValue={0}
+                                                            style={{ minHeight: 10, maxHeight: 27, paddingTop: 0, paddingBottom: 4 }}
+
+                                                        >
+                                                            <MenuItem value='1'>1</MenuItem>
+                                                            <MenuItem value='2'>2</MenuItem>
+                                                            <MenuItem value='3'>3</MenuItem>
+                                                            <MenuItem value='4'>4</MenuItem>
+                                                            <MenuItem value='5'>5</MenuItem>
+                                                            <MenuItem value='6'>6</MenuItem>
+                                                            <MenuItem value='7'>7</MenuItem>
+                                                        </Select>
+                                                    </FormControl>
+                                                </div>
+                                            </div>
+                                            : null}
                                     </div>
                                 </div>
                             </div>
