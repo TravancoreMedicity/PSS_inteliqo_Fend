@@ -7,7 +7,7 @@ import { axioslogin } from 'src/views/Axios/Axios';
 const AttandanceMarkingtotal = ({ data, length, count }) => {
 
     const [dutydatatotal, setdutydatatotal] = useState([])
-    console.log(dutydatatotal)
+    // console.log(dutydatatotal)
 
     useEffect(() => {
         const getattnsdata = async () => {

@@ -193,7 +193,7 @@ const DeptSectionComponent = ({ deptid, deptSection, value }) => {
         }
     }, [nextstage, value, depart, section, em_no])
 
-    console.log(data);
+    // console.log(data);
 
     return (
         <Fragment>
