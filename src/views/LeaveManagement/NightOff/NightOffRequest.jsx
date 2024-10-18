@@ -49,12 +49,9 @@ const NightOffRequest = () => {
             const result2 = await axioslogin.post('/attandancemarking/getnightoffdata', empdata);
             const { success: success2, data: data2 } = result2.data;
             if (success2 === 1) {
-                console.log(data2);
-
                 SetDutyDetails(data2);
             } else {
                 SetDutyDetails([]);
-                console.log(data2);
                 infoNofity("Less Night duties Under Selected Dates,Not Applicable for NOFF")
             }
         }
@@ -121,7 +118,7 @@ const NightOffRequest = () => {
     }, [dispatch, fetchNoffDetails]);
 
     //Common settings
-    const commonState = useSelector((state) => state.getCommonSettings);
+    const commonState = useSelector((state) => state?.getCommonSettings);
     const commonSettings = useMemo(() => commonState, [commonState]);
 
 

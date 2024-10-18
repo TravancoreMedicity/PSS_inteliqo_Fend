@@ -325,8 +325,6 @@ export const getAttendanceCalculation = async (
     second_shift_in,
     second_shift_out
 ) => {
-
-
     const {
         // hrsWorked, 
         lateIn,
@@ -358,18 +356,34 @@ export const getAttendanceCalculation = async (
             const workingHours = differenceInHours(new Date(punch_out), new Date(punch_In)) > 6;
             const halfDayWorkingHour = differenceInHours(new Date(punch_out), new Date(punch_In)) >= 4;
             //  isBeforeHafDayInTime === true ==> punch in time greater than half in time (full day not half day)
+
+            // console.log("earlyOut", earlyOut);
+            // console.log("maximumLateInTime", maximumLateInTime);
+
+
+            // console.log("punch_out", punch_out);
+
+            // console.log(differenceInHours(new Date(punch_out), new Date(punch_In)) >= 4);
+
+            // console.log((earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true && halfDayWorkingHour === true)
+
             if (holidayStatus === 0) {
 
                 // HOLIDAY === NO
-
-                // console.log("earlyOut", earlyOut);
-                // console.log("lateIn", lateIn);
+                // console.log("halfDayWorkingHour", halfDayWorkingHour);
                 // console.log("isBeforeHafDayInTime", isBeforeHafDayInTime);
-                // console.log("maximumLateInTime", maximumLateInTime);
-                // console.log(earlyOut === 0 && (lateIn === 0 || lateIn <= cmmn_grace_period) && isBeforeHafDayInTime === true && shft_duty_day === 2 );
-                // console.log(earlyOut === 0 && (lateIn === 0 || lateIn <= cmmn_grace_period) && isBeforeHafDayInTime === true && shft_duty_day === 2);
 
-                // { out time == 0 minit  ~~ intime <= 30 minits ~~  in time before half day in time === true  } 
+
+                // console.log((earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false && halfDayWorkingHour === false);
+
+                // console.log("halfday", (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && halfDayWorkingHour === true && isBeforeHafDayInTime === true);
+
+                // console.log("check", (earlyOut > 0 && earlyOut <= maximumLateInTime) && lateIn <= maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true);
+
+                // console.log("absent false", (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false && halfDayWorkingHour === false);
+
+                // console.log("absent true", (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false && halfDayWorkingHour === true);
+
                 return earlyOut === 0 && (lateIn === 0 || lateIn <= cmmn_grace_period) && isBeforeHafDayInTime === true && shft_duty_day === 2 ?
                     { duty_status: 2, duty_desc: 'DP', lvereq_desc: 'DP', duty_remark: 'Double Present' } :
 
@@ -390,18 +404,22 @@ export const getAttendanceCalculation = async (
                                     // { out time greater than 0 minit  ~~ early out less than 30 minits ~~ intime lessthan or equal to 30  ~~ intime  and outtime should be before and after half day in time  } 
                                     (earlyOut > 0 && earlyOut <= maximumLateInTime) && lateIn <= maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true ?
                                         { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going Half day' } :
+                                        //completed first half
+                                        (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && halfDayWorkingHour === true ?
+                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'First Half Completed & Early going Half day' } :
 
-                                        // { outtime greater than 0 minit  ~~ early out less than 30 minits ~~ intime greater than 30  ~~ intime  and outtime should be before and after half day in time  } 
-                                        (earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true && halfDayWorkingHour === true ?
-                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'Half day latein and late out' } :
+                                            // { outtime greater than 0 minit  ~~ early out less than 30 minits ~~ intime greater than 30  ~~ intime  and outtime should be before and after half day in time  } 
+                                            (earlyOut > 0 && earlyOut < maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true && halfDayWorkingHour === true ?
+                                                { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'Half day latein and late out' } :
 
-                                            // { outtime greater than 0 minit  ~~ early out greater than 30 minits ~~ intime greater than or equal 30  ~~ intime  and outtime should be before and after half day in time  } 
-                                            (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn <= maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true && halfDayWorkingHour === true ?
-                                                { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going Half day latein and late out' } :
+                                                // { outtime greater than 0 minit  ~~ early out greater than 30 minits ~~ intime greater than or equal 30  ~~ intime  and outtime should be before and after half day in time  } 
+                                                (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn <= maximumLateInTime && isBeforeHafDayInTime === true && isAfterHalfDayOutTime === true && halfDayWorkingHour === true ?
+                                                    { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'Early going Half day latein and late out' } :
 
-                                                (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false ?
-                                                    { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'in and out less tha half day time' } :
-                                                    { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Lose off Pay' }
+                                                    (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false && halfDayWorkingHour === false ?
+                                                        { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'in and out less tha half day time' } :
+                                                        { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Lose off Pay' }
+
 
             } else {
                 // console.log(getLateInTime)
@@ -1145,9 +1163,12 @@ const punchInOutMapping = async (shiftMergedPunchMaster, employeeBasedPunchData)
     const empPunchData = employeeBasedPunchData?.map((e) => new Date(e.punch_time));
 
     const inTimesArray = empPunchData?.filter((e) => (e >= checkInStartTime && e <= checkInEndTime))
-    const outTimeArray = empPunchData?.filter((e) => (e >= checkOutStartTime && e <= checkOutEndTime))
+    // const outTimeArray = empPunchData?.filter((e) => (e >= checkOutStartTime && e <= checkOutEndTime))
+    const outTimeArray = empPunchData?.filter((e) => (e >= checkInEndTime && e <= checkOutEndTime))
+
     const inPunch = min(inTimesArray)
     const outPunch = max(outTimeArray)
+
     return {
         // ...shiftMergedPunchMaster,
         // punch_in: isValid(inPunch) === true ? format(inPunch, 'yyyy-MM-dd HH:mm') : null,

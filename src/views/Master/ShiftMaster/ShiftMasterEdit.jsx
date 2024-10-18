@@ -51,9 +51,6 @@ const ShiftMasterEdit = () => {
     const SetcheckInTime = useCallback((val) => {
         setCheckIn(val)
         const result = subHours(new Date(val), 8)
-
-        console.log("check in time", result);
-
         setcheckInStart(result)
         const result2 = addHours(new Date(val), 4)
         setcheckInEnd(result2)
@@ -132,39 +129,13 @@ const ShiftMasterEdit = () => {
         SetSecondhalfcheckout(val)
     }, [])
 
-
-
-    console.log("new Date()", new Date());
-
-
     const SetcheckOutTime = useCallback((val) => {
-        console.log("jhgfjrdfgjhfgjkjkfgfjkhjfgh");
-
         setCheckOut(val)
         const result = subHours(new Date(val), 2)
         setcheckOutStart(result)
         const result2 = addHours(new Date(val), 4)
-        console.log("val", val);
-
-        console.log("result2", result2);
-
         setcheckOutEnd(result2)
     }, [])
-
-    console.log("checkOutEnd", checkOutEnd);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //FUNCTION TO GET TO TOMORROW DATE
     const nextdate = new Date(new Date(checkOut).setDate(new Date().getDate() + 1));

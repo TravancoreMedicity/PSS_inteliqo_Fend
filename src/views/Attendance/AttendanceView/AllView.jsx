@@ -22,8 +22,6 @@ import { screenInnerHeight } from 'src/views/Constant/Constant';
 const isOdd = (number) => number % 2 !== 0
 
 const AllView = ({ em_id }) => {
-    console.log("AllView");
-
 
     // const history = useHistory();
     const dispatch = useDispatch();
@@ -122,10 +120,6 @@ const AllView = ({ em_id }) => {
                             totaHP: grossSalary <= salary_above ? (empArray?.filter(el => el.lvereq_desc === "HP").length ?? 0) * 2 : (empArray?.filter(el => el.lvereq_desc === "H").length ?? 0),
                         }
                     })
-
-
-                    console.log("resultss", resultss);
-
                     settableArray(resultss)
                     setdaysStr(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.daysAry)
                     setdaysNum(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.dateAray)
