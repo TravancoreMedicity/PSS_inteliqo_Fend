@@ -123,7 +123,14 @@ const Leavemanagement = [
         name: 'Common Request HR View',
         to: '/Home/CommonReqstHrView',
     },
+    {
+        men_slno: 291,
+        component: CNavItem,
+        name: 'Week OFF Present Setting',
+        to: '/Home/WeekOFFPresentMainpage',
+    },
 
 ]
 
 export default Leavemanagement;
+

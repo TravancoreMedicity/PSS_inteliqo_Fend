@@ -995,16 +995,12 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
 
     if (BrkDutyPunches?.length >= 4) {
 
-        // const First_Shift_IN_End_Time = addMinutes(new Date(Brk_First_Shift_IN), cmmn_grace_period)
-
         const First_Shift_IN_End_Times = addHours(new Date(Brk_First_Shift_IN), break_shift_taken_count)
 
 
         const Find_FIRST_IN_Punch = BrkDutyPunches?.filter((e) => e >= StartTime && e <= First_Shift_IN_End_Times)
         const Find_SECOND_OUT_Punch = BrkDutyPunches?.filter((e) => e >= new Date(Brk_Second_Shift_OUT) && e <= EndTime)
 
-        // console.log("First_Shift_IN_End_Times", First_Shift_IN_End_Times);
-        // console.log("Find_FIRST_IN_Punch", Find_FIRST_IN_Punch);
 
         const FIRST_PUNCH = min(Find_FIRST_IN_Punch)
         const FOURTH_PUNCH = max(Find_SECOND_OUT_Punch)
@@ -1025,16 +1021,6 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
         const SECOND_PUNCH = max(Find_FIRST_OUT_Punch)
         const THIRD_PUNCH = min(Find_SECOND_IN_Punch)
 
-
-        // console.log(FIRST_PUNCH);
-        // console.log(SECOND_PUNCH);
-        // console.log(THIRD_PUNCH);
-        // console.log(FOURTH_PUNCH);
-
-
-
-        // console.log(isValid(SECOND_PUNCH) === true ? format(SECOND_PUNCH, 'yyyy-MM-dd HH:mm') : null);
-
         return {
             ...shiftMergedPunchMaster,
             punch_in: null,
@@ -1045,8 +1031,6 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
             shiftInEnd: null,
             shiftOutStart: null,
             shiftOutEnd: null,
-            //break duty
-            //break shift punch
             break_first_punch_in: isValid(FIRST_PUNCH) === true ? format(FIRST_PUNCH, 'yyyy-MM-dd HH:mm') : null,
             break_first_punch_out: isValid(SECOND_PUNCH) === true ? format(SECOND_PUNCH, 'yyyy-MM-dd HH:mm') : null,
             break_second_punch_in: isValid(THIRD_PUNCH) === true ? format(THIRD_PUNCH, 'yyyy-MM-dd HH:mm') : null,
@@ -1056,15 +1040,7 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
             first_shift_out: Brk_First_Shift_OUT,
             second_shift_in: Brk_Second_Shift_IN,
             second_shift_out: Brk_Second_Shift_OUT,
-            // //break intervals
-            // first_in_start_time: FirstInStartTime,
-            // first_in_over_time: FirstInOverTime,
-            // first_out_start_time: FirstEndStartTime,
-            // first_out_over_time: FirstEndOverTime,
-            // second_in_start_time: SecondInStartTime,
-            // second_in_over_time: SecondInOverTime,
-            // second_out_start_time: SecondEndStartTime,
-            // second_out_over_time: SecondEndOverTime,
+
 
         }
     }
@@ -1103,8 +1079,6 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
             shiftInEnd: null,
             shiftOutStart: null,
             shiftOutEnd: null,
-            //break duty
-            //break shift punch
             break_first_punch_in: isValid(FIRST_PUNCH) === true ? format(FIRST_PUNCH, 'yyyy-MM-dd HH:mm') : null,
             break_first_punch_out: isValid(SECOND_PUNCH) === true ? format(SECOND_PUNCH, 'yyyy-MM-dd HH:mm') : null,
             break_second_punch_in: isValid(THIRD_PUNCH) === true ? format(THIRD_PUNCH, 'yyyy-MM-dd HH:mm') : null,
@@ -1113,16 +1087,7 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
             first_shift_in: Brk_First_Shift_IN,
             first_shift_out: Brk_First_Shift_OUT,
             second_shift_in: Brk_Second_Shift_IN,
-            second_shift_out: Brk_Second_Shift_OUT,
-            // //break intervals
-            // first_in_start_time: FirstInStartTime,
-            // first_in_over_time: FirstInOverTime,
-            // first_out_start_time: FirstEndStartTime,
-            // first_out_over_time: FirstEndOverTime,
-            // second_in_start_time: SecondInStartTime,
-            // second_in_over_time: SecondInOverTime,
-            // second_out_start_time: SecondEndStartTime,
-            // second_out_over_time: SecondEndOverTime,
+            second_shift_out: Brk_Second_Shift_OUT
 
         }
     }
@@ -1170,16 +1135,6 @@ const punchInOutMapping = async (shiftMergedPunchMaster, employeeBasedPunchData)
     const outPunch = max(outTimeArray)
 
     return {
-        // ...shiftMergedPunchMaster,
-        // punch_in: isValid(inPunch) === true ? format(inPunch, 'yyyy-MM-dd HH:mm') : null,
-        // punch_out: isValid(outPunch) === true ? format(outPunch, 'yyyy-MM-dd HH:mm') : null,
-        // shift_in: checkInTIme,
-        // shift_out: checkOutTime,
-        // shiftInStart: checkInStartTime,
-        // shiftInEnd: checkInEndTime,
-        // shiftOutStart: checkOutStartTime,
-        // shiftOutEnd: checkOutEndTime
-
         ...shiftMergedPunchMaster,
         punch_in: isValid(inPunch) === true ? format(inPunch, 'yyyy-MM-dd HH:mm') : null,
         punch_out: isValid(outPunch) === true ? format(outPunch, 'yyyy-MM-dd HH:mm') : null,
@@ -1200,15 +1155,6 @@ const punchInOutMapping = async (shiftMergedPunchMaster, employeeBasedPunchData)
         first_shift_out: null,
         second_shift_in: null,
         second_shift_out: null,
-        //break intervals
-        // first_in_start_time: null,
-        // first_in_over_time: null,
-        // first_out_start_time: null,
-        // first_out_over_time: null,
-        // second_in_start_time: null,
-        // second_in_over_time: null,
-        // second_out_start_time: null,
-        // second_out_over_time: null,
     }
 }
 
