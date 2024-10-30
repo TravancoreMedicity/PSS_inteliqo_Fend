@@ -126,7 +126,7 @@ const Leavemanagement = [
     {
         men_slno: 291,
         component: CNavItem,
-        name: 'Week OFF Present Setting',
+        name: 'OFF Request',
         to: '/Home/WeekOFFPresentMainpage',
     },
 
