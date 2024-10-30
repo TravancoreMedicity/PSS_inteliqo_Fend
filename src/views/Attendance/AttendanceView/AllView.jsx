@@ -106,7 +106,8 @@ const AllView = ({ em_id }) => {
                             }),
                             totalDays: dateRange?.length,
                             // totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
-                            totalP: (empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0) * 2 + (empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC" || el.lvereq_desc === "WP").length ?? 0),
+                            // totalP: (empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0) * 2 + (empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC" || el.lvereq_desc === "WP").length ?? 0),
+                            totalP: empArray?.filter(el => el.lvereq_desc === "P" || el.lvereq_desc === "OHP" || el.lvereq_desc === "ODP" || el.lvereq_desc === "LC").length ?? 0,
                             totalWOFF: empArray?.filter(el => el.lvereq_desc === "WOFF").length ?? 0,
                             totalNOFF: empArray?.filter(el => el.lvereq_desc === "NOFF").length ?? 0,
                             totalLC: empArray?.filter(el => el.lvereq_desc === "LC").length ?? 0,
@@ -134,6 +135,7 @@ const AllView = ({ em_id }) => {
         }
     }
 
+    console.log(tableArray);
 
 
     const getColor = (val) => val === 'A' ? '#ff5630' : val === 'ESI' ? '#ff5630' : val === 'LWP' ? '#ff5630' : val === 'LC' ? '#00b8d9' : val === 'EG' ? '#00b8d9' : val === 'HD' ? '#bf7d19' : '#344767'
@@ -279,7 +281,7 @@ const AllView = ({ em_id }) => {
                                     <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                     <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                     <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
-                                    <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
+                                    <th style={{ width: 65, backgroundColor: '#f4f6f8' }} ></th>
                                     <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                 </tr>
                                 <tr>
@@ -380,7 +382,7 @@ const AllView = ({ em_id }) => {
                                             <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
                                             <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
                                             <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>
-                                            <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP}</td>
+                                            <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + row.totaDP + row.totaWP}</td>
                                             <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalDays}</td>
                                         </tr>
                                     </Fragment>
