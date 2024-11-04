@@ -1,8 +1,7 @@
 import { Box, Input, Option, Select, Typography } from '@mui/joy'
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { getCommonSettings } from 'src/redux/reducers/CommonSett.Reducer';
-import { getDepartmentAll, getDepartmentSectionAll, getEmployeeInformationLimited } from 'src/redux/reduxFun/reduxHelperFun';
+import { getCommonSettings, getDepartmentAll, getDepartmentSectionAll, getEmployeeInformationLimited } from 'src/redux/reduxFun/reduxHelperFun';
 import { getDepartmentSectionBasedHod, getEmployeeArraySectionArray } from '../LeavereRequsition/Func/LeaveFunction';
 
 const InchargeHODPage = ({ state, setState }) => {
@@ -19,12 +18,10 @@ const InchargeHODPage = ({ state, setState }) => {
     const [hodEmpFilter, setHodEmpFilter] = useState(false);
     const [empDisableStat, setEmpDisableStat] = useState(false)
 
-
     const department = useSelector((state) => getDepartmentAll(state))
     const departmentNameList = useMemo(() => department, [department])
     const filterDeptSection = useSelector((state) => getDepartmentSectionAll(state))
     const departmentSectionListFilterd = useMemo(() => filterDeptSection, [filterDeptSection])
-
 
     //LOGGED EMPLOYEE INFORMATION
     const empInform = useSelector((state) => getEmployeeInformationLimited(state))
@@ -37,15 +34,14 @@ const InchargeHODPage = ({ state, setState }) => {
         setMasterGroupStatus(groupStatus)
     }, [groupStatus])
 
-
     //GET THE DEPARTMENT SECTION DETAILS BASED ON LOGED USER EM_ID
     useEffect(() => {
         // IF THE LOGGED EMPLOYEE IS HOD OR INCHARGE
-        if (hod === 1 || incharge === 1 && masterGroupStatus === true) {
+        if ((hod === 1 || incharge === 1) && masterGroupStatus === true) {
             setDisables(false)
             setHodBasedSection([])
 
-        } else if (hod === 1 || incharge === 1 && masterGroupStatus === false) {
+        } else if ((hod === 1 || incharge === 1) && masterGroupStatus === false) {
             setDisables(true)
             setDeptID(0)
             const fetchData = async (em_id) => {
