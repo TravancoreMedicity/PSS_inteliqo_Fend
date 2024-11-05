@@ -123,7 +123,32 @@ const MasterPage = () => {
 
                 if (lastUpdateDate === lastDay_month) {
                     warningNofity("Punch Marking Monthly Process Done !! Can't do Dutyplan!!  ")
-                    setOpen(false)
+                    getEmployeeDetlDutyPlanBased(postData).then((emplyDataArray) => {
+                        const { status, data } = emplyDataArray;
+                        if (status === 1) {
+                            dispatch({ type: FETCH_EMP_DETAILS, payload: data });
+                            reduxDispatch(getSectionShift(departmentDetlFrShiftGet));
+                            //process function
+                            dutyPlanInsertFun(planState, commonSettings, holidayList, data, deptShift).then((values) => {
+                                // employee details based on selected dept and dept sec
+                                const { data, status, message, dateFormat } = values;
+                                if (status === 1) {
+                                    reduxDispatch({ type: GET_SHIFT_PLAN_DETL, payload: data, status: false })
+                                    reduxDispatch({ type: GET_SHIFT_DATE_FORMAT, payload: dateFormat, status: false })
+                                    setOpen(false)
+                                } else {
+                                    warningNofity(message)
+                                    setOpen(false)
+                                }
+                            })
+                        } else {
+                            dispatch({ type: FETCH_EMP_DETAILS, payload: [] })
+                            reduxDispatch({ type: GET_SHIFT_PLAN_DETL, payload: [] })
+                            reduxDispatch({ type: GET_SHIFT_DATE_FORMAT, payload: [] })
+                            warningNofity("No Employees Under This Section!")
+                            setOpen(false)
+                        }
+                    })
                 } else {
                     getEmployeeDetlDutyPlanBased(postData).then((emplyDataArray) => {
                         const { status, data } = emplyDataArray;
@@ -146,6 +171,10 @@ const MasterPage = () => {
                             })
                         } else {
                             dispatch({ type: FETCH_EMP_DETAILS, payload: [] })
+                            reduxDispatch({ type: GET_SHIFT_PLAN_DETL, payload: [] })
+                            reduxDispatch({ type: GET_SHIFT_DATE_FORMAT, payload: [] })
+                            warningNofity("No Employees Under This Section!")
+                            setOpen(false)
                         }
                     })
                 }

@@ -61,6 +61,7 @@ export const processPunchMarkingHrFunc = async (
                         shft_chkout_end: sortedShiftData?.shft_chkout_end,
                         shft_cross_day: sortedShiftData?.shft_cross_day,
                         gross_salary: sortedSalaryData?.gross_salary,
+                        shft_duty_day: sortedShiftData?.shft_duty_day,
                         earlyGoingMaxIntervl: cmmn_early_out,
                         gracePeriodInTime: cmmn_grace_period,
                         maximumLateInTime: cmmn_late_in,
