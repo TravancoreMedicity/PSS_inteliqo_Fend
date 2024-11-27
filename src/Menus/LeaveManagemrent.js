@@ -129,6 +129,12 @@ const Leavemanagement = [
         name: 'OFF Request',
         to: '/Home/WeekOFFPresentMainpage',
     },
+    {
+        men_slno: 292,
+        component: CNavItem,
+        name: 'Manual Request',
+        to: '/Home/ManualRequest',
+    },
 
 ]
 
