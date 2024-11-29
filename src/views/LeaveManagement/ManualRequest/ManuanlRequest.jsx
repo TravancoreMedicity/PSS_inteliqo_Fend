@@ -646,4 +646,4 @@ const ManuanlRequest = () => {
     )
 }
 
-export default ManuanlRequest
+export default memo(ManuanlRequest) 
