@@ -1,11 +1,8 @@
 import { Box, Button, CssVarsProvider, Input } from '@mui/joy'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-<<<<<<< HEAD
 import { addMonths, endOfMonth, format, getDaysInMonth, isValid, startOfMonth } from 'date-fns'
-=======
 import { addMonths, eachDayOfInterval, endOfMonth, format, getDaysInMonth, isValid, startOfMonth, subDays } from 'date-fns'
->>>>>>> 2557f3bca0d378a85832bdd115986c97b3441d05
 import React, { memo, useMemo, useState } from 'react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
