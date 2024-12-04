@@ -23,34 +23,39 @@ import CleaningServicesOutlinedIcon from '@mui/icons-material/CleaningServicesOu
 import { memo } from 'react';
 import { Suspense } from 'react';
 import { lazy } from 'react';
-//import { Actiontypes } from 'src/redux/constants/action.type';
 import { useMemo } from 'react';
 import _ from 'underscore'
 import CustomLayout from 'src/views/Component/MuiCustomComponent/CustomLayout';
-import { setCommonSetting } from 'src/redux/actions/Common.Action';
 import { getEmpNameHodSectionBased, getHodBasedDeptSectionName } from 'src/redux/actions/LeaveReqst.action';
 import HodWiseDeptSection from 'src/views/MuiComponents/JoyComponent/HodWiseDeptSection';
 import HodWiseEmpList from 'src/views/MuiComponents/JoyComponent/HodWiseEmpList';
 import JoyCheckbox from 'src/views/MuiComponents/JoyComponent/JoyCheckbox';
 import { processShiftPunchMarkingHrFunc } from '../PunchMarkingHR/punchMarkingHrFunc';
-import { setShiftDetails } from 'src/redux/actions/Shift.Action';
-// const ShiftTableDataRow = lazy(() => import('./ShiftUpdationTblRow'))
+import { getcommonSettings, setShiftDetails } from '../PunchMarkingHR/ReactQueryFun';
+import { useQuery } from 'react-query';
 const TableRows = lazy(() => import('./TableRows'))
 
 const ShiftUpdation = () => {
 
     const dispatch = useDispatch();
     const [openBkDrop, setOpenBkDrop] = useState(false)
-    //const {
-    //FETCH_PUNCH_DATA, 
-    //FETCH_SHIFT_DATA, 
-    // UPDATE_PUNCHMASTER_TABLE } = Actiontypes;
-    // dispatch the department data
-    useEffect(() => {
-        // dispatch(setDepartment());
-        dispatch(setCommonSetting())
-        dispatch(setShiftDetails())
-    }, [dispatch])
+
+    //FOR GET COMMON SETTINGS
+    const { data: commonSettingDatas } = useQuery({
+        queryKey: ['setCommonSettingdata'],
+        queryFn: () => getcommonSettings(),
+    })
+
+    //FOR GET SHIFT DETAILS
+    const { data: shiftDetails } = useQuery({
+        queryKey: ['setShiftDetails'],
+        queryFn: () => setShiftDetails(),
+    })
+
+    const Commonsettings = commonSettingDatas || [];
+
+    const { group_slno, week_off_day, notapplicable_shift, default_shift, noff, noff_selct_day_count } = Commonsettings;
+
 
     //FORM DATA 
     const [value, setValue] = useState(moment(new Date()));
@@ -63,26 +68,17 @@ const ShiftUpdation = () => {
     const [rights, setRights] = useState(0)
     const [department, setDepart] = useState(0)
     const [self, setSelf] = useState(false)
-    const [empSalary, setEmpSalary] = useState([]);
+    // const [empSalary, setEmpSalary] = useState([]);
     const [punchData, setPunchData] = useState([])
 
     const punchDta = useMemo(() => punchData, [punchData])
     const punchMast = useMemo(() => tableArray, [tableArray])
 
     //get the employee details for taking the HOd and Incharge Details
-    const shiftInformation = useSelector((state) => state?.getShiftList?.shiftDetails)
+    // const shiftInformation = useSelector((state) => state?.getShiftList?.shiftDetails)
     const employeeState = useSelector((state) => state.getProfileData.ProfileData, _.isEqual);
     const employeeProfileDetl = useMemo(() => employeeState[0], [employeeState]);
     const { hod, incharge, em_id, em_name, sect_name, dept_name, em_department, em_dept_section } = employeeProfileDetl;
-
-    //DATA SELECTETOR
-    // const empInform = useSelector((state) => state.getEmployeeBasedSection.emp);
-    //const punchMasterDataUpdateData = useSelector((state) => state.fetchupdatedPunchInOutData.puMaData);
-    // const updatedDataPunchInOut = useMemo(() => punchMasterDataUpdateData, [punchMasterDataUpdateData])
-    const state = useSelector((state) => state?.getCommonSettings, _.isEqual)
-    const commonSetting = useMemo(() => state, [state])
-    // console.log(commonSetting)
-    const { group_slno, week_off_day, notapplicable_shift, default_shift, noff } = commonSetting;
 
     useEffect(() => {
         if ((hod === 1 || incharge === 1) && self === false) {
@@ -119,7 +115,6 @@ const ShiftUpdation = () => {
                 setRights(0)
             }
         }
-
         const postData = {
             emid: em_id
         }
@@ -128,27 +123,25 @@ const ShiftUpdation = () => {
     }, [em_id, dispatch, group_slno])
 
 
-    useEffect(() => {
-        const getDept = async (section) => {
-            const result = await axioslogin.get(`/section/${section}`)
-            const { success, data } = result.data
-            if (success === 1) {
-                const { dept_id } = data[0]
-                setDepart(dept_id)
-            } else {
-                setDepart(0)
-            }
-            const getGrossSalaryEmpWise = await axioslogin.get(`/common/getgrossSalaryByEmployeeNo/${section}`);
-            const { su, dataa } = getGrossSalaryEmpWise.data;
-            if (su === 1) setEmpSalary(dataa)
-        }
-        if (section !== 0 && section !== undefined) {
-            getDept(section)
-            //GET GROSS SALARY START
+    // useEffect(() => {
+    //     const getDept = async (section) => {
+    //         const result = await axioslogin.get(`/section/${section}`)
+    //         const { success, data } = result.data
+    //         if (success === 1) {
+    //             const { dept_id } = data[0]
+    //             setDepart(dept_id)
+    //         } else {
+    //             setDepart(0)
+    //         }
+    //         const getGrossSalaryEmpWise = await axioslogin.get(`/common/getgrossSalaryByEmployeeNo/${section}`);
+    //         const { su, dataa } = getGrossSalaryEmpWise.data;
+    //         if (su === 1) setEmpSalary(dataa)
+    //     }
+    //     if (section !== 0 && section !== undefined) {
+    //         getDept(section)
+    //     }
 
-        }
-
-    }, [section, setEmpSalary])
+    // }, [section, setEmpSalary])
 
 
 
@@ -168,56 +161,43 @@ const ShiftUpdation = () => {
                 month: monthStartDate,
                 section: section
             }
-            // console.log(postData);
             const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postData);
             const { success, data } = checkPunchMarkingHr.data
-            // console.log("data", data);
-            // console.log("success", success);
-
             if (success === 0 || success === 1) {
+                // console.log("data", format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd'));
 
                 const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
                 const lastDay_month = format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd')
-                // console.log(lastUpdateDate === lastDay_month);
-                // console.log(lastUpdateDate > lastDay_month);
-                // console.log((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month));
+                // console.log("lastUpdateDate ", (lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month));
+                // console.log("lastDay_month", lastDay_month);
+                // console.log("checking", (lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month));
+
+
 
                 if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
                     warningNofity("Punch Marking Monthly Process Done !! can't do the Process !! ")
                     setDisable(true)
-                    // console.log("ghfgjhfjh");
-
                     /////////////// ONLY FOR DISPLAYING PUNCHMARKING DATA AFTER 
                     const getPunchMast_PostData = {
                         fromDate_punchMaster: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         toDate_punchMaster: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         empList: [emply.em_no]
                     }
-                    // console.log("getPunchMast_PostData", getPunchMast_PostData);
                     const punch_master_data = await axioslogin.post("/attendCal/getPunchMasterDataSectionWise/", getPunchMast_PostData); //GET PUNCH MASTER DATA
                     const { success, planData } = punch_master_data.data;
-                    //console.log("punch_master_data.data", punch_master_data.data);
-
-
-                    // console.log("planData", planData);
                     if (success === 1) {
                         const tb = planData?.map((e) => {
 
-                            const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
+                            const crossDay = shiftDetails?.find((shft) => shft.shft_slno === e.shift_id);
                             const crossDayStat = crossDay?.shft_cross_day ?? 0;
-
-
                             let shiftIn = `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_in), 'HH:mm')}`;
                             let shiftOut = crossDayStat === 0 ? `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}` :
                                 `${format(addDays(new Date(e.duty_day), 1), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}`;
-                            // console.log("shiftIn", shiftIn);
-                            // console.log("shiftOut", shiftOut);
                             // GET THE HOURS WORKED IN MINITS
                             let interVal = intervalToDuration({
                                 start: isValid(new Date(e.punch_in)) ? new Date(e.punch_in) : 0,
                                 end: isValid(new Date(e.punch_out)) ? new Date(e.punch_out) : 0
                             })
-                            // console.log(formatDuration({ hours: interVal.hours, minutes: interVal.minutes }));
                             return {
                                 punch_slno: e.punch_slno,
                                 duty_day: e.duty_day,
@@ -245,24 +225,28 @@ const ShiftUpdation = () => {
                             }
                         })
                         const array = tb.sort((a, b) => new Date(a.duty_day) - new Date(b.duty_day));
+
                         setTableArray(array)
-                        ///////////////////
                     }
                     setOpenBkDrop(false)
                 } else {
-                    // console.log("else part");
-                    // console.log(lastUpdateDate)
                     const today = format(new Date(), 'yyyy-MM-dd');
                     const selectedDate = format(new Date(value), 'yyyy-MM-dd');
                     const todayStatus = selectedDate <= today ? true : false; // selected date less than today date
+                    const startDate = format(startOfMonth(new Date(value)), 'yyyy-MM-dd');
+                    // console.log(todayStatus === true ? format(addDays(lastDayOfMonth(new Date(value)), 1), 'yyyy-MM-dd 23:59:59') : format(addDays(new Date(value), 1), 'yyyy-MM-dd 23:59:59'));
+
                     const postData_getPunchData = {
-                        preFromDate: format(subDays(new Date(lastUpdateDate), 2), 'yyyy-MM-dd 00:00:00'),
+                        // preFromDate: format(subDays(new Date(lastUpdateDate), 2), 'yyyy-MM-dd 00:00:00'),
+                        preFromDate: format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                         preToDate: todayStatus === true ? format(addDays(lastDayOfMonth(new Date(value)), 1), 'yyyy-MM-dd 23:59:59') : format(addDays(new Date(value), 1), 'yyyy-MM-dd 23:59:59'),
                         fromDate: format(new Date(lastUpdateDate), 'yyyy-MM-dd'),
                         toDate: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                        fromDate_dutyPlan: format(new Date(lastUpdateDate), 'yyyy-MM-dd'),
+                        // fromDate_dutyPlan: format(new Date(lastUpdateDate), 'yyyy-MM-dd'),
+                        fromDate_dutyPlan: format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                         toDate_dutyPlan: todayStatus === true ? format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(value), 'yyyy-MM-dd'),
-                        fromDate_punchMaster: format(subDays(new Date(lastUpdateDate), 0), 'yyyy-MM-dd'),
+                        // fromDate_punchMaster: format(subDays(new Date(lastUpdateDate), 0), 'yyyy-MM-dd'),
+                        fromDate_punchMaster: format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                         toDate_punchMaster: todayStatus === true ? format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(value), 'yyyy-MM-dd'),
                         section: section,
                         empList: [emply.em_no],
@@ -270,39 +254,36 @@ const ShiftUpdation = () => {
                         frDate: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         trDate: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
                     }
+                    // console.log("postData_getPunchData", postData_getPunchData);
 
-                    // console.log(postData_getPunchData)
                     // GET PUNCH DATA FROM TABLE START
                     const punch_data = await axioslogin.post("/attendCal/getPunchDataEmCodeWiseDateWise/", postData_getPunchData);
                     const { su, result_data } = punch_data.data;
-                    // console.log("result_data", result_data);
 
-                    // console.log(su, result_data)
                     if (su === 1) {
                         const punchaData = result_data;
+
                         setPunchData(punchaData)
                         const empList = [emply.em_no]
-                        // PUNCH MARKING HR PROCESS START
-                        // console.log(shiftInformation);
+
                         const result = await processShiftPunchMarkingHrFunc(
                             postData_getPunchData,
                             punchaData,
                             empList,
-                            shiftInformation,
-                            commonSetting,
+                            shiftDetails,
+                            Commonsettings,
                             holidayList,
-                            empSalary
+                            value,
                         )
-                        const { status, message, errorMessage, punchMastData } = result;
-                        // console.log("result", result);
+                        // console.log(result);
+
+                        const { status, message, errorMessage, punchMastData } = result ?? {};
 
                         if (status === 1) {
                             const tb = punchMastData?.map((e) => {
-                                const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
+                                const crossDay = shiftDetails?.find((shft) => shft.shft_slno === e.shift_id);
                                 const crossDayStat = crossDay?.shft_cross_day ?? 0;
-                                const breakShiftStatus = crossDay?.break_shift_status;
-
-                                // console.log(e);
+                                // const breakShiftStatus = crossDay?.break_shift_status;
 
                                 let shiftIn = `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_in), 'HH:mm')}`;
                                 let shiftOut = crossDayStat === 0
@@ -314,32 +295,38 @@ const ShiftUpdation = () => {
                                     end: isValid(new Date(e.punch_out)) ? new Date(e.punch_out) : new Date()
                                 });
 
-                                // console.log((isValid(new Date(e.punch_in)) && e.punch_in !== null) && (isValid(new Date(e.punch_out)) && e.punch_out !== null));
 
+                                // function formatMinutesToDaysHoursMinutes(minutes) {
 
+                                //     // Validate if minutes is a non-negative number
+                                //     if (typeof minutes !== 'number' || minutes < 0) {
+                                //         return ' 0';
+                                //     }
 
-                                function formatMinutesToDaysHoursMinutes(minutes) {
+                                //     const days = Math.floor(minutes / (24 * 60));
+                                //     const hours = Math.floor((minutes % (24 * 60)) / 60);
+                                //     const mins = minutes % 60;
 
-                                    // Validate if minutes is a non-negative number
-                                    if (typeof minutes !== 'number' || minutes < 0) {
-                                        return ' 0';
-                                    }
+                                //     if (days <= 0 && hours <= 0 && mins <= 0) {
+                                //         return 0;
+                                //     }
+                                //     else if (days <= 0) {
+                                //         return ` ${hours} hour ${mins} minutes`;
+                                //     }
+                                //     else {
+                                //         return `${days} day ${hours} hour ${mins} minutes`;
+                                //     }
 
-                                    const days = Math.floor(minutes / (24 * 60));
-                                    const hours = Math.floor((minutes % (24 * 60)) / 60);
+                                // }
+                                const formatMinutesToDaysHoursMinutes = (minutes) => {
+                                    if (typeof minutes !== 'number' || minutes < 0) return '0';
+                                    const days = Math.floor(minutes / 1440); // 1440 = 24 * 60
+                                    const hours = Math.floor((minutes % 1440) / 60);
                                     const mins = minutes % 60;
-
-                                    if (days <= 0 && hours <= 0 && mins <= 0) {
-                                        return 0;
-                                    }
-                                    else if (days <= 0) {
-                                        return ` ${hours} hour ${mins} minutes`;
-                                    }
-                                    else {
-                                        return `${days} day ${hours} hour ${mins} minutes`;
-                                    }
-
-                                }
+                                    return days
+                                        ? `${days} day ${hours} hour ${mins} minutes`
+                                        : `${hours} hour ${mins} minutes`;
+                                };
 
                                 // Ensure valid values for hours and minutes
                                 const hoursWorkedInMinutes = (isValid(new Date(e.punch_in)) && e.punch_in !== null) && (isValid(new Date(e.punch_out)) && e.punch_out !== null)
@@ -382,11 +369,9 @@ const ShiftUpdation = () => {
                                     duty_desc: e.duty_desc
                                 };
                             });
-
-
-                            // console.log("tb", tb);
                             const array = tb.sort((a, b) => new Date(a.duty_day) - new Date(b.duty_day));
-                            //console.log("array", array);
+                            // console.log("array", array)
+
                             setTableArray(array)
                             setOpenBkDrop(false)
                             succesNofity('Punch Master Updated Successfully')
@@ -394,7 +379,6 @@ const ShiftUpdation = () => {
                             setOpenBkDrop(false)
                             warningNofity(message, errorMessage)
                         }
-                        // console.log(result)
                     } else {
                         warningNofity("Error getting punch Data From DB")
                         setOpenBkDrop(false)
@@ -408,7 +392,7 @@ const ShiftUpdation = () => {
         }
 
 
-    }, [emply, dept, section, value, shiftInformation, commonSetting, empSalary, default_shift, em_no,
+    }, [emply, dept, section, value, shiftDetails, Commonsettings, default_shift, em_no,
         noff, notapplicable_shift, week_off_day])
     // console.log(tableArray)
     return (

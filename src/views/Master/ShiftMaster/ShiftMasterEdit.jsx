@@ -739,7 +739,7 @@ const ShiftMasterEdit = () => {
                                                 </div>
                                                 <div className="col-md-1">
                                                     <label className="form-label">
-                                                        Max NOFF Days
+                                                        NOFF Count
                                                     </label>
                                                 </div>
                                                 <div className="col-md-2" >
@@ -763,9 +763,9 @@ const ShiftMasterEdit = () => {
                                                             <MenuItem value='2'>2</MenuItem>
                                                             <MenuItem value='3'>3</MenuItem>
                                                             <MenuItem value='4'>4</MenuItem>
-                                                            <MenuItem value='5'>5</MenuItem>
+                                                            {/* <MenuItem value='5'>5</MenuItem>
                                                             <MenuItem value='6'>6</MenuItem>
-                                                            <MenuItem value='7'>7</MenuItem>
+                                                            <MenuItem value='7'>7</MenuItem> */}
                                                         </Select>
                                                     </FormControl>
                                                 </div>

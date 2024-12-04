@@ -111,7 +111,7 @@ const EmployeeCompnt = ({ em_no }) => {
                     totaLWP: empArray?.filter(el => el.lvereq_desc === "LWP").length ?? 0,
                     totaH: empArray?.filter(el => el.lvereq_desc === "H").length ?? 0,
                     totaHP: grossSalary <= salary_above ? (empArray?.filter(el => el.lvereq_desc === "HP").length ?? 0) * 2 : (empArray?.filter(el => el.lvereq_desc === "H").length ?? 0),
-                    totaWP: empArray?.filter(el => el.lvereq_desc === "WP").length ?? 0,
+                    totaWP: (empArray?.filter(el => el.lvereq_desc === "WP").length) * 2 ?? 0,
                     totaDP: empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0,
                 }
             })
@@ -379,7 +379,7 @@ const EmployeeCompnt = ({ em_no }) => {
                                                 <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
                                                 <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
                                                 <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>
-                                                <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + row.totaDP + row.totaWP}</td>
+                                                <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + (row.totaDP * 2) + row.totaWP}</td>
                                                 <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalDays}</td>
                                             </tr>
                                         </Fragment>

@@ -158,7 +158,9 @@ const CommonSettingNew = () => {
                     halfday_time_count: halfday_time_count,
                     punch_taken_hour_count: punch_taken_hour_count,
                 }
-                const obj = JSON.parse(leavetype_multiple)
+                // const obj = JSON.parse(leavetype_multiple)
+                const obj = leavetype_multiple
+
                 setLeaveType(obj === null ? [] : obj)
                 setFormData(frmData)
                 setDefShift(default_shift === null ? 0 : default_shift)
@@ -167,9 +169,13 @@ const CommonSettingNew = () => {
                 setValue(1)
                 setCount(0)
                 setAreartype(areartype === null ? 0 : areartype)
-                const arr = JSON.parse(group_slno)
+                // const arr = JSON.parse(group_slno)
+                const arr = group_slno
+
                 setGroup_Slno(obj === null ? [] : arr)
-                const training = JSON.parse(training_mastergroup)
+                // const training = JSON.parse(training_mastergroup)
+                const training = training_mastergroup
+
                 setTraining_Group_Slno(training === null ? [] : training)
                 setNoff(noff)
                 setEoff(eoff)

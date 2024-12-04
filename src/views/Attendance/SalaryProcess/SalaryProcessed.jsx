@@ -1,7 +1,7 @@
 import { Box, Button, CssVarsProvider, Input } from '@mui/joy'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import { addMonths, endOfMonth, format, getDaysInMonth, isValid, startOfMonth, subDays } from 'date-fns'
+import { addMonths, endOfMonth, format, getDaysInMonth, isValid, startOfMonth } from 'date-fns'
 import React, { memo, useMemo, useState } from 'react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -48,12 +48,12 @@ const SalaryProcessed = () => {
 
 
     const onClickProcess = useCallback(async () => {
-        const monthStartDate = format(subDays(startOfMonth(new Date(value)), 6), 'yyyy-MM-dd');
-        const endOfMonthDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
-        const postDate = {
-            fromDate: monthStartDate,
-            toDate: endOfMonthDate
-        }
+        // const monthStartDate = format(subDays(startOfMonth(new Date(value)), 6), 'yyyy-MM-dd');
+        // const endOfMonthDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
+        // const postDate = {
+        //     fromDate: monthStartDate,
+        //     toDate: endOfMonthDate
+        // }
 
         if (all === true) {
             const deptArray = allDept?.map(val => val.dept_id)
@@ -71,11 +71,17 @@ const SalaryProcessed = () => {
                     from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
                     to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
                 }
+                // console.log("postdata", postdata);
+
                 const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
                 const { success, data } = result.data
+                // console.log("data", data);
+
                 if (success === 1) {
                     const finalDataArry = employeeData?.map((val) => {
                         const empwise = data.filter((value) => value.emp_id === val.em_id)
+                        // console.log("empwise", empwise);
+
 
                         const totalH = (empwise?.filter(val => val.holiday_status === 1)).length
                         const totalLOP = (empwise?.filter(val => val.lvereq_desc === 'A' || val.lvereq_desc === 'ESI' || val.lvereq_desc === 'LWP' || val.lvereq_desc === 'ML')).length
@@ -163,6 +169,8 @@ const SalaryProcessed = () => {
                 }
                 const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
                 const { success, data } = result.data
+                // console.log("data", data);
+
                 if (success === 1) {
                     const finalDataArry = employeeData?.map((val) => {
                         const empwise = data.filter((value) => value.emp_id === val.em_id)
@@ -172,6 +180,10 @@ const SalaryProcessed = () => {
                         const totalLV = (empwise?.filter(val => val.lvereq_desc === 'SL' || val.lvereq_desc === 'CL' || val.lvereq_desc === 'COFF' || val.lvereq_desc === 'EL')).length
                         const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
                         const totalLC = (empwise?.filter(val => val.lvereq_desc === 'LC')).length
+                        const totalWP = (empwise?.filter(val => val.lvereq_desc === 'WP')).length
+                        const totalDP = (empwise?.filter(val => val.lvereq_desc === 'DP')).length
+
+
 
                         const deductValue = (deductData?.filter(item => val.em_no === item.em_no).reduce((acc, curr) => acc + (curr.em_amount), 0));
 
@@ -193,13 +205,15 @@ const SalaryProcessed = () => {
                                 val.lvereq_desc === 'H' || val.lvereq_desc === 'OHP' ||
                                 val.lvereq_desc === 'ODP')).length
 
-                        const totalHP = (empwise?.filter(val => val.lvereq_desc === 'HP')).length
+                        const totalHP = (empwise?.filter(val => val.lvereq_desc === 'HP' || val.lvereq_desc === 'DP' || val.lvereq_desc === 'WP')).length
 
                         const totalDays = getDaysInMonth(new Date(value))
                         const holidaysalary = val.gross_salary <= commonSettings.salary_above ? onedaySalary * totalHP : 0
                         const totalPayday = workday === 0 ? 0 : (totalDays + totalHP) - totallopCount
                         const paydaySalay = (val.gross_salary / totalDays) * totalPayday
                         const totalSalary = paydaySalay + holidaysalary - npsamount - lwfamount
+
+                        // console.log("totalSalary", totalSalary);
 
                         return {
                             em_no: val.em_no,
@@ -225,8 +239,12 @@ const SalaryProcessed = () => {
                             holidaySalary: Math.round(holidaysalary / 10) * 10,
                             deductValue: deductValue,
                             totalSalary: Math.round(totalSalary / 10) * 10,
+                            totalWP: totalWP,
+                            totalDP: totalDP
                         }
                     })
+                    // console.log("finalDataArry", finalDataArry);
+
                     setArray(finalDataArry)
                 } else {
                     warningNofity("No Punch Details or Not a Valid date")
@@ -284,6 +302,8 @@ const SalaryProcessed = () => {
         { headerName: 'Holiday Worked ', field: 'holidayworked' },
         // { headerName: 'LOP Days ', field: 'lopDays' },
         { headerName: 'No Of Half Day LOP(HD)', field: 'totalHD', minWidth: 250 },
+        { headerName: 'No Of DP Count', field: 'totalDP' },
+        { headerName: 'No Of WP Count', field: 'totalWP' },
         { headerName: 'No Of LC Count', field: 'totalLC' },
         { headerName: 'Total LOP', field: 'totallopCount' },
         { headerName: 'Total Pay Day', field: 'paydays' },

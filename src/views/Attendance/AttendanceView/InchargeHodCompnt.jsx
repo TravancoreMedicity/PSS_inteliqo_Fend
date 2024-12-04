@@ -25,6 +25,7 @@ const isOdd = (number) => number % 2 !== 0
 
 const InchargeHodCompnt = ({ em_id, em_no }) => {
 
+
     const empid = useMemo(() => em_id, [em_id])
     const [value, setValue] = useState(moment(new Date()));
     const [deptSection, setDeptSection] = useState(0)
@@ -125,6 +126,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                             totaDP: empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0,
                         }
                     })
+
                     settableArray(resultss)
                     setdaysStr(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.daysAry)
                     setdaysNum(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.dateAray)
@@ -204,6 +206,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                     totaDP: empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0,
                 }
             })
+
             settableArray(resultss)
             setdaysStr(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.daysAry)
             setdaysNum(resultss?.filter(e => e.dateAray)?.find(e => e.dateAray)?.dateAray)
@@ -469,7 +472,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>
-                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + row.totaDP + row.totaWP}</td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + (row.totaDP * 2) + row.totaWP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalDays}</td>
                                                     </tr>
                                                 </Fragment>
@@ -706,7 +709,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>
-                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + row.totaDP + row.totaWP}</td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + (row.totaDP * 2) + row.totaWP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalDays}</td>
                                                     </tr>
                                                 </Fragment>

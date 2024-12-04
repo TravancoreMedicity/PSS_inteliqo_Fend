@@ -715,7 +715,7 @@ const ShiftMaster = () => {
                                             </div>
                                             <div className="col-md-1">
                                                 <label className="form-label">
-                                                    Max NOFF Days
+                                                    NOFF Count
                                                 </label>
                                             </div>
                                             <div className="col-md-2" >
@@ -734,14 +734,14 @@ const ShiftMaster = () => {
                                                         defaultValue={0}
                                                         style={{ minHeight: 10, maxHeight: 27, paddingTop: 0, paddingBottom: 4 }}
                                                     >
-                                                        <MenuItem value='0'>Max</MenuItem>
+                                                        <MenuItem value='0'>count</MenuItem>
                                                         <MenuItem value='1'>1</MenuItem>
                                                         <MenuItem value='2'>2</MenuItem>
                                                         <MenuItem value='3'>3</MenuItem>
                                                         <MenuItem value='4'>4</MenuItem>
-                                                        <MenuItem value='5'>5</MenuItem>
+                                                        {/* <MenuItem value='5'>5</MenuItem>
                                                         <MenuItem value='6'>6</MenuItem>
-                                                        <MenuItem value='7'>7</MenuItem>
+                                                        <MenuItem value='7'>7</MenuItem> */}
                                                     </Select>
                                                 </FormControl>
                                             </div>

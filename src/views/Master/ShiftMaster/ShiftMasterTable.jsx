@@ -48,7 +48,7 @@ const ShiftMasterTable = ({ update }) => {
             }
         },
         {
-            title: 'NOFF Max Days', field: 'noff_max_days', cellStyle: {
+            title: 'NOFF Count', field: 'noff_max_days', cellStyle: {
                 minWidth: 1,
                 maxWidth: 2
             }
