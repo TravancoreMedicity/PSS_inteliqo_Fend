@@ -47,6 +47,7 @@ export const hr_report_third = [
     { to: '/Home/TrainingCompletionEmpReport', name: 'Department wise Training Completion Report', slno: 268 },
     { to: '/Home/TrainingPendingReport', name: 'Department Training Pending Report', slno: 266 },
     { to: '/Home/AttendenceReports', name: 'Attendence Reports', slno: 283 },
+    { to: '/Home/ManualRequestReport', name: 'Manual Request Reports', slno: 293 },
 
 
 ]

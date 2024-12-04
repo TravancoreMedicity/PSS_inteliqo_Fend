@@ -1,7 +1,11 @@
 import { Box, Button, CssVarsProvider, Input } from '@mui/joy'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
+<<<<<<< HEAD
 import { addMonths, endOfMonth, format, getDaysInMonth, isValid, startOfMonth } from 'date-fns'
+=======
+import { addMonths, eachDayOfInterval, endOfMonth, format, getDaysInMonth, isValid, startOfMonth, subDays } from 'date-fns'
+>>>>>>> 2557f3bca0d378a85832bdd115986c97b3441d05
 import React, { memo, useMemo, useState } from 'react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -19,6 +23,10 @@ import { Paper } from '@mui/material'
 import SalaryReportAgGrid from 'src/views/Component/SalaryReportAgGrid'
 import { setDeptWiseSection } from 'src/redux/actions/DepartmentSection.Action'
 import { setDept } from 'src/redux/actions/Dept.Action'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import { DeptWiseAttendanceViewFun } from '../AttendanceView/Functions'
+import { getHolidayList } from 'src/redux/actions/LeaveProcess.action'
+import { ExporttoExcel } from 'src/views/HrReports/DayWiseAttendence/ExportToExcel'
 
 const SalaryProcessed = () => {
 
@@ -29,12 +37,14 @@ const SalaryProcessed = () => {
     const [deptSection, setDeptSection] = useState(0)
     const [all, setAll] = useState(false)
     const [mainArray, setArray] = useState([])
+    const [processBtn, setProcessBtn] = useState(false)
 
     useEffect(() => {
         dispatch(setDepartment());
         dispatch(setDeptWiseSection());
         dispatch(setCommonSetting());
         dispatch(setDept())
+        dispatch(getHolidayList());
     }, [dispatch])
 
 
@@ -45,16 +55,12 @@ const SalaryProcessed = () => {
     const departments = useSelector((state) => state?.getdept?.departmentlist)
     const allDept = useMemo(() => departments, [departments])
     const allSection = useMemo(() => deptSect, [deptSect])
+    const holiday = useSelector((state) => state.getHolidayList);
+    const holidayList = useMemo(() => holiday, [holiday]);
 
 
     const onClickProcess = useCallback(async () => {
-        // const monthStartDate = format(subDays(startOfMonth(new Date(value)), 6), 'yyyy-MM-dd');
-        // const endOfMonthDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
-        // const postDate = {
-        //     fromDate: monthStartDate,
-        //     toDate: endOfMonthDate
-        // }
-
+        setProcessBtn(true)
         if (all === true) {
             const deptArray = allDept?.map(val => val.dept_id)
             const sectArray = allSection?.map(val => val.sect_id)
@@ -315,7 +321,196 @@ const SalaryProcessed = () => {
         { headerName: 'Total Salary', field: 'totalSalary' },
     ])
 
+    const downloadFormat = useCallback(async () => {
+        console.log(processBtn);
+        if (processBtn === false) {
+            warningNofity("Please Select Any Option!!")
+        }
+        else if (processBtn === true && all === true) {
+            const deptArray = allDept?.map(val => val.dept_id)
+            const sectArray = allSection?.map(val => val.sect_id)
+            const getEmpData = {
+                em_department: deptArray,
+                em_dept_section: sectArray,
+            }
+            const result1 = await axioslogin.post("/payrollprocess/getAllEmployee", getEmpData);
+            const { succes, dataa: employeeData } = result1.data
+            if (succes === 1 && isValid(value) && value !== null) {
 
+                // const result1 = await axioslogin.post("/payrollprocess/empDeduction", getEmpData)
+                // const { data: deductData } = result1.data
+
+                const arr = employeeData?.map((val) => val.em_no)
+                const postdata = {
+                    em_no: arr,
+                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
+                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
+                }
+                const result = await axioslogin.post("/payrollprocess/getPunchmastData", postdata);
+                const { success, data: punchMasteData } = result.data
+                if (success === 1) {
+
+                    const dateRange = eachDayOfInterval({ start: new Date(startOfMonth(new Date(value))), end: new Date(endOfMonth(new Date(value))) })
+                        ?.map(e => format(new Date(e), 'yyyy-MM-dd'));
+
+                    const resultss = [...new Set(punchMasteData?.map(e => e.em_no))]?.map((el) => {
+                        // console.log(el);
+                        const empArray = punchMasteData?.filter(e => e.em_no === el)
+                        let emName = empArray?.find(e => e.em_no === el).em_name;
+                        let emNo = empArray?.find(e => e.em_no === el).em_no;
+                        let emId = empArray?.find(e => e.em_no === el).emp_id;
+                        let deptName = empArray?.find(e => e.em_no === el).dept_name;
+                        let sectName = empArray?.find(e => e.em_no === el).sect_name;
+
+                        // console.log(dateRange)
+                        // console.log(grossSalary)
+                        return {
+                            em_no: el,
+                            em_name: emName,
+                            dept_name: deptName,
+                            sect_name: sectName,
+                            arr: dateRange?.map((e) => {
+                                // console.log(e)
+                                return {
+                                    attDate: e,
+                                    duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
+                                    duty_status: empArray?.find(em => em.duty_day === e)?.duty_status ?? 0,
+                                    em_name: empArray?.find(em => em.duty_day === e)?.em_name ?? emName,
+                                    em_no: empArray?.find(em => em.duty_day === e)?.em_no ?? emNo,
+                                    emp_id: empArray?.find(em => em.duty_day === e)?.emp_id ?? emId,
+                                    hld_desc: empArray?.find(em => em.duty_day === e)?.hld_desc ?? null,
+                                    holiday_slno: empArray?.find(em => em.duty_day === e)?.holiday_slno ?? 0,
+                                    holiday_status: empArray?.find(em => em.duty_day === e)?.holiday_status ?? 0,
+                                    leave_status: empArray?.find(em => em.duty_day === e)?.leave_status ?? 0,
+                                    duty_desc: empArray?.find(em => em.duty_day === e)?.duty_desc ?? 'A',
+                                    lvereq_desc: empArray?.find(em => em.duty_day === e)?.lvereq_desc ?? 'A',
+                                }
+                            }),
+                        }
+                    })
+
+                    DeptWiseAttendanceViewFun(format(startOfMonth(new Date(value)), 'yyyy-MM-dd'), holidayList).then((values) => {
+                        const fileName = "Attendance_Report";
+                        const headers = ["Name", "Emp Id", "Department", "Department Section", ...values.map(val => val.date)];
+                        const days = ["Days", "", "", "", ...values.map(val => val.holiday === 1 ? val.holidayDays.toLowerCase() : val.days)];
+                        // Rows for Excel file
+                        const rows = resultss.map(row => {
+                            const rowData = [
+                                row.em_name,
+                                row.em_no,
+                                row.dept_name,
+                                row.sect_name,
+                                ...row.arr.map(val => val.lvereq_desc)
+                            ];
+                            return rowData;
+                        });
+
+                        // Prepare data for Excel export
+                        const excelData = [headers, days, ...rows];
+
+                        // Call ExporttoExcel function
+                        ExporttoExcel(excelData, fileName);
+
+                    })
+                } else {
+                    warningNofity("No Punch Details or Not a Valid date")
+                }
+            } else {
+                warningNofity("Error While Fetching data!")
+            }
+
+        } else {
+            const getEmpData = {
+                em_department: dept,
+                em_dept_section: deptSection,
+            }
+            const result1 = await axioslogin.post("/payrollprocess/getEmpNoDeptWise", getEmpData);
+            const { succes, dataa: employeeData } = result1.data
+            if (succes === 1 && isValid(value) && value !== null) {
+
+
+                const arr = employeeData?.map((val) => val.em_no)
+                const postdata = {
+                    em_no: arr,
+                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
+                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
+                }
+                const result = await axioslogin.post("/payrollprocess/getPunchmastData", postdata);
+                const { success, data: punchMasteData } = result.data
+                if (success === 1) {
+
+                    const dateRange = eachDayOfInterval({ start: new Date(startOfMonth(new Date(value))), end: new Date(endOfMonth(new Date(value))) })
+                        ?.map(e => format(new Date(e), 'yyyy-MM-dd'));
+
+                    const resultss = [...new Set(punchMasteData?.map(e => e.em_no))]?.map((el) => {
+                        // console.log(el);
+                        const empArray = punchMasteData?.filter(e => e.em_no === el)
+                        let emName = empArray?.find(e => e.em_no === el).em_name;
+                        let emNo = empArray?.find(e => e.em_no === el).em_no;
+                        let emId = empArray?.find(e => e.em_no === el).emp_id;
+                        let deptName = empArray?.find(e => e.em_no === el).dept_name;
+                        let sectName = empArray?.find(e => e.em_no === el).sect_name;
+
+                        // console.log(dateRange)
+                        // console.log(grossSalary)
+                        return {
+                            em_no: el,
+                            em_name: emName,
+                            dept_name: deptName,
+                            sect_name: sectName,
+                            arr: dateRange?.map((e) => {
+                                // console.log(e)
+                                return {
+                                    attDate: e,
+                                    duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
+                                    duty_status: empArray?.find(em => em.duty_day === e)?.duty_status ?? 0,
+                                    em_name: empArray?.find(em => em.duty_day === e)?.em_name ?? emName,
+                                    em_no: empArray?.find(em => em.duty_day === e)?.em_no ?? emNo,
+                                    emp_id: empArray?.find(em => em.duty_day === e)?.emp_id ?? emId,
+                                    hld_desc: empArray?.find(em => em.duty_day === e)?.hld_desc ?? null,
+                                    holiday_slno: empArray?.find(em => em.duty_day === e)?.holiday_slno ?? 0,
+                                    holiday_status: empArray?.find(em => em.duty_day === e)?.holiday_status ?? 0,
+                                    leave_status: empArray?.find(em => em.duty_day === e)?.leave_status ?? 0,
+                                    duty_desc: empArray?.find(em => em.duty_day === e)?.duty_desc ?? 'A',
+                                    lvereq_desc: empArray?.find(em => em.duty_day === e)?.lvereq_desc ?? 'A',
+                                }
+                            }),
+                        }
+                    })
+
+
+
+                    DeptWiseAttendanceViewFun(format(startOfMonth(new Date(value)), 'yyyy-MM-dd'), holidayList).then((values) => {
+                        const fileName = "Attendance_Report";
+                        const headers = ["Name", "Emp Id", "Department", "Department Section", ...values.map(val => val.date)];
+                        const days = ["Days", "", "", "", ...values.map(val => val.holiday === 1 ? val.holidayDays.toLowerCase() : val.days)];
+                        // Rows for Excel file
+                        const rows = resultss.map(row => {
+                            const rowData = [
+                                row.em_name,
+                                row.em_no,
+                                row.dept_name,
+                                row.sect_name,
+                                ...row.arr.map(val => val.lvereq_desc)
+                            ];
+                            return rowData;
+                        });
+
+                        // Prepare data for Excel export
+                        const excelData = [headers, days, ...rows];
+
+                        // Call ExporttoExcel function
+                        ExporttoExcel(excelData, fileName);
+
+                    })
+                } else {
+                    warningNofity("No Punch Details or Not a Valid date")
+                }
+            } else {
+                warningNofity("No Employee Under this Department || Department Section")
+            }
+        }
+    }, [value, all, dept, deptSection, allDept, allSection, processBtn, holidayList])
 
 
     return (
@@ -366,6 +561,20 @@ const SalaryProcessed = () => {
                                 startDecorator={<RotateRightIcon />}
                                 endDecorator={'Process'}
                                 onClick={onClickProcess}
+                            >
+
+                            </Button>
+                        </CssVarsProvider>
+                    </Box>
+                    <Box sx={{ px: 1, display: 'flex', flex: { xs: 0, sm: 0, md: 0, lg: 0, xl: 1, }, justifyContent: 'flex-start' }} >
+                        <CssVarsProvider>
+                            <Button aria-label="Like" variant="outlined" color='primary'
+                                sx={{
+                                    // color: '#90caf9'
+                                }}
+                                startDecorator={<ArrowDownwardIcon />}
+                                endDecorator={'Download Attendance Format'}
+                                onClick={downloadFormat}
                             >
 
                             </Button>

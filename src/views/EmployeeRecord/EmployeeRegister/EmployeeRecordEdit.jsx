@@ -8,7 +8,6 @@ import {
     errorNofity,
     infoNofity,
     succesNofity,
-    warningNofity,
 } from 'src/views/CommonCode/Commonfunc'
 import { ToastContainer } from 'react-toastify'
 import CustomLayout from 'src/views/Component/MuiCustomComponent/CustomLayout'
@@ -29,7 +28,7 @@ import JoyCategorySelect from 'src/views/MuiComponents/JoyComponent/JoyCategoryS
 import JoyCheckbox from 'src/views/MuiComponents/JoyComponent/JoyCheckbox'
 import JoyGradeSelect from 'src/views/MuiComponents/JoyComponent/JoyGradeSelect'
 import JoyDoctorTypeSelect from 'src/views/MuiComponents/JoyComponent/JoyDoctorTypeSelect'
-import { addDays, addYears, endOfMonth, isBefore } from 'date-fns'
+import { addDays, addYears, endOfMonth } from 'date-fns'
 import CloseIcon from '@mui/icons-material/Close';
 import JoyDepartment from 'src/views/MuiComponents/JoyComponent/JoyDepartment'
 import JoyDepartmentSection from 'src/views/MuiComponents/JoyComponent/JoyDepartmentSection'
@@ -335,94 +334,94 @@ const EmployeeRecordEdit = () => {
     }, [])
 
 
-    const submitemployeerecord = useCallback(() => {
+    const submitemployeerecord = useCallback(async () => {
 
-        const probdate = moment(oldprob_end_date).format('YYYY-MM-DD');
-        const cont_date = moment(old_cont_end_date).format('YYYY-MM-DD');
+        // const probdate = moment(oldprob_end_date).format('YYYY-MM-DD');
+        // const cont_date = moment(old_cont_end_date).format('YYYY-MM-DD');
 
-        const updateContractEmp = async (submitdata) => {
-            const result = await axioslogin.patch('/empmast/empregister/Edit', submitdata);
-            const { success, message } = result.data;
+        // const updateContractEmp = async (submitdata) => {
+        //     const result = await axioslogin.patch('/empmast/empregister/Edit', submitdata);
+        //     const { success, message } = result.data;
+        //     if (success === 1) {
+        //         const result = await axioslogin.get(`/empmast/${id}`)
+        //         const { success } = result.data
+        //         if (success === 1) {
+        //             const postContractDetl = {
+        //                 em_id: no,
+        //                 em_no: id,
+        //                 em_cont_start: dateofjoining,
+        //                 em_cont_end: moment(endOfMonth(new Date(cont_perioddate))).format('YYYY-MM-DD'),
+        //                 em_prob_end_date: moment(endOfMonth(new Date(probationendDate))).format('YYYY-MM-DD'),
+        //                 em_conf_end_date: moment(cont_gracedate).format('YYYY-MM-DD'),
+        //                 status: contractflag === 1 ? 0 : 1
+        //             }
+        //             const result = await axioslogin.post('/empmast/createContract', postContractDetl)
+        //             const { success, message } = result.data
+        //             if (success === 1) {
+        //                 succesNofity("Data Updated Successfully!")
+        //                 history.push('/Home/EmployeeRecord')
+        //                 clearForm()
+        //             }
+        //             else {
+        //                 warningNofity(message)
+        //             }
+        //         }
+        //         else {
+        //             errorNofity("Error Occured!!Please Contact EDP")
+        //         }
+        //     } else if (success === 0) {
+        //         infoNofity(message.sqlMessage)
+        //     } else if (success === 2) {
+        //         infoNofity(message)
+        //     }
+        //     else {
+        //         infoNofity(message)
+        //     }
+        // }
+
+        // const updateFunction = async (submitdata) => {
+        const result = await axioslogin.patch('/empmast/empregister/Edit', submitdata);
+        const { success, message } = result.data;
+        if (success === 1) {
+            const result = await axioslogin.get(`/empmast/${id}`)
+            const { success, message } = result.data
             if (success === 1) {
-                const result = await axioslogin.get(`/empmast/${id}`)
-                const { success } = result.data
-                if (success === 1) {
-                    const postContractDetl = {
-                        em_id: no,
-                        em_no: id,
-                        em_cont_start: dateofjoining,
-                        em_cont_end: moment(endOfMonth(new Date(cont_perioddate))).format('YYYY-MM-DD'),
-                        em_prob_end_date: moment(endOfMonth(new Date(probationendDate))).format('YYYY-MM-DD'),
-                        em_conf_end_date: moment(cont_gracedate).format('YYYY-MM-DD'),
-                        status: contractflag === 1 ? 0 : 1
-                    }
-                    const result = await axioslogin.post('/empmast/createContract', postContractDetl)
-                    const { success, message } = result.data
-                    if (success === 1) {
-                        succesNofity("Data Updated Successfully!")
-                        history.push('/Home/EmployeeRecord')
-                        clearForm()
-                    }
-                    else {
-                        warningNofity(message)
-                    }
-                }
-                else {
-                    errorNofity("Error Occured!!Please Contact EDP")
-                }
-            } else if (success === 0) {
-                infoNofity(message.sqlMessage)
-            } else if (success === 2) {
-                infoNofity(message)
+                succesNofity(message)
+                clearForm()
+                succesNofity("Data Updated Successfully!")
+                history.push('/Home/EmployeeRecord')
             }
             else {
-                infoNofity(message)
+                errorNofity("Error Occured!!Please Contact EDP")
             }
+        } else if (success === 0) {
+            infoNofity(message.sqlMessage)
+        } else if (success === 2) {
+            infoNofity(message)
         }
-
-        const updateFunction = async (submitdata) => {
-            const result = await axioslogin.patch('/empmast/empregister/Edit', submitdata);
-            const { success, message } = result.data;
-            if (success === 1) {
-                const result = await axioslogin.get(`/empmast/${id}`)
-                const { success, message } = result.data
-                if (success === 1) {
-                    succesNofity(message)
-                    clearForm()
-                    succesNofity("Data Updated Successfully!")
-                    history.push('/Home/EmployeeRecord')
-                }
-                else {
-                    errorNofity("Error Occured!!Please Contact EDP")
-                }
-            } else if (success === 0) {
-                infoNofity(message.sqlMessage)
-            } else if (success === 2) {
-                infoNofity(message)
-            }
-            else {
-                infoNofity(message)
-            }
+        else {
+            infoNofity(message)
         }
-        if (contractflag === 1) {
-            // updateContractEmp(submitdata)
+        //}
+        // if (contractflag === 1) {
+        //     console.log("cvbv");
+        // updateContractEmp(submitdata)
 
-            if (isBefore(new Date(cont_date), new Date()) && cont_date !== '2000-01-31') {
-                infoNofity("Employee Contract Date Already Exceeded, You Can Edit This Employee Through Contract Renewal Process!")
-            } else {
-                updateContractEmp(submitdata)
-            }
-        } else {
-            if (isBefore(new Date(probdate), new Date()) && probdate !== '2000-01-31') {
-                infoNofity("Employee Probation date already Exceeded!!You Can Edit This Employee Through Company Information!")
-            } else {
-                updateFunction(submitdata)
-            }
+        // if (isBefore(new Date(cont_date), new Date()) && cont_date !== '2000-01-31') {
+        //     infoNofity("Employee Contract Date Already Exceeded, You Can Edit This Employee Through Contract Renewal Process!")
+        // } else {
+        //     updateContractEmp(submitdata)
+        // }
+        // } else {
+        //     console.log("bm ,");
+        // if (isBefore(new Date(probdate), new Date()) && probdate !== '2000-01-31') {
+        //     infoNofity("Employee Probation date already Exceeded!!You Can Edit This Employee Through Company Information!")
+        // } else {
+        //     updateFunction(submitdata)
+        // }
 
-        }
-    }, [submitdata, oldprob_end_date, old_cont_end_date, id, clearForm,
-        cont_gracedate, cont_perioddate,
-        contractflag, dateofjoining, no, probationendDate, history])
+        // }
+    }, [submitdata, id, clearForm, history])
 
     return (
         <>

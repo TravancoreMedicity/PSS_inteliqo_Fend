@@ -48,9 +48,9 @@ export const processPunchMarkingHrFunc = async (
     //     if (success === 1 && planData?.length > 0) {
 
 
+
     try {
         // Step 1: Fetch Duty Plan Data
-
         const getDutyPlan = await axioslogin.post("/attendCal/getDutyPlanBySection/", postData_getPunchData);
         const { successStatus, PunchMastDutyPlanDatas } = getDutyPlan.data;
 

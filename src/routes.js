@@ -65,7 +65,7 @@ const EmployeeDocumentChecklist = React.lazy(() => import('./views/EmployeeRecor
 //const VaccinationInformation = React.lazy(() => import('./views/EmployeeRecord/EmployeeFile/VaccinationInformation'))
 const FineorDeduction = React.lazy(() => import('./views/EmployeeRecord/EmployeeFile/FineorDeduction'))
 // const EmployeeEndofService = React.lazy(() => import('./views/EmployeeRecord/EmployeeFile/EmployeeEndofService'))
-const DesignationMastTableEdit = React.lazy(() => import('./views/Master/Designation/DesignationMastTableEdit'))
+//const DesignationMastTableEdit = React.lazy(() => import('./views/Master/Designation/DesignationMastTableEdit'))
 const DesignationTypeedit = React.lazy(() => import('./views/Master/DesignationType/DesignationTypeTableedit'))
 const EmpAllowanceTableEdit = React.lazy(() => import('./views/EmployeeRecord/EmployeeFile/EmployeeFileEdit/EmpAllowanceTableEdit'))
 const ShiftMaster = React.lazy(() => import('./views/Master/ShiftMaster/ShiftMaster'))
@@ -285,6 +285,8 @@ const CompensatoryRequest = React.lazy(() => import('./views/LeaveManagement/Com
 const AttendenceReports = React.lazy(() => import('./views/HrReports/AttendenceReport/AttendenceReport'))
 const DayWiseAttendenceReports = React.lazy(() => import('./views/HrReports/DayWiseAttendence/DayWiseAttendence'))
 const WeekOFFPresentMainpage = React.lazy(() => import('./views/LeaveManagement/WeakOFFPresentSetting/WeekOFFPresentMainpage'))
+const ManualRequest = React.lazy(() => import('./views/LeaveManagement/ManualRequest/ManuanlRequest'))
+const ManualRequestReport = React.lazy(() => import('./views/HrReports/ManualRequestReport/ManualReqstReport'))
 
 
 const routes = [
@@ -350,7 +352,7 @@ const routes = [
   //{ path: '/Home/VaccinationInformation/:id', exact: true, name: 'Vaccination Information', component: VaccinationInformation },
   { path: '/Home/FineorDeduction/:id/:no', exact: true, name: 'Fine or Other Deduction', component: FineorDeduction },
   // { path: '/Home/EmployeeEndofService/:id', exact: true, name: 'End of service', component: EmployeeEndofService },
-  { path: '/Home/DesignationMastTableEdit/:id', exact: true, name: 'Designation master Table Edit', component: DesignationMastTableEdit },
+  //{ path: '/Home/DesignationMastTableEdit/:id', exact: true, name: 'Designation master Table Edit', component: DesignationMastTableEdit },
   { path: '/Home/DesignationTypeedit/:id', exact: true, name: 'Branch Master Table Edit', component: DesignationTypeedit },
   { path: '/Home/EmpAllowanceTableEdit/:slno/:id/:no', exact: true, name: 'Employee Allowance Table Edit ', component: EmpAllowanceTableEdit },
   { path: '/Home/ShiftMaster', exact: true, name: 'ShiftMaster', component: ShiftMaster },
@@ -563,7 +565,8 @@ const routes = [
   { path: '/Home/AttendenceReports', exact: true, name: 'Attendence Reports', component: AttendenceReports },
   { path: '/Home/DayWiseAttendence', exact: true, name: 'Day Wise Attendence Reports', component: DayWiseAttendenceReports },
   { path: '/Home/WeekOFFPresentMainpage', exact: true, name: 'Week OFF Present Setting', component: WeekOFFPresentMainpage },
-
+  { path: '/Home/ManualRequest', exact: true, name: 'Manual Request', component: ManualRequest },
+  { path: '/Home/ManualRequestReport', exact: true, name: 'Manual Request Report', component: ManualRequestReport },
 ]
 
 export default routes
