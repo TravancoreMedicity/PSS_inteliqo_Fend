@@ -25,7 +25,7 @@ export const processPunchMarkingHrFunc = async (
         holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
         weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT
         weekoff_policy_min_count,
-        noff_selct_day_count
+        noff_selct_day_count, dayoff
     } = commonSettings; //COMMON SETTING
 
     //GET DUTY PLAN AND CHECK DUTY PLAN IS EXCIST OR NOT
@@ -106,6 +106,7 @@ export const processPunchMarkingHrFunc = async (
                     naShift: notapplicable_shift || 0,
                     defaultShift: default_shift || 0,
                     noff: noff || 0,
+                    dayoff: dayoff || 0,
                     holidayStatus: val.holiday_status,
                     break_shift_status: val.break_shift_status || 0,
                     first_half_in: val.first_half_in,
@@ -216,6 +217,7 @@ export const processPunchMarkingHrFunc = async (
                                 val.defaultShift,
                                 val.naShift,
                                 val.noff,
+                                val.dayoff,
                                 val.woff,
                                 val.salaryLimit,
                                 val.maximumLateInTime,
@@ -258,6 +260,77 @@ export const processPunchMarkingHrFunc = async (
                         (entry) => entry.em_no === emno && entry.lve_tble_updation_flag === 0
                     )
                 }));
+                // return Promise.allSettled(EmpAttendanceArray?.flatMap((ele) => {
+                //     return ele?.data?.map(async (e, idx, array) => {
+                //         // console.log("array", array);
+                //         let weekDayStat = e.duty_desc === 'WOFF' ? await weekOffStatus(e, idx, array, weekoff_policy_max_count, weekoff_policy_min_count, value) : e.duty_desc;
+
+                //         return {
+                //             ...e,
+                //             lvereq_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc,
+                //             duty_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc
+                //         }
+                //     })
+                // })).then(async (result) => {
+                //     const arr = EmpAttendanceArray?.flatMap((ele) => {
+
+
+
+                // })
+                // const arr = result.map(filterObj => {
+                //     let key = filterObj.em_no;
+                //     return {
+                //         em_no: key,
+                //         data: result.filter(obj => obj.value.em_no === key)?.map((e) => e.value)
+                //     }
+                // });
+                //     console.log("result", result);
+
+                // })
+
+                // console.log("ProcessedAttendanceDatas", ProcessedAttendanceDatas);
+
+                // return Promise.allSettled(
+                //     punchMasterFilterData?.flatMap((ele) => {
+                //         return ele?.data?.map(async (e, idx, array) => {
+                //             let weekDayStat = e.duty_desc === 'WOFF' ? await weekOffStatus(e, idx, array, weekoff_policy_max_count, weekoff_policy_min_count, fromDate) : e.duty_desc;
+
+                //             return {
+                //                 ...e,
+                //                 lvereq_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc,
+                //                 duty_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc
+                //             }
+                //         })
+                //     })
+
+                // ).then(async (results) => {
+                //     const arr = punchMasterFilterData.map(filterObj => {
+                //         let key = filterObj.em_no;
+                //         return {
+                //             em_no: key,
+                //             data: results.filter(obj => obj.value.em_no === key)?.map((e) => e.value)
+                //         }
+                //     });
+
+                //     return Promise.allSettled(
+                //         arr?.flatMap((ele) => {
+                //             return ele?.data?.map(async (e, idx, array) => {
+                //                 let holidayStat = e.duty_desc === 'H' ? await holidayStatus(e, array, holiday_policy_count) : e.duty_desc;
+
+                //                 return {
+                //                     ...e,
+                //                     lvereq_desc: e.duty_desc === 'H' ? holidayStat : e.duty_desc,
+                //                     duty_desc: e.duty_desc === 'H' ? holidayStat : e.duty_desc
+
+                //                 }
+                //             })
+                //         })
+
+                //     ).then(async (results) => {
+
+
+
+                //NOFF CODE
                 return Promise.allSettled(EmpAttendanceArray?.flatMap((ele) => {
                     return ele?.data?.map(async (e, idx) => {
                         let NoffStatus = e.duty_desc === 'NOFF' && e.lve_tble_updation_flag !== 1 ? await NOffStatus(e, idx, noff_selct_day_count, EmpAttendanceArray, value) : e.duty_desc;
@@ -276,8 +349,7 @@ export const processPunchMarkingHrFunc = async (
                 const punchMaterDataBasedOnPunchSlno = PunchMAsterPolicyBasedFilterResult?.map((e) => e.punch_slno)
                 const processedPostData = PunchMAsterPolicyBasedFilterResult?.filter((e) => punchMaterDataBasedOnPunchSlno?.some((el) => el === e.punch_slno))
                 const dutyPlanSlno = dutyPlanDetails?.map((e) => e.plan_slno)
-                // console.log("dutyPlanSlno", dutyPlanSlno);
-
+                // console.log("processedPostData", processedPostData);
 
                 const updatePunchMaster = await axioslogin.post("/attendCal/updatePunchMaster/", processedPostData);
                 const { success, message } = updatePunchMaster.data;
@@ -309,431 +381,15 @@ export const processPunchMarkingHrFunc = async (
                 } else {
                     return { status: 0, message: "Error Processing and Updating Punch Master ! contact IT", errorMessage: message }
                 }
-
-
             })
-
-
-
-
-
-
-        // return Promise.allSettled(
-        //     punchMasterData?.map(async (data, index) => {
-        //         // console.log("inside data", data);
-        //         // console.log(data)
-        //         const sortedShiftData = shiftInformation?.find((e) => e.shft_slno === data.shift_id)// SHIFT DATA
-        //         const sortedSalaryData = empSalary?.find((e) => e.em_no === data.em_no) //SALARY DATA
-        //         // console.log("data", data);
-
-        //         const shiftMergedPunchMaster = {
-        //             ...data,
-        //             shft_chkin_start: sortedShiftData?.shft_chkin_start,
-        //             shft_chkin_end: sortedShiftData?.shft_chkin_end,
-        //             shft_chkout_start: sortedShiftData?.shft_chkout_start,
-        //             shft_chkout_end: sortedShiftData?.shft_chkout_end,
-        //             shft_cross_day: sortedShiftData?.shft_cross_day,
-        //             shft_duty_day: sortedShiftData?.shft_duty_day,
-        //             gross_salary: sortedSalaryData?.gross_salary,
-        //             earlyGoingMaxIntervl: cmmn_early_out,
-        //             gracePeriodInTime: cmmn_grace_period,
-        //             maximumLateInTime: cmmn_late_in,
-        //             salaryLimit: salary_above,
-        //             woff: week_off_day,
-        //             naShift: notapplicable_shift,
-        //             defaultShift: default_shift,
-        //             noff: noff,
-        //             holidayStatus: sortedShiftData?.holiday_status,
-        //             break_shift_status: sortedShiftData?.break_shift_status,
-        //             first_half_in: sortedShiftData?.first_half_in,
-        //             first_half_out: sortedShiftData?.first_half_out,
-        //             second_half_in: sortedShiftData?.second_half_in,
-        //             second_half_out: sortedShiftData?.second_half_out,
-        //             //noff
-        //             shft_slno: sortedShiftData?.shft_slno,
-        //             noff_min_days: sortedShiftData?.noff_min_days,
-        //             night_off_flag: sortedShiftData?.night_off_flag,
-        //             noff_selct_day_count: noff_selct_day_count
-        //         }
-        //         const employeeBasedPunchData = punchaData?.filter((e) => e.emp_code == data.em_no)
-        //         // console.log("shiftMergedPunchMaster", shiftMergedPunchMaster);
-
-        //         //FUNCTION FOR MAPPING THE PUNCH IN AND OUT
-        //         // return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
-        //         if (shiftMergedPunchMaster?.break_shift_status === 1) {
-        //             return await BreakDutypunchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
-        //         }
-        //         else {
-        //             return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
-
-        //         }
-        //     })
-        // ).then((datas) => {
-        //     //console.log('data', data);
-        //     const punchMasterMappedData = datas?.map((e) => e.value)
-
-        //         = console.log("punchMasterMappedData", punchMasterMappedData);
-
-        //     // console.log(punchMasterMappedData?.filter((e) => e.em_no === 4516))
-        //     return Promise.allSettled(
-        //         punchMasterMappedData?.map(async (val) => {
-        //             // console.log(val);
-
-        //             const holidayStatus = val.holiday_status;
-        //             const punch_In = val.punch_in === null ? null : new Date(val.punch_in);
-        //             const punch_out = val.punch_out === null ? null : new Date(val.punch_out);
-
-        //             const shift_in = new Date(val.shift_in);
-        //             const shift_out = new Date(val.shift_out);
-
-        //             //SALARY LINMIT
-        //             const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
-
-        //             const shft_duty_day = val.shft_duty_day;
-        //             const duty_day = val.duty_day;
-        //             //break duty
-
-        //             const break_shift_status = val.break_shift_status;
-
-        //             //emp punch
-        //             const break_first_punch_in = val.break_first_punch_in;
-        //             const break_first_punch_out = val.break_first_punch_out;
-        //             const break_second_punch_in = val.break_second_punch_in;
-        //             const break_second_punch_out = val.break_second_punch_out;
-
-        //             //shift details
-        //             const first_shift_in = `${format(new Date(val.first_shift_in), 'yyyy-MM-dd HH:mm')} `
-        //             const first_shift_out = `${format(new Date(val.first_shift_out), 'yyyy-MM-dd HH:mm')} `
-        //             const second_shift_in = `${format(new Date(val.second_shift_in), 'yyyy-MM-dd HH:mm')} `
-        //             const second_shift_out = `${format(new Date(val.second_shift_out), 'yyyy-MM-dd HH:mm')} `
-        //             //Noff
-        //             const shft_slno = val.shft_slno
-        //             const noff_min_days = val.noff_min_days
-        //             const night_off_flag = val.night_off_flag
-        //             const noff_selct_day_count = val.noff_selct_day_count
-        //             const noff_updation_status = val.noff_updation_status
-        //             // console.log(noff_updation_status);
-
-        //             if (break_shift_status === 1) {
-        //                 const getBreakDutyLateInTime = await getBreakDutyLateInTimeIntervel(first_shift_in, first_shift_out, second_shift_in, second_shift_out, break_first_punch_in, break_first_punch_out, break_second_punch_in, break_second_punch_out, break_shift_status, duty_day)
-        //                 const getAttendanceStatus = await getAttendanceCalculation(
-        //                     punch_In,
-        //                     shift_in,
-        //                     punch_out,
-        //                     shift_out,
-        //                     cmmn_grace_period,
-        //                     getBreakDutyLateInTime,
-        //                     holidayStatus,
-        //                     val.shift_id,
-        //                     val.defaultShift,
-        //                     val.naShift,
-        //                     val.noff,
-        //                     val.woff,
-        //                     salaryLimit,
-        //                     val.maximumLateInTime,
-        //                     shft_duty_day,
-        //                     break_shift_status,
-        //                     break_first_punch_in,
-        //                     break_first_punch_out,
-        //                     break_second_punch_in,
-        //                     break_second_punch_out,
-        //                     first_shift_in,
-        //                     first_shift_out,
-        //                     second_shift_in,
-        //                     second_shift_out,
-        //                     duty_day,
-        //                     shft_slno,
-        //                     noff_min_days,
-        //                     night_off_flag,
-        //                     noff_selct_day_count,
-        //                     noff_updation_status
-        //                 )
-        //                 return {
-        //                     punch_slno: val.punch_slno,
-        //                     punch_in: val.break_first_punch_in,
-        //                     punch_out: val.break_second_punch_out,
-        //                     hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getBreakDutyLateInTime?.hrsWorked,
-        //                     late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getBreakDutyLateInTime?.lateIn,
-        //                     early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getBreakDutyLateInTime?.earlyOut,
-        //                     duty_status: getAttendanceStatus?.duty_status,
-        //                     holiday_status: val.holiday_status,
-        //                     leave_status: val.leave_status,
-        //                     lvereq_desc: getAttendanceStatus?.lvereq_desc,
-        //                     duty_desc: getAttendanceStatus?.duty_desc,
-        //                     lve_tble_updation_flag: val.lve_tble_updation_flag,
-        //                     shft_duty_day: val.shft_duty_day,
-        //                     shft_slno: shft_slno,
-        //                     noff_min_days: noff_min_days !== 0 ? noff_min_days : 0,
-        //                     night_off_flag: night_off_flag !== 0 ? night_off_flag : 0,
-        //                     noff_selct_day_count: noff_selct_day_count !== 0 ? noff_selct_day_count : 0,
-        //                     noff_updation_status: noff_updation_status
-        //                 }
-        //             }
-        //             else {
-        //                 const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
-
-        //                 const getAttendanceStatus = await getAttendanceCalculation(
-        //                     punch_In,
-        //                     shift_in,
-        //                     punch_out,
-        //                     shift_out,
-        //                     cmmn_grace_period,
-        //                     getLateInTime,
-        //                     holidayStatus,
-        //                     val.shift_id,
-        //                     val.defaultShift,
-        //                     val.naShift,
-        //                     val.noff,
-        //                     val.woff,
-        //                     salaryLimit,
-        //                     val.maximumLateInTime,
-        //                     shft_duty_day,
-        //                     break_shift_status,
-        //                     break_first_punch_in,
-        //                     break_first_punch_out,
-        //                     break_second_punch_in,
-        //                     break_second_punch_out,
-        //                     first_shift_in,
-        //                     first_shift_out,
-        //                     second_shift_in,
-        //                     second_shift_out,
-        //                     duty_day,
-        //                     shft_slno,
-        //                     noff_min_days,
-        //                     night_off_flag,
-        //                     noff_selct_day_count,
-        //                     noff_updation_status
-        //                 )
-
-        //                 return {
-        //                     punch_slno: val.punch_slno,
-        //                     punch_in: val.punch_in,
-        //                     punch_out: val.punch_out,
-        //                     hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.hrsWorked,
-        //                     late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.lateIn,
-        //                     early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.earlyOut,
-        //                     duty_status: getAttendanceStatus?.duty_status,
-        //                     holiday_status: val.holiday_status,
-        //                     leave_status: val.leave_status,
-        //                     lvereq_desc: getAttendanceStatus?.lvereq_desc,
-        //                     duty_desc: getAttendanceStatus?.duty_desc,
-        //                     lve_tble_updation_flag: val.lve_tble_updation_flag,
-        //                     shft_duty_day: val.shft_duty_day,
-        //                     shft_slno: shft_slno,
-        //                     noff_min_days: noff_min_days !== 0 ? noff_min_days : 0,
-        //                     night_off_flag: night_off_flag !== 0 ? night_off_flag : 0,
-        //                     noff_selct_day_count: noff_selct_day_count !== 0 ? noff_selct_day_count : 0,
-        //                     noff_updation_status: noff_updation_status
-        //                 }
-        //             }
-
-        //         })
-        //     ).then(async (element) => {
-        //         // REMOVE LEAVE REQUESTED DATA FROM THIS DATA
-        //         const elementValue = element?.map((e) => e.value);
-        //         // console.log(element);
-
-        //         // console.log(element?.map((e) => e.value));
-
-        //         const processedData = elementValue?.filter((v) => v.lve_tble_updation_flag === 0)
-        //         const punchMaterDataBasedOnPunchSlno = processedData?.map((e) => e.punch_slno)
-
-        //         // console.log(elementValue);
-
-        //         // console.log(previous_punch_data)
-        //         // const elementValues = previous_punch_data?.map((e) => e.value);
-        //         // const previousPunchDatas = previous_punch_data?.filter((v) => v.lve_tble_updation_flag === 0)
-        //         // console.log("previousPunchDatas", previousPunchDatas);
-        //         // console.log("processedData", processedData);
-        //         // PUNCH MASTER UPDATION
-        //         // console.log(processedData?.filter(e => e.em_no === 4516))
-        //         // console.log(processedData?.filter(e => e.em_no === 13802))
-        //         // console.log(planData?.filter(e => e.em_no === 13802))
-        //         // const a = planData?.filter(e => e.em_no === 13802)
-        //         // console.log(planData);
-
-        //         const filterAndAdditionPlanData = await planData?.map((el) => {
-        //             return {
-        //                 ...el,
-        //                 duty_desc: processedData?.find((e) => e.punch_slno === el.punch_slno)?.duty_desc ?? el.duty_desc, // filter and update deuty_desc
-        //                 lvereq_desc: processedData?.find((e) => e.punch_slno === el.punch_slno)?.duty_desc ?? el.duty_desc // same as updation in lvereq_desc 
-        //             }
-        //         })
-        //         // console.log("processedData", processedData);
-
-        //         //noff
-        //         // const combinedData = [...previousPunchDatas, ...processedData];
-
-        //         // console.log("prevDutyplan", prevDutyplan);
-
-        //         // const filterAndAdditionPlanDataforNoff = await prevDutyplan?.map((el) => {
-        //         //     // console.log("el", el);
-
-        //         //     return {
-        //         //         ...el,
-        //         //         duty_desc: combinedData?.find((e) => e.punch_slno === el.punch_slno)?.duty_desc ?? el.duty_desc, // filter and update deuty_desc
-        //         //         lvereq_desc: combinedData?.find((e) => e.punch_slno === el.punch_slno)?.duty_desc ?? el.duty_desc // same as updation in lvereq_desc 
-        //         //     }
-        //         // })
-
-        //         /**** CALCUALETE HOLIDAY CHEKING AND WEEKLY OFF CHECKING *****/
-
-        //         //FILTER EMPLOYEE NUMBER FROM PUNCHMASTER DATA
-        //         const filteredEmNoFromPunMast = [...new Set(filterAndAdditionPlanData?.map((e) => e.em_no))];
-
-        //         // const filteredEmNoFromPunMastForNoff = [...new Set(filterAndAdditionPlanDataforNoff?.map((e) => e.em_no))];
-
-
-        //         // console.log("filteredEmNoFromPunMastForNoff", filteredEmNoFromPunMastForNoff);
-
-        //         const punchMasterFilterData = filteredEmNoFromPunMast?.map((emno) => {
-        //             return {
-        //                 em_no: emno,
-        //                 data: filterAndAdditionPlanData?.filter((l) => l.em_no === emno)?.sort((a, b) => b.duty_day - a.duty_day)
-        //             }
-        //         })
-
-        //         // const punchMasterFilterDataForNoff = filteredEmNoFromPunMastForNoff?.map((emno) => {
-        //         //     return {
-        //         //         em_no: emno,
-        //         //         data: filterAndAdditionPlanDataforNoff?.filter((l) => l.em_no === emno)?.sort((a, b) => b.duty_day - a.duty_day)
-        //         //     }
-        //         // })
-        //         // console.log("punchMasterFilterDataForNoff", punchMasterFilterDataForNoff);
-
-        //         // CALCULATION BASED ON WEEEK OF AND HOLIDAY 
-        //         return Promise.allSettled(
-        //             punchMasterFilterData?.flatMap((ele) => {
-
-        //                 return ele?.data?.map(async (e, idx, array) => {
-        //                     let weekDayStat = e.duty_desc === 'WOFF' ? await weekOffStatus(e, idx, array, weekoff_policy_max_count, weekoff_policy_min_count, fromDate) : e.duty_desc;
-
-        //                     return {
-        //                         ...e,
-        //                         lvereq_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc,
-        //                         duty_desc: e.duty_desc === 'WOFF' ? weekDayStat : e.duty_desc
-        //                     }
-        //                 })
-        //             })
-        //         ).then(async (results) => {
-        //             const arr = punchMasterFilterData.map(filterObj => {
-        //                 let key = filterObj.em_no;
-        //                 // console.log(results);
-
-        //                 return {
-        //                     em_no: key,
-        //                     data: results.filter(obj => obj.value.em_no === key)?.map((e) => e.value)
-        //                 }
-        //             });
-
-        //             return Promise.allSettled(
-        //                 arr?.flatMap((ele) => {
-        //                     return ele?.data?.map(async (e, idx, array) => {
-        //                         let holidayStat = e.duty_desc === 'H' ? await holidayStatus(e, array, holiday_policy_count) : e.duty_desc;
-
-        //                         return {
-        //                             ...e,
-        //                             lvereq_desc: e.duty_desc === 'H' ? holidayStat : e.duty_desc,
-        //                             duty_desc: e.duty_desc === 'H' ? holidayStat : e.duty_desc
-
-        //                         }
-        //                     })
-        //                 })
-
-        //             ).then(async (results) => {
-        //                 if (results.length !== 0) {
-        //                     const arr = punchMasterFilterData.map(filterObj => {
-        //                         let key = filterObj.em_no;
-        //                         return {
-        //                             em_no: key,
-        //                             data: results.filter(obj => obj.value.em_no === key)?.map((e) => e.value)
-        //                         }
-        //                     });
-
-        //                     // return Promise.allSettled(
-        //                     //     arr?.flatMap((ele) => {
-        //                     //         return ele?.data?.map(async (e, idx) => {
-        //                     //             // console.log(arr);
-        //                     //             let NoffStatus = e.duty_desc === 'NOFF' && e.lve_tble_updation_flag !== 1 ? await NOffStatus(e, idx, noff_selct_day_count, punchMasterFilterDataForNoff, fromDate) : e.duty_desc;
-        //                     //             // console.log(e.duty_day, e.duty_desc, NoffStatus);
-        //                     //             // console.log(e.em_no, e.duty_day, NoffStatus);
-
-        //                     //             return {
-        //                     //                 ...e,
-        //                     //                 lvereq_desc: e.duty_desc === 'NOFF' ? NoffStatus : e.duty_desc,
-        //                     //                 duty_desc: e.duty_desc === 'NOFF' ? NoffStatus : e.duty_desc,
-        //                     //                 lve_tble_updation_flag: NoffStatus === 'NOFF' ? 1 : 0
-
-        //                     //             }
-        //                     //         })
-        //                     //     })
-        //                     // )
-        //                 }
-
-
-        //             }).then(async (results) => {
-        //                 // console.log("results", results);
-
-        //                 // const PunchMAsterPolicyBasedFilterResult = results?.map((e) => e.value)
-        //                 // // console.log(PunchMAsterPolicyBasedFilterResult)
-        //                 // // console.log(punchMaterDataBasedOnPunchSlno)
-        //                 // const processedPostData = PunchMAsterPolicyBasedFilterResult?.filter((e) => punchMaterDataBasedOnPunchSlno?.some((el) => el === e.punch_slno))
-        //                 // // console.log("processedPostData", processedPostData);
-
-        //                 // // console.log(processedPostData?.filter(e => e.em_no === 4516))
-        //                 // const updatePunchMaster = await axioslogin.post("/attendCal/updatePunchMaster/", processedPostData);
-        //                 // const { success, message } = updatePunchMaster.data;
-        //                 // if (success === 1) {
-        //                 //     // PUNCH MARKING HR TABLE UPDATION
-        //                 //     // console.log(postData_getPunchData)
-        //                 //     const updatePunchMarkingHR = await axioslogin.post("/attendCal/updatePunchMarkingHR/", postData_getPunchData);
-        //                 //     const { sus } = updatePunchMarkingHR.data;
-        //                 //     // if (sus === 1) {
-        //                 //     //     // DUTY PLAN UPDATION
-        //                 //     //     const updateDutyPlanTable = await axioslogin.post("/attendCal/updateDutyPlanTable/", dutyPlanSlno);
-        //                 //     //     const { susc, message } = updateDutyPlanTable.data;
-        //                 //     //     if (susc === 1) {
-        //                 //     //         return { status: 1, message: "Punch Master Updated SuccessFully", errorMessage: '', dta: postData_getPunchData }
-        //                 //     //     } else {
-        //                 //     //         return { status: 0, message: "Error Updating Duty Plan ! contact IT", errorMessage: message }
-        //                 //     //     }
-        //                 //     // } else {
-        //                 //     //     return { status: 0, message: "Error Updating PunchMaster HR  ! contact IT", errorMessage: message }
-        //                 //     // }
-        //                 // } else {
-        //                 //     return { status: 0, message: "Error Processing and Updating Punch Master ! contact IT", errorMessage: message }
-        //                 // }
-
-        //             }).catch((error) => {
-        //                 return { status: 0, message: "Error Processing and Updating Punch Master ! contact IT", errorMessage: error } // if no return all updation
-        //             })
-
-        //         })
-        //         // return { status: 1, message: "result", data: e }
-        //     })
-        // }).catch((error) => {
-        //     return { status: 0, message: "Error Processing and Updating Punch Master ! contact IT", errorMessage: error } // if no return all updation
-        // })
-
-
-
-        //     } else {
-        //         return { status: 0, message: "Punch Master Data Not Found ! contact IT", errorMessage: '' }
-        //     }
-        // } else {
-        //     return { status: 0, message: "Duty Plan Not Done! contact IT", errorMessage: '' }
-        // }
-
 
     } catch (error) {
         return { status: 0, message: "Duty Plan Not Done! Contact IT", errorMessage: error.message, punchMastData: [] };
     }
 }
 
-
-
 export const getAttendanceCalculation = async (
-    punch_In, shift_in, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, defaultShift, NAShift, NightOffShift, WoffShift, salaryLimit, maximumLateInTime, shft_duty_day, break_shift_status,
+    punch_In, shift_in, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, defaultShift, NAShift, NightOffShift, dayOff, WoffShift, salaryLimit, maximumLateInTime, shft_duty_day, break_shift_status,
     break_first_punch_in,
     break_first_punch_out,
     break_second_punch_in,
@@ -743,7 +399,6 @@ export const getAttendanceCalculation = async (
     second_shift_in,
     second_shift_out
 ) => {
-
     const {
         // hrsWorked, 
         lateIn,
@@ -752,7 +407,7 @@ export const getAttendanceCalculation = async (
     //SHIFT ID CHECKING
     // ( !== default shift , !== not applicable shift , !== Night off , !== week off) 
     // if true ==> ( its a working shift ) 
-    const checkShiftIdStatus = (shiftId !== defaultShift && shiftId !== NAShift && shiftId !== NightOffShift && shiftId !== WoffShift)
+    const checkShiftIdStatus = (shiftId !== defaultShift && shiftId !== NAShift && shiftId !== NightOffShift && shiftId !== WoffShift && shiftId !== dayOff)
     //HALF DAY CALCULATION
     const totalShiftInMInits = differenceInMinutes(new Date(shift_out), new Date(shift_in))
     const halfDayInMinits = totalShiftInMInits / 2;
@@ -760,7 +415,7 @@ export const getAttendanceCalculation = async (
     // console.log(shift_in);
     // console.log(halfDayInMinits);
 
-    // console.log(halfDayStartTime);
+    // console.log("checkShiftIdStatus", checkShiftIdStatus);
 
     if (checkShiftIdStatus === true && break_shift_status !== 1) {
 
@@ -917,7 +572,7 @@ export const getAttendanceCalculation = async (
     }
 
 
-    if (checkShiftIdStatus === true && parseInt(break_shift_status) === 1) {
+    else if (checkShiftIdStatus === true && parseInt(break_shift_status) === 1) {
 
         const isValidPunchTime = (punchTime) => punchTime !== null && punchTime !== undefined && isValid(new Date(punchTime));
         // console.log("outside");
@@ -1154,14 +809,18 @@ export const getAttendanceCalculation = async (
             return { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Absent' };
         }
     } else {
+        // console.log("DAY OFF", shiftId === dayOff);
         // Default return based on shiftId
         return shiftId === defaultShift
             ? { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no duty plan' }
-            : shiftId === WoffShift
-                ? { duty_status: 1, duty_desc: 'WOFF', lvereq_desc: 'WOFF', duty_remark: 'week off' }
-                : shiftId === NightOffShift
-                    ? { duty_status: 1, duty_desc: 'NOFF', lvereq_desc: 'NOFF', duty_remark: 'night off' }
-                    : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no applicable' };
+            : shiftId === dayOff
+                ? { duty_status: 0, duty_desc: 'DOFF', lvereq_desc: 'DOFF', duty_remark: 'day off' }
+                : shiftId === WoffShift
+                    ? { duty_status: 1, duty_desc: 'WOFF', lvereq_desc: 'WOFF', duty_remark: 'week off' }
+                    : shiftId === NightOffShift
+                        ? { duty_status: 1, duty_desc: 'NOFF', lvereq_desc: 'NOFF', duty_remark: 'night off' }
+
+                        : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no applicable' }
     }
 
 }
@@ -1655,7 +1314,7 @@ export const processShiftPunchMarkingHrFunc = async (
         noff, // Night off SHIFT ID
         max_late_day_count,
         break_shift_taken_count,
-        noff_selct_day_count
+        noff_selct_day_count, dayoff
     } = Commonsettings;
 
     try {
@@ -1667,7 +1326,7 @@ export const processShiftPunchMarkingHrFunc = async (
             return {
                 status: 0,
                 message: "Punch Master and Duty Plan Data Not Found! Contact IT",
-                errorMessage: "",
+                errorMessage: "Punch Master and Duty Plan Data Not Found! Contact IT",
                 punchMastData: []
             };
         }
@@ -1678,7 +1337,7 @@ export const processShiftPunchMarkingHrFunc = async (
             return {
                 status: 0,
                 message: "Punch Master and Duty Plan Data Not Found! Contact IT",
-                errorMessage: "",
+                errorMessage: "Punch Master and Duty Plan Data Not Found! Contact IT",
                 punchMastData: []
             };
         }
@@ -1710,6 +1369,7 @@ export const processShiftPunchMarkingHrFunc = async (
                         naShift: notapplicable_shift || 0,
                         defaultShift: default_shift || 0,
                         noff: noff || 0,
+                        dayoff: dayoff || 0,
                         holidayStatus: val.holiday_status,
                         break_shift_status: val.break_shift_status || 0,
                         first_half_in: val.first_half_in,
@@ -1770,6 +1430,8 @@ export const processShiftPunchMarkingHrFunc = async (
         })
         return Promise.all(empArray).then(async (results) => {
             const { emno, punchInOutData } = results[0]; // Assuming results[0] contains the needed data
+
+            // console.log("punchInOutData", punchInOutData);
 
             // Process each punch detail asynchronously
             const processedPunchData = await Promise.all(
@@ -1866,6 +1528,7 @@ export const processShiftPunchMarkingHrFunc = async (
                             val.defaultShift,
                             val.naShift,
                             val.noff,
+                            val.dayoff,
                             val.woff,
                             salaryLimit,
                             val.maximumLateInTime,
@@ -1907,9 +1570,12 @@ export const processShiftPunchMarkingHrFunc = async (
                             noff_updation_status: val.noff_updation_status,
                             em_no: val.em_no
                         };
+
                     }
                 })
             );
+            // console.log(processedPunchData);
+
             return processedPunchData;
         }).then((ProcessedAttendanceDatas) => {
             // Log the filtered data
@@ -1929,31 +1595,33 @@ export const processShiftPunchMarkingHrFunc = async (
                     }
                 })
             }))
-        }).then(async (element) => {
-            // Map the results to prepare data for punch master update
-            const processedData = element?.map((e) => e.value)?.filter((v) => (v.lve_tble_updation_flag === 1 && v.duty_desc === "NOFF") || (v.lve_tble_updation_flag === 0 && v.duty_desc !== "NOFF"))
-            // Prepare the data to update punch master
-            const postDataForUpdatePunchMaster = {
-                postData_getPunchData: postData_getPunchData,
-                processedData: processedData,
-                max_late_day_count: max_late_day_count,
-            };
-            // console.log("postDataForUpdatePunchMaster", postDataForUpdatePunchMaster);
-            try {
-                // Update Punch Master
-                const updatePunchMaster = await axioslogin.post("/attendCal/monthlyUpdatePunchMaster/", postDataForUpdatePunchMaster);
-                const { success, message, data } = updatePunchMaster.data;
-                if (success === 1) {
-                    return { status: 1, message: "Punch Master Updated Successfully", errorMessage: '', punchMastData: data };
-                } else {
-                    return { status: 0, message: "Error Updating Punch Master! Contact IT", errorMessage: message, punchMastData: [] };
+        })
+            .then(async (element) => {
+                // Map the results to prepare data for punch master update
+                const processedData = element?.map((e) => e.value)?.filter((v) => (v.lve_tble_updation_flag === 1 && v.duty_desc === "NOFF") || (v.lve_tble_updation_flag === 0 && v.duty_desc !== "NOFF"))
+                // Prepare the data to update punch master
+                const postDataForUpdatePunchMaster = {
+                    postData_getPunchData: postData_getPunchData,
+                    processedData: processedData,
+                    max_late_day_count: max_late_day_count,
+                };
+                // console.log("postDataForUpdatePunchMaster", postDataForUpdatePunchMaster);
+                try {
+                    // Update Punch Master
+                    const updatePunchMaster = await axioslogin.post("/attendCal/monthlyUpdatePunchMaster/", postDataForUpdatePunchMaster);
+                    const { success, message, data } = updatePunchMaster.data;
+                    if (success === 1) {
+
+                        return { status: 1, message: "Punch Master Updated Successfully", errorMessage: '', punchMastData: data };
+                    } else {
+                        return { status: 0, message: "Error Updating Punch Master! Contact IT", errorMessage: message, punchMastData: [] };
+                    }
+                } catch (error) {
+                    return { status: 0, message: "Unhandled Error! Contact IT", errorMessage: error.message, punchMastData: [] };
                 }
-            } catch (error) {
-                return { status: 0, message: "Unhandled Error! Contact IT", errorMessage: error.message, punchMastData: [] };
-            }
-        }).catch((error) => {
-            return { status: 0, message: "Error Updating Punch Master! Contact IT", errorMessage: error.message, punchMastData: [] };
-        });
+            }).catch((error) => {
+                return { status: 0, message: "Error Updating Punch Master! Contact IT", errorMessage: error.message, punchMastData: [] };
+            });
     } catch (error) {
         return { status: 0, message: "Duty Plan Not Done! Contact IT", errorMessage: error.message, punchMastData: [] };
     }

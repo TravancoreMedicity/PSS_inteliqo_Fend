@@ -125,6 +125,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                             totaHP: grossSalary <= salary_above ? (empArray?.filter(el => el.lvereq_desc === "HP").length ?? 0) * 2 : (empArray?.filter(el => el.lvereq_desc === "H").length ?? 0),
                             totaWP: empArray?.filter(el => el.lvereq_desc === "WP").length ?? 0,
                             totaDP: empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0,
+                            totaDOFF: empArray?.filter(el => el.lvereq_desc === "DOFF").length ?? 0,
                         }
                     })
 
@@ -205,6 +206,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                     totaHP: grossSalary <= salary_above ? (empArray?.filter(el => el.lvereq_desc === "HP").length ?? 0) * 2 : (empArray?.filter(el => el.lvereq_desc === "H").length ?? 0),
                     totaWP: empArray?.filter(el => el.lvereq_desc === "WP").length ?? 0,
                     totaDP: empArray?.filter(el => el.lvereq_desc === "DP").length ?? 0,
+                    totaDOFF: empArray?.filter(el => el.lvereq_desc === "DOFF").length ?? 0,
                 }
             })
 
@@ -247,6 +249,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
         { lvename: 'LC', color: 'danger', desc: "Late Coming" },
         { lvename: 'DP', color: 'success', desc: "Double Present" },
         { lvename: 'WP', color: 'success', desc: "Week Off Present" },
+        { lvename: 'DOFF', color: 'danger', desc: "Day Off" },
     ]
 
     return (
@@ -373,6 +376,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
+                                                <th style={{ width: 65, backgroundColor: '#f4f6f8' }} ></th>
                                                 {/* <th style={{ width: 65, backgroundColor: '#f4f6f8' }} ></th> */}
                                                 {/* <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th> */}
                                             </tr>
@@ -394,6 +398,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                 {/* <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > LV</th> */}
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > DP</th>
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > WP</th>
+                                                <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > DOFF</th>
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > A</th>
                                                 {/* <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > ESI</th> */}
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > Calc. Days</th>
@@ -441,6 +446,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td> */}
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td> */}
                                                     </tr>
@@ -472,6 +478,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalLV + row.totalHDL}</td> */}
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaDP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaDOFF}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalP + row.totalWOFF + row.totalNOFF + row.totalLV + (row.totalHD * 0.5) + row.totaHP + (row.totaDP * 2) + row.totaWP}</td>
@@ -605,6 +612,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
                                                 <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th>
+                                                <th style={{ width: 65, backgroundColor: '#f4f6f8' }} ></th>
                                                 {/* <th style={{ width: 65, backgroundColor: '#f4f6f8' }} ></th> */}
                                                 {/* <th style={{ width: 60, backgroundColor: '#f4f6f8' }} ></th> */}
                                             </tr>
@@ -626,6 +634,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                 {/* <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > LV</th> */}
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > DP</th>
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > WP</th>
+                                                <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > DOFF</th>
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > A</th>
                                                 {/* <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > ESI</th> */}
                                                 <th style={{ textAlign: 'center', backgroundColor: '#f4f6f8', color: '#635bff' }} > Calc. Days</th>
@@ -673,6 +682,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td>
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td> */}
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: 'lightgray' }}></td> */}
                                                     </tr>
@@ -704,6 +714,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                                                         {/* <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totalLV + row.totalHDL}</td> */}
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaDP}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaWP}</td>
+                                                        <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaDOFF}</td>
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaLWP + row.totalA}</td>
 
                                                         <td style={{ textAlign: 'center', height: 10, color: '#344767', fontWeight: 900, backgroundColor: isOdd(index) ? '#f4f6f8' : '#f4f6f8' }}>{row.totaESI}</td>

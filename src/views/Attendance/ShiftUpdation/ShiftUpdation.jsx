@@ -54,7 +54,7 @@ const ShiftUpdation = () => {
 
     const Commonsettings = commonSettingDatas || [];
 
-    const { group_slno, week_off_day, notapplicable_shift, default_shift, noff, noff_selct_day_count } = Commonsettings;
+    const { group_slno, week_off_day, notapplicable_shift, default_shift, noff, noff_selct_day_count, dayoff } = Commonsettings;
 
 
     //FORM DATA 
@@ -204,10 +204,10 @@ const ShiftUpdation = () => {
                                 shift_id: e.shift_id,
                                 emp_id: e.emp_id,
                                 em_no: e.em_no,
-                                punch_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff) ? crossDay?.shft_desc : e.punch_in,
-                                punch_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff) ? crossDay?.shft_desc : e.punch_out,
-                                shift_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff) ? crossDay?.shft_desc : moment(shiftIn).format('DD-MM-YYYY HH:mm'),
-                                shift_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff) ? crossDay?.shft_desc : moment(shiftOut).format('DD-MM-YYYY HH:mm'),
+                                punch_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff) ? crossDay?.shft_desc : e.punch_in,
+                                punch_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff) ? crossDay?.shft_desc : e.punch_out,
+                                shift_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff) ? crossDay?.shft_desc : moment(shiftIn).format('DD-MM-YYYY HH:mm'),
+                                shift_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff) ? crossDay?.shft_desc : moment(shiftOut).format('DD-MM-YYYY HH:mm'),
                                 hrs_worked: (isValid(new Date(e.punch_in)) && e.punch_in !== null) && (isValid(new Date(e.punch_out)) && e.punch_out !== null) ?
                                     formatDuration({ days: interVal.days, hours: interVal.hours, minutes: interVal.minutes }) : 0,
                                 hrsWrkdInMints: (isValid(new Date(e.punch_in)) && e.punch_in !== null) && (isValid(new Date(e.punch_out)) && e.punch_out !== null) ?
@@ -219,6 +219,7 @@ const ShiftUpdation = () => {
                                 hideStatus: 1,
                                 isWeekOff: (e.shift_id === week_off_day),
                                 isNOff: e.shift_id === noff,
+                                isDOff: e.shift_id === dayoff,
                                 lvereq_desc: e.lvereq_desc,
                                 duty_desc: e.duty_desc
 
@@ -278,6 +279,8 @@ const ShiftUpdation = () => {
                         // console.log(result);
 
                         const { status, message, errorMessage, punchMastData } = result ?? {};
+
+                        // console.log("punchMastData", punchMastData);
 
                         if (status === 1) {
                             const tb = punchMastData?.map((e) => {
@@ -339,16 +342,16 @@ const ShiftUpdation = () => {
                                     shift_id: e.shift_id,
                                     emp_id: e.emp_id,
                                     em_no: e.em_no,
-                                    punch_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff)
+                                    punch_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff)
                                         ? crossDay?.shft_desc
                                         : e.punch_in,
-                                    punch_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff)
+                                    punch_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff)
                                         ? crossDay?.shft_desc
                                         : e.punch_out,
-                                    shift_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff)
+                                    shift_in: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff)
                                         ? crossDay?.shft_desc
                                         : moment(shiftIn).format('DD-MM-YYYY HH:mm'),
-                                    shift_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff)
+                                    shift_out: (e.shift_id === default_shift || e.shift_id === notapplicable_shift || e.shift_id === week_off_day || e.shift_id === noff || e.shift_id === dayoff)
                                         ? crossDay?.shft_desc
                                         : moment(shiftOut).format('DD-MM-YYYY HH:mm'),
                                     hrs_worked: crossDay?.break_shift_status === 0
@@ -364,6 +367,7 @@ const ShiftUpdation = () => {
                                     hideStatus: 0,
                                     isWeekOff: (e.shift_id === week_off_day),
                                     isNOff: e.shift_id === noff,
+                                    isDOff: e.shift_id === dayoff,
                                     holiday_status: e.holiday_status,
                                     lvereq_desc: e.lvereq_desc,
                                     duty_desc: e.duty_desc
@@ -393,8 +397,8 @@ const ShiftUpdation = () => {
 
 
     }, [emply, dept, section, value, shiftDetails, Commonsettings, default_shift, em_no,
-        noff, notapplicable_shift, week_off_day])
-    // console.log(tableArray)
+        noff, notapplicable_shift, week_off_day, dayoff])
+
     return (
         <Fragment>
 

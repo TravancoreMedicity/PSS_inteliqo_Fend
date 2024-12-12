@@ -1,8 +1,7 @@
 import { Box, Button, CssVarsProvider, Input } from '@mui/joy'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'
-import { addMonths, endOfMonth, format, getDaysInMonth, isValid, startOfMonth } from 'date-fns'
-import { addMonths, eachDayOfInterval, endOfMonth, format, getDaysInMonth, isValid, startOfMonth, subDays } from 'date-fns'
+import { eachDayOfInterval, endOfMonth, format, getDaysInMonth, isValid, startOfMonth, addMonths } from 'date-fns'
 import React, { memo, useMemo, useState } from 'react'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -206,9 +205,9 @@ const SalaryProcessed = () => {
                                 val.lvereq_desc === 'SL' || val.lvereq_desc === 'HP' ||
                                 val.lvereq_desc === 'CL' || val.lvereq_desc === 'EL' ||
                                 val.lvereq_desc === 'H' || val.lvereq_desc === 'OHP' ||
-                                val.lvereq_desc === 'ODP')).length
+                                val.lvereq_desc === 'ODP' || val.lvereq_desc === 'WP' || val.lvereq_desc === 'DP')).length
 
-                        const totalHP = (empwise?.filter(val => val.lvereq_desc === 'HP' || val.lvereq_desc === 'DP' || val.lvereq_desc === 'WP')).length
+                        const totalHP = (empwise?.filter(val => val.lvereq_desc === 'HP')).length
 
                         const totalDays = getDaysInMonth(new Date(value))
                         const holidaysalary = val.gross_salary <= commonSettings.salary_above ? onedaySalary * totalHP : 0
@@ -319,7 +318,6 @@ const SalaryProcessed = () => {
     ])
 
     const downloadFormat = useCallback(async () => {
-        console.log(processBtn);
         if (processBtn === false) {
             warningNofity("Please Select Any Option!!")
         }
