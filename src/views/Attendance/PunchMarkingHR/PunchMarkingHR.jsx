@@ -17,10 +17,12 @@ import { warningNofity, succesNofity } from 'src/views/CommonCode/Commonfunc';
 // import _ from 'underscore'
 import CustomLayout from 'src/views/Component/MuiCustomComponent/CustomLayout';
 import Table from '@mui/joy/Table';
-import { setCommonSetting } from 'src/redux/actions/Common.Action';
-import { setShiftDetails } from 'src/redux/actions/Shift.Action';
+// import { setCommonSetting } from 'src/redux/actions/Common.Action';
+// import { setShiftDetails } from 'src/redux/actions/Shift.Action';
 import { processPunchMarkingHrFunc } from './punchMarkingHrFunc';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { getcommonSettings, setShiftDetails } from './ReactQueryFun';
+import { useQuery } from 'react-query';
 
 const PunchMarkingHR = () => {
 
@@ -36,14 +38,32 @@ const PunchMarkingHR = () => {
     //  const [empList, setEmpList] = useState([]);
 
     //GET REDUX stored information using useSelector
-    const commonSettings = useSelector((state) => state?.getCommonSettings)
-    const {
-        holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
-        weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT,
-        max_late_day_count
-    } = commonSettings;
+    // const commonSettings = useSelector((state) => state?.getCommonSettings)
+    // const {
+    //     holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT
+    //     weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT,
+    //     max_late_day_count,
+    //     noff_selct_day_count
+    // } = commonSettings;
 
-    const shiftInformation = useSelector((state) => state?.getShiftList?.shiftDetails)
+    // const shiftInformation = useSelector((state) => state?.getShiftList?.shiftDetails)
+
+
+    const { data: commonSettingDatas } = useQuery({
+        queryKey: ['setCommonSettingdata'],
+        queryFn: () => getcommonSettings(),
+    })
+
+    //FOR GET SHIFT DETAILS
+    const { data: shiftDetails } = useQuery({
+        queryKey: ['setShiftDetails'],
+        queryFn: () => setShiftDetails(),
+    })
+
+    const Commonsettings = commonSettingDatas || [];
+
+    const { noff_selct_day_count, holiday_policy_count, weekoff_policy_max_count, max_late_day_count } = Commonsettings;
+
     // get login empid 
     const empData = useSelector((state) => state?.getProfileData?.ProfileData[0])
     const { em_no } = empData
@@ -77,7 +97,7 @@ const PunchMarkingHR = () => {
         const startOfMonths = startOfMonth(new Date(value));
 
         const getPunchMarkTablePostData = {
-            month: moment(startOfMonths).format('YYYY-MM-DD')
+            month: format(new Date(startOfMonths), 'yyyy-MM-dd')
         }
 
         //GET ALL DEPARTMENT SECTION LIST AND SHOW
@@ -89,6 +109,8 @@ const PunchMarkingHR = () => {
             //GET PUNCHMARKING DATA FROM table 
             const getPunchMarkingHr_table = await axioslogin.post('/payrollprocess/getPunchMarkingHrFull/', getPunchMarkTablePostData);
             const { succ, data } = getPunchMarkingHr_table.data;
+
+
             if (succ === 1) {
                 // IF DATA
                 const punchMarkingTableData = data;
@@ -97,10 +119,12 @@ const PunchMarkingHR = () => {
                         "dept_id": dept,
                         "dept_name": deptSectionData?.find(e => e.dept_id === dept)?.dept_name,
                         "section": deptSectionData?.filter((val) => val.dept_id === dept).map((v) => {
-                            return { ...v, "updated": punchMarkingTableData?.find((e) => v.sect_id === e.deptsec_slno)?.last_update_date ?? moment(startOfMonths).format('YYYY-MM-DD') }
+                            return { ...v, "updated": punchMarkingTableData?.find((e) => v.sect_id === e.deptsec_slno)?.last_update_date ?? format(new Date(startOfMonths), 'yyyy-MM-dd') }
                         }),
                     }
                 })
+                // console.log("findDept", findDept);
+
                 setDeptList(findDept)
                 setOpenBkDrop(false)
             } else if (succ === 2) {
@@ -147,9 +171,9 @@ const PunchMarkingHR = () => {
             setOpenBkDrop(false)
         }
         //GET COMMON SETTINGS
-        dispatch(setCommonSetting())
-        //GET ALL SHIFT INFORMATION 
-        dispatch(setShiftDetails())
+        // dispatch(setCommonSetting())
+        // //GET ALL SHIFT INFORMATION 
+        // dispatch(setShiftDetails())
     }
 
 
@@ -172,7 +196,6 @@ const PunchMarkingHR = () => {
 
     //UPDATE ATTENDANDE PROCESS START HERE
     const updateAttendanceProcesss = async (deptID, sectID, lastUpdateDate) => {
-
         setOpenBkDrop(true)
         const weekOffPolicyCountMax = weekoff_policy_max_count;
         const holidayPolicyCount = holiday_policy_count;
@@ -181,9 +204,9 @@ const PunchMarkingHR = () => {
         const startOfMonths = startOfMonth(new Date(value));
 
         //GET GROSS SALARY START
-        const getGrossSalaryEmpWise = await axioslogin.get(`/common/getgrossSalaryByEmployeeNo/${sectID}`);
-        const { su, dataa } = getGrossSalaryEmpWise.data;
-        if (su === 1) setEmpSalary(dataa)
+        // const getGrossSalaryEmpWise = await axioslogin.get(`/common/getgrossSalaryByEmployeeNo/${sectID}`);
+        // const { su, dataa } = getGrossSalaryEmpWise.data;
+        // if (su === 1) setEmpSalary(dataa)
 
         //GET GROSS SALARY END
 
@@ -197,26 +220,39 @@ const PunchMarkingHR = () => {
             const empData = await axioslogin.get(`/common/getEmpName/${sectID}`)
             const { data, success } = empData.data;
             if (success === 1) {
+
+
                 const selectedDateSameStatus = new Date(lastUpdateDate) === startOfMonths ? 1 : 0;
+                // console.log("lastUpdateDate", lastUpdateDate);
+                // console.log("startOfMonths", startOfMonths);
+                // console.log("new Date(lastUpdateDate) === startOfMonths ? 1 : 0", new Date(lastUpdateDate) === startOfMonths ? 1 : 0);
+
+                const startDate = format(startOfMonth(new Date(value)), 'yyyy-MM-dd');
                 const postData_getPunchData = {
                     preFromDate: selectedDateSameStatus === 1 ?
-                        format(subDays(startOfMonth(new Date(value)), 2), 'yyyy-MM-dd 00:00:00') :
-                        format(subDays(new Date(lastUpdateDate), 2), 'yyyy-MM-dd 00:00:00'),
+                        format(subDays(new Date(lastUpdateDate), 2), 'yyyy-MM-dd 00:00:00') :
+                        format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                     preToDate: format(addDays(new Date(value), 1), 'yyyy-MM-dd 23:59:59'),
-                    fromDate: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
+                    fromDate: format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                     toDate: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                    fromDate_dutyPlan: selectedDateSameStatus === 1 ? format(startOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(lastUpdateDate), 'yyyy-MM-dd'),
+                    fromDate_dutyPlan: selectedDateSameStatus === 0 ? format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd') : format(new Date(lastUpdateDate), 'yyyy-MM-dd'),
                     toDate_dutyPlan: format(new Date(value), 'yyyy-MM-dd'),
                     fromDate_punchMaster: selectedDateSameStatus === 1
-                        ? format(subDays(startOfMonth(new Date(value)), weekOffPolicyCountMax), 'yyyy-MM-dd')
-                        : format(subDays(new Date(lastUpdateDate), weekOffPolicyCountMax), 'yyyy-MM-dd'),
+                        ? format(subDays(new Date(startDate), weekOffPolicyCountMax), 'yyyy-MM-dd')
+                        : format(subDays(new Date(startDate), noff_selct_day_count), 'yyyy-MM-dd'),
                     toDate_punchMaster: format(addDays(new Date(value), holidayPolicyCount), 'yyyy-MM-dd'),
                     section: sectID,
                     deptID: deptID,
                     empList: data?.map((e) => e.em_no),
                     loggedEmp: em_no,
-                    toDayeForUpdatePunchMast: format(new Date(value), 'yyyy-MM-dd')
+                    toDayeForUpdatePunchMast: format(new Date(value), 'yyyy-MM-dd'),
+                    puchMarkingByHR: startDate
                 }
+
+                // console.log("postData_getPunchData", postData_getPunchData);
+
+                // console.log("postData_getPunchData", postData_getPunchData);
+
                 // GET PUNCH DATA FROM TABLE START
                 const punch_data = await axioslogin.post("/attendCal/getPunchDataEmCodeWiseDateWise/", postData_getPunchData);
                 const { su, result_data } = punch_data.data;
@@ -230,18 +266,25 @@ const PunchMarkingHR = () => {
                         postData_getPunchData,
                         punchaData,
                         empList,
-                        shiftInformation,
-                        commonSettings,
+                        shiftDetails,
+                        commonSettingDatas,
                         holidayList,
-                        empSalary
+                        // empSalary,
+                        value
+                        // previous_punch_data,
+                        // prevDutyplan
                     )
                     const { status, message, errorMessage, dta } = result;
+                    // console.log(postData_getPunchData);
+
                     // console.log(result)
                     if (status === 1) {
                         // console.log(dta.section)
                         // CALCULATE THE LATE COMMING BASED ON LATES  START HERE
                         const punch_data = await axioslogin.post("/attendCal/getPunchReportLCCount/", postData_getPunchData); // added on 27/06/2024 10:00 PM (Ajith)
                         const { success: lcSuccess, data: lcData } = punch_data.data;
+                        // console.log("lcSuccess", lcSuccess);
+
                         if (lcSuccess === 1 && lcData !== null && lcData !== undefined && lcData.length > 0) {
                             // console.log(lcData)
                             const filterEMNO = [...new Set(lcData?.map((e) => e.em_no))]
@@ -277,7 +320,7 @@ const PunchMarkingHR = () => {
                                 ?.filter((e) => e.lvereq_desc === 'HD' && e.duty_desc === 'LC')
                                 ?.map((e) => e.punch_slno)
 
-                            //console.log("filterLcData", filterLcData)
+                            // console.log("filterLcData", filterLcData)
                             //UPDATE IN TO PUNCH MASTER TABLE 
                             if (filterLcData !== null && filterLcData !== undefined && filterLcData?.length > 0) {
                                 await axioslogin.post("/attendCal/updateLCPunchMaster/", filterLcData); // added on 27/06/2024 10:00 PM (Ajith)
@@ -295,6 +338,8 @@ const PunchMarkingHR = () => {
                                 }),
                             }
                         })
+                        // console.log("filterDeptAndSection", filterDeptAndSection);
+
                         if (filterDeptAndSection?.length > 0) {
                             setDeptList(filterDeptAndSection)
                             setOpenBkDrop(false)
@@ -334,9 +379,11 @@ const PunchMarkingHR = () => {
         const postDataUpdatePunchMarkHR = {
             loggedEmp: em_no,
             toDate_punchMaster: monthStart,
-            fromDate: monthStart,
+            puchMarkingByHR: monthStart,
             section: section
         }
+        // console.log(postDataUpdatePunchMarkHR);
+
         // GET EMPLOYEE LIST
         const empData = await axioslogin.get(`/common/getEmpName/${section}`)
         const { data, success } = empData.data;
@@ -348,18 +395,30 @@ const PunchMarkingHR = () => {
                 toDate_dutyPlan: monthEnd,
                 empList: empList
             }
+            // console.log("postData", postData);
+
             const getDutyPlan = await axioslogin.post("/attendCal/getDutyPlanBySection/", postData); //GET DUTY PLAN DAAT
-            const { succes, shiftdetail } = getDutyPlan.data;
-            if (succes === 1 && shiftdetail?.length > 0) {
+            // const { succes, shiftdetail } = getDutyPlan.data;
+            const { successStatus, PunchMastDutyPlanDatas } = getDutyPlan.data;
+            const { dutyPlanResults } = PunchMastDutyPlanDatas;
+            // console.log("getDutyPlan.data", getDutyPlan.data);
+
+            const shiftdetail = dutyPlanResults?.dutyPlanResults || [];
+
+            if (successStatus === 1 && dutyPlanResults?.dataStatus === true) {
                 // UPDATE DUTY PLAN SLNO
                 const dutyPlanSlno = shiftdetail?.map((e) => e.plan_slno)
                 const updateDutyPlanTable = await axioslogin.post("/attendCal/updateDelStatDutyPlanTable/", dutyPlanSlno);
                 const { susc } = updateDutyPlanTable.data;
-                // console.log(susc, message)
+                // console.log(susc)
                 if (susc === 1) {
                     // UPDATE PUNCH_MARKING_HR TABLE
+                    // console.log("postDataUpdatePunchMarkHR", postDataUpdatePunchMarkHR);
+
                     const updatePunchMarkingHR = await axioslogin.post("/attendCal/updatePunchMarkingHR/", postDataUpdatePunchMarkHR);
                     const { sus } = updatePunchMarkingHR.data;
+                    // console.log(sus);
+
                     if (sus === 1) {
                         setDeptList([])
                         setOpenBkDrop(false)
@@ -384,9 +443,13 @@ const PunchMarkingHR = () => {
         }
     }
 
-    // const handleView = useCallback(() => {
-    //     history.push('/Home/PunchDoneList');
-    // }, [history])
+    // console.log("deptList", deptList);
+
+
+    // console.log("monthStart === e.updated", monthStart);
+    // console.log("actSelectDate <= e.updated", actSelectDate);
+
+
 
 
     return (

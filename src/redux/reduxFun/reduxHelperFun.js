@@ -20,7 +20,7 @@ export const getEmployeeInformationLimited = (state) => {
 
 export const getCommonSettings = (state, menuno) => {
     const commonState = state?.getCommonSettings?.group_slno;
-    const Obj = commonState !== undefined && JSON.parse(commonState);
+    const Obj = commonState !== undefined && commonState;
     const result = Obj && Obj?.find((e) => e === menuno) === undefined ? false : true
     return result
 }

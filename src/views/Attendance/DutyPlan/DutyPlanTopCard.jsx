@@ -104,6 +104,7 @@ const DutyPlanTopCard = () => {
     //updated shift array for updating into database
     const getUpdatedShiftId = useSelector((state) => state.getUpdatedShiftId, _.isEqual);
     const shiftId = useMemo(() => getUpdatedShiftId, [getUpdatedShiftId]);
+    // console.log("getUpdatedShiftId", getUpdatedShiftId);
 
     const onClickSaveShiftUpdation = useCallback(async (e) => {
         e.preventDefault();
@@ -185,7 +186,6 @@ const DutyPlanTopCard = () => {
 
                 if (lastUpdateDate === lastDay_month) {
                     warningNofity("Punch Marking Monthly Process Done !! Can't do dutyplan!!  ")
-                    console.log("xvcbvn");
                     getEmployeeDetlDutyPlanBased(postData).then((emplyDataArray) => {
                         const { status, data } = emplyDataArray;
                         if (status === 1) {

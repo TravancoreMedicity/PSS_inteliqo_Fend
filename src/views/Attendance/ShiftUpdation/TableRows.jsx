@@ -19,8 +19,7 @@ const TableRows = ({ data, disable, no, punchData, punchMaster, setTableArray })
 
     const { cmmn_grace_period } = commonSetting;
 
-    // console.log(data)
-    const { isNOff, isWeekOff } = data;
+    const { isNOff, isWeekOff, isDOff } = data;
     const hideStatus = data?.hideStatus;
     //MODAL OPEN STATE
     const [open, setOpen] = useState(false);
@@ -29,7 +28,7 @@ const TableRows = ({ data, disable, no, punchData, punchMaster, setTableArray })
             <Suspense>
                 <ShiftModal open={open} setOpen={setOpen} data={data} punchData={punchData} punchMast={punchMaster} setTableArray={setTableArray} />
             </Suspense>
-            <TableRow hover sx={{ backgroundColor: (data?.late_in > 0 || data?.early_out) ? '#FCD7D7' : (data?.isWeekOff === true || data?.isNOff === true) ? '#CBE6CE' : '' }} >
+            <TableRow hover sx={{ backgroundColor: (data?.late_in > 0 || data?.early_out) ? '#FCD7D7' : (data?.isWeekOff === true || data?.isNOff === true || data?.isDOff === true) ? '#CBE6CE' : '' }} >
                 {
                     hideStatus === 0 ?
                         <TableCell size='small' padding='none' align="center" sx={{ color: '#003A75', fontWeight: 550 }} >
@@ -37,7 +36,7 @@ const TableRows = ({ data, disable, no, punchData, punchMaster, setTableArray })
                                 disable === true ?
                                     <IconButton aria-label="delete" size="small" sx={{ p: 0 }} disabled><ArticleOutlinedIcon /></IconButton>
                                     :
-                                    (isNOff === true || isWeekOff === true) ?
+                                    (isNOff === true || isWeekOff === true || isDOff === true) ?
                                         <IconButton aria-label="delete" size="small" sx={{ p: 0 }} disabled  ><ArticleOutlinedIcon color='disabled' /></IconButton>
                                         :
                                         <IconButton aria-label="delete" size="small" sx={{ p: 0 }} onClick={() => setOpen(true)} ><ArticleOutlinedIcon color='secondary' /></IconButton>

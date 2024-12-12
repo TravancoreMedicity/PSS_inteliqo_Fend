@@ -14,7 +14,7 @@ const InchargeHODPage = ({ state, setState }) => {
     const [mapEmpList, setMapEmpList] = useState([]);
     const [hodBasedSection, setHodBasedSection] = useState([]);
     const [deptSectionList, setDeptSectionList] = useState([]);
-    const [masterGroupStatus, setMasterGroupStatus] = useState(false);
+    // const [masterGroupStatus, setMasterGroupStatus] = useState(false);
     const [hodEmpFilter, setHodEmpFilter] = useState(false);
     const [empDisableStat, setEmpDisableStat] = useState(false)
 
@@ -30,18 +30,18 @@ const InchargeHODPage = ({ state, setState }) => {
 
     const getcommonSettings = useSelector((state) => getCommonSettings(state, groupmenu))
     const groupStatus = useMemo(() => getcommonSettings, [getcommonSettings])
-    useEffect(() => {
-        setMasterGroupStatus(groupStatus)
-    }, [groupStatus])
+    // useEffect(() => {
+    //     setMasterGroupStatus(groupStatus)
+    // }, [groupStatus])
 
     //GET THE DEPARTMENT SECTION DETAILS BASED ON LOGED USER EM_ID
     useEffect(() => {
         // IF THE LOGGED EMPLOYEE IS HOD OR INCHARGE
-        if ((hod === 1 || incharge === 1) && masterGroupStatus === true) {
+        if (groupStatus === true && (hod === 1 || incharge === 1)) {
             setDisables(false)
             setHodBasedSection([])
 
-        } else if ((hod === 1 || incharge === 1) && masterGroupStatus === false) {
+        } else if (groupStatus === false && (hod === 1 || incharge === 1)) {
             setDisables(true)
             setDeptID(0)
             const fetchData = async (em_id) => {
@@ -60,7 +60,7 @@ const InchargeHODPage = ({ state, setState }) => {
         return () => {
             setHodBasedSection([])
         }
-    }, [hod, incharge, em_id, em_dept_section, masterGroupStatus])
+    }, [hod, incharge, em_id, em_dept_section, groupStatus])
 
     // FILTERING AND SORTING DEPARTMENT SECTION AND EMPLOYEE
     useEffect(() => {
@@ -124,6 +124,13 @@ const InchargeHODPage = ({ state, setState }) => {
         setEmployeeID(value)
         setState({ ...state, emNo: value })
     }, [state, setState])
+
+    // console.log("departmentNameList", departmentNameList);
+    // console.log("deptSectionList", deptSectionList);
+
+
+    // console.log("deptSectionList", deptSectionList && deptSectionList ? 1 : 0);
+
 
     return (
         <Box sx={{ display: 'flex', flex: 1, p: 0.5 }} >
