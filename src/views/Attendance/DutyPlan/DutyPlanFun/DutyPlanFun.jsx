@@ -88,7 +88,10 @@ export const dutyPlanInsertFun = async (formData, commonSettings, holidayList, e
         holidayFilterList = data?.map((values) => {
             return values.hld_date >= fromDate && values.hld_date <= toDate ? values : null;
         }).filter((val) => val !== null);
-    } else {
+    } else if (status === 2) {
+        holidayFilterList = [];
+    }
+    else {
         return { ...message, status: 0, message: 'Holiday List Not Updated', data: [] }
     }
 
