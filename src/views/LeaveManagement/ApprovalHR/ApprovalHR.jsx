@@ -31,6 +31,7 @@ const ApprovalHR = () => {
         dispatch(getHalfdayRqstAll())
         dispatch(getNopunchRqstAll())
         dispatch(getCompOffRqstAll())
+        setCount(0)
     }, [dispatch, count])
 
     //API DATA 
@@ -41,7 +42,7 @@ const ApprovalHR = () => {
 
     // HR APPROVLA REQUEST FORM DATA STATE
     const [leaverequesttype, setleaverequesttype] = useState([]);
-    const [value, setValue] = useState(1);
+    const [value, setValue] = useState(3);
     const [tableData, setTableData] = useState([])
 
     //LEAVE TYPE GET FUNCTION FROM DB
