@@ -146,7 +146,7 @@ const RegionMast = () => {
     }, [])
 
     return (
-        <MasterLayout title="Registation Type" displayClose={true} >
+        <MasterLayout title="Region Master" displayClose={true} >
             <ToastContainer />
             <SessionCheck />
             <Box sx={{ width: "100%" }} >

@@ -171,7 +171,7 @@ const DepartmentSectionMast = () => {
     }, [])
 
     return (
-        <MasterLayout title="Department Section" displayClose={true} >
+        <MasterLayout title="Department Section Master" displayClose={true} >
             <ToastContainer />
             <SessionCheck />
             <Box sx={{ width: "100%" }} >
