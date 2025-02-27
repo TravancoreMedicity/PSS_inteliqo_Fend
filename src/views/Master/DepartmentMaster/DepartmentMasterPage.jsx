@@ -149,7 +149,7 @@ const DepartmentMasterPage = () => {
 
 
     return (
-        <MasterLayout title="Department" displayClose={true} >
+        <MasterLayout title="Department Master" displayClose={true} >
             <ToastContainer />
             <Box sx={{ width: "100%" }} >
                 <Grid container spacing={1}>

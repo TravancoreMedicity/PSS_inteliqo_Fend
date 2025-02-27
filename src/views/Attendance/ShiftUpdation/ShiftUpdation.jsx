@@ -300,7 +300,7 @@ const ShiftUpdation = () => {
                             const tb = punchMastData?.map((e) => {
                                 const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
                                 const crossDayStat = crossDay?.shft_cross_day ?? 0;
-                                const breakShiftStatus = crossDay?.break_shift_status;
+                                //const breakShiftStatus = crossDay?.break_shift_status;
 
                                 // console.log(e);
 
