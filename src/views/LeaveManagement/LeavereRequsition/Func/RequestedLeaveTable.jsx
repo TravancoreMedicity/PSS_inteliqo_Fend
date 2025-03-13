@@ -5,36 +5,25 @@ import { useSelector } from 'react-redux';
 import LeaveCancelEmp from '../EmpView/LeaveCancelEmp';
 import HalfdayCancelEmp from '../EmpView/HalfdayCancelEmp';
 import NopunchCancelEmp from '../EmpView/NopunchCancelEmp';
-// import CompOffCancelEmp from '../EmpView/CompOffCancelEmp';
 import CommonAgGrid from 'src/views/Component/CommonAgGrid';
 import BeenhereIcon from '@mui/icons-material/Beenhere';
 import { getCommonSettings, getEmployeeInformationLimited, getEmployeeLeaveRs } from 'src/redux/reduxFun/reduxHelperFun';
 import { getDepartmentSectionBasedHod } from './LeaveFunction';
-// import { getEmployeeLeaveRequest } from 'src/redux/actions/LeaveReqst.action';
 
 const RequestedLeaveTable = ({ setCount }) => {
 
-    // const dispatch = useDispatch()
-
-    // const [tableData, settableData] = useState([])
-
-
     //MODAL STATES FOR RENDERING OPEN MODAL & UPDATE DATA
     const [leaveReqModal, setleaveReqModal] = useState(false);
-    //const [coffReqModal, setcoffReqModal] = useState(false);
     const [halfDayReqModal, sethalfDayReqModal] = useState(false);
     const [noPunchReqModal, setnoPunchReqModal] = useState(false);
 
     //UPDATE DATA
     const [lveData, setlveData] = useState({});
-    // const [coffData, setcoffData] = useState({});
     const [halfData, sethalfData] = useState({});
     const [noPunchData, setnoPunchData] = useState({});
 
-
     const [masterGroupStatus, setMasterGroupStatus] = useState(false);
     const [checkStatus, setCheckStatus] = useState(false)
-
 
     //LOGGED EMPLOYEE INFORMATION
     const empInform = useSelector((state) => getEmployeeInformationLimited(state))
@@ -57,43 +46,8 @@ const RequestedLeaveTable = ({ setCount }) => {
         })
     }, [em_dept_section, em_id])
 
-    // const sectionWiseLeaveRequest = state?.getSectLeaveRequests?.sectLeaves
-    // const sectionWisehalfdayRequest = state?.getSectHalfdayRequests?.sectHalfday
-    // const sectionWiseMisspunchRequest = state?.getSectMisspunchRequests?.sectMisspunch
-
-    // const leaveRequest = useSelector((state) => state?.getSectLeaveRequests?.sectLeaves)
-    // const misspunch = useSelector((state) => state?.getSectHalfdayRequests?.sectHalfday)
-    // const halfday = useSelector((state) => state?.getSectMisspunchRequests?.sectMisspunch)
-
-    //const empData = useSelector((state) => getEmployeeLeaveRequest(state))
-
-    const empData = useSelector((state) => getEmployeeLeaveRs(state, hod, incharge, masterGroupStatus, em_id, em_dept_section, checkStatus))
-
-
-    // useEffect(() => {
-    //     const getLeaveReqInfo = async (leaveRequest, misspunch, halfday, hod, incharge, masterGroupStatus, em_id, em_dept_section) => {
-    //         const result = await getEmployeeRequests(leaveRequest, misspunch, halfday, hod, incharge, masterGroupStatus, em_id, em_dept_section)
-
-    //         //const data = result?.flat();
-
-    //         //settableData(data)
-    //     }
-    //     getLeaveReqInfo(leaveRequest, misspunch, halfday, hod, incharge, masterGroupStatus, em_id, em_dept_section)
-
-
-    // }, [leaveRequest, misspunch, halfday, hod, incharge, masterGroupStatus, em_id, em_dept_section])
-
-    // const employeeLeaveRequest = useSelector((state) => getEmployeeRequests(state, hod, incharge, masterGroupStatus, em_id, em_dept_section))
-    // const empdata = useMemo(() => employeeLeaveRequest, [employeeLeaveRequest])
-
-
-    // empdata.then((e) => {
-    //     const data = e.flat();
-
-    //     settableData(data)
-    // })
-
-
+    const empData = useSelector((state) =>
+        getEmployeeLeaveRs(state, hod, incharge, masterGroupStatus, em_id, em_dept_section, checkStatus))
 
     const LeaveCancel = useCallback(async (params) => {
         const { code } = params?.data
@@ -120,7 +74,7 @@ const RequestedLeaveTable = ({ setCount }) => {
         {
             headerName: 'Delete', minWidth: 150,
             cellRenderer: params => {
-                if (params.data.hrstatus === 1 || params.data.inchargestatus === 1 || params.data.hodstatus === 1 || params.data.inchargestatus === 2) {
+                if (params.data.hrstatus === 1 || params.data.hrstatus === 2) {
                     return <IconButton
                         sx={{ paddingY: 0.5, cursor: 'none' }}  >
                         <BeenhereIcon />
@@ -134,18 +88,14 @@ const RequestedLeaveTable = ({ setCount }) => {
         },
     ])
 
-
-
     return (
         <Fragment>
             <Suspense>
                 <LeaveCancelEmp open={leaveReqModal} setOpen={setleaveReqModal} data={lveData} setCount={setCount} />
                 <HalfdayCancelEmp open={halfDayReqModal} setOpen={sethalfDayReqModal} data={halfData} setCount={setCount} />
                 <NopunchCancelEmp open={noPunchReqModal} setOpen={setnoPunchReqModal} data={noPunchData} setCount={setCount} />
-                {/* <CompOffCancelEmp open={coffReqModal} setOpen={setcoffReqModal} data={coffData} setCount={setCount} /> */}
+
             </Suspense>
-            {/* {
-                flag === 1 ? <DeptSectionBasedEmpTable leavecanceldetl={tableData} setCount={setCount} /> : */}
             <Paper square elevation={0} sx={{
                 p: 1, mt: 0.5, display: 'flex', flexDirection: "column",
                 width: "100%"

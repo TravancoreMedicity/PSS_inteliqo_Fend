@@ -29,9 +29,6 @@ const LeaveProcessCard = ({ data, category }) => {
 
     const [statutory_esi, setStatutoryEsi] = useState(0)
 
-    // const holiday = useSelector((state) => state.getHolidayList, _.isEqual)
-    // const commonLve = useSelector((state) => state.getCommonLeave, _.isEqual)
-    //employee category and contract detailed based on after hrm_leave_process
     const empCategoryProcess = useSelector((state) => state?.getEmployeeProcessRecord?.ProcessRecord, _.isEqual,)
 
     const statutory = useSelector((state) => state?.setStatutoryInfo?.data, _.isEqual)
@@ -48,16 +45,10 @@ const LeaveProcessCard = ({ data, category }) => {
 
     }, [esiInfo])
 
-
-
     const LeaveProcessedData = useMemo(() => data, [data])
-    // const categoryData = useMemo(() => category, [category])
     const empCategoryProcessDetl = useMemo(() => empCategoryProcess, [empCategoryProcess])
 
     //{ 1-> 'Casual Leave', 2-> 'Common Leave', 3-> 'Privilege Leave', 4-> 'Holiday' }
-
-    //const holidayList = useMemo(() => holiday, [holiday])
-    // const commonLeave = useMemo(() => commonLve, [commonLve])
 
     // Processed table data 'hrm_leave_process' table
     const {
@@ -67,30 +58,11 @@ const LeaveProcessCard = ({ data, category }) => {
         lv_process_slno,
         em_id,
         em_no,
-        // category_slno,
-        // process_updatedate,
-        // hrm_clv,
-        // hrm_ern_lv,
-        // hrm_hld,
-        // hrm_cmn,
-        // hrm_process_status,
-        // next_updatedate,
     } = LeaveProcessedData
 
     // category Details
     const {
-        // em_category,
-        // em_contract_end_date,
-        // em_retirement_date,
-        // em_prob_end_date,
-        // ecat_cont,
-        // ecat_prob,
-        // ecat_esi_allow,
-        // ecat_confere,
-        // ecat_lop,
-        // ecat_sl,
         em_doj,
-        // ecat_mate,
     } = category
 
     let buttonDisableStatus = value === 0 ? false : true;

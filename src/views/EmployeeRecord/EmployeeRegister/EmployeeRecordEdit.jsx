@@ -39,7 +39,7 @@ import JoyClicnicalType from 'src/views/MuiComponents/JoyComponent/JoyClicnicalT
 
 const EmployeeRecordEdit = () => {
 
-    const { id, no } = useParams();
+    const { id } = useParams();
     const history = useHistory();
     const dispatch = useDispatch()
 
@@ -82,13 +82,6 @@ const EmployeeRecordEdit = () => {
     const [cont_perioddate, setcont_perioddate] = useState('')
     const [contractflag, setcontractflag] = useState(0)
     const [prob_status, setProb_status] = useState(0)
-
-
-    //const [oldCategory, setOldCategory] = useState(0)
-    //const [oldContract_Status, setOldContract_Status] = useState(0)
-    const [oldprob_end_date, setOldprob_end_date] = useState(moment(new Date()).format('YYYY-MM-DD'))
-    const [old_cont_end_date, setOld_cont_end_date] = useState(moment(new Date()).format('YYYY-MM-DD'))
-    //const [oldprob_status, setOld_prob_Status] = useState(0)
 
     const [clinictype, setClinictype] = useState(0)
     const [doctor, setDoctor] = useState(false)
@@ -228,8 +221,8 @@ const EmployeeRecordEdit = () => {
                 setcont_gracedate(em_conf_end_date)
                 //setOldCategory(em_category)//setting category to old
                 // setOldContract_Status(contract_status)//setting old contract status
-                setOldprob_end_date(em_prob_end_date)//old probation end date
-                setOld_cont_end_date(em_contract_end_date)//old contract end date
+                //setOldprob_end_date(em_prob_end_date)//old probation end date
+                //setOld_cont_end_date(em_contract_end_date)//old contract end date
                 // setOld_prob_Status(probation_status)//setting old 
                 setClinictype(clinicaltype === 0 ? 0 : clinicaltype)
                 setDoctor(doctor_status === 1 ? true : false)

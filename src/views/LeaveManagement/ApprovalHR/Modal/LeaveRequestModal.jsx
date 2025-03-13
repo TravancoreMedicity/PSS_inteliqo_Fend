@@ -6,29 +6,31 @@ import Typography from '@mui/joy/Typography';
 import { Chip, Divider, ModalDialog, Textarea } from '@mui/joy';
 import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
 import { Box, Paper } from '@mui/material';
-import ArrowRightOutlinedIcon from '@mui/icons-material/ArrowRightOutlined';
 import moment from 'moment';
 import { axioslogin } from 'src/views/Axios/Axios';
 import { useEffect } from 'react';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { employeeNumber } from 'src/views/Constant/Constant';
 import { errorNofity, succesNofity, warningNofity } from 'src/views/CommonCode/Commonfunc';
 import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDrop';
 import { useMemo } from 'react';
 import { format, lastDayOfMonth, startOfMonth } from 'date-fns';
+import { useSelector } from 'react-redux';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
 
-const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
+const LeaveRequestModal = ({ open, setOpen, data, setCount, previousLeave }) => {
     //STATES
     const [reqDetl, setReqDetl] = useState([]);
     const [reason, setReason] = useState('');
     const [openBkDrop, setOpenBkDrop] = useState(false)
 
-
     //DISPLAY THE DATA 
-    const { slno, emno, name, section, status, reqDate, fromDate, toDate, dept_section } = data;
+    const { emno, em_id, name, section, requestDate: reqDate, fromDate, toDate, dept_section,
+        leave_reason, inc_apprv_cmnt, hod_apprv_cmnt, lve_uniq_no, leave_date } = data;
+
+    const loginem_id = useSelector((state) => state?.getProfileData?.ProfileData[0]?.em_id ?? 0)
+
     //GET THE DETAILED TABLE DATA USING API
-    const getLeaveReqDetl = async (slno) => {
-        const resultdel = await axioslogin.get(`/LeaveRequestApproval/getlevereqdetl/${slno}`);
+    const getLeaveReqDetl = async (lve_uniq_no) => {
+        const resultdel = await axioslogin.get(`/LeaveRequestApproval/getlevereqdetl/${lve_uniq_no}`);
         const { success, data } = resultdel?.data;
         if (success === 1) {
             setReqDetl(data)
@@ -36,10 +38,10 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
     }
 
     useEffect(() => {
-        if (slno !== null && slno !== undefined) {
-            getLeaveReqDetl(slno)
+        if (lve_uniq_no !== null && lve_uniq_no !== undefined) {
+            getLeaveReqDetl(lve_uniq_no)
         }
-    }, [slno])
+    }, [lve_uniq_no, data, em_id])
 
     //UPDATE LEAVE FUNCTION 
     const handleApproverequest = useCallback(async () => {
@@ -49,9 +51,9 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
             return { ...val, emno: emno }
         });
         //NATIONAL HOLIDAY
-        const Holiday = reqDetl?.filter(val => val.leave_typeid === 3 || val.leave_typeid === 4)?.map(val => {
-            return { ...val, emno: emno }
-        });
+        // const Holiday = reqDetl?.filter(val => val.leave_typeid === 3 || val.leave_typeid === 4)?.map(val => {
+        //     return { ...val, emno: emno }
+        // });
         //EARN LEAVE
         const earnLeave = reqDetl?.filter(val => val.leave_typeid === 8)?.map(val => {
             return { ...val, emno: emno }
@@ -64,20 +66,20 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
         const formData = {
             status: 1,
             comment: reason,
-            apprvdate: moment().format('YYYY-MM-DD HH:mm'),
-            us_code: employeeNumber(),
-            slno: slno
+            apprvdate: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            us_code: loginem_id,
+            slno: lve_uniq_no
         }
         const postDataForAttendaceMark = {
-            month: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+            month: format(startOfMonth(new Date(leave_date)), 'yyyy-MM-dd'),
             section: dept_section
         }
 
         const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postDataForAttendaceMark);
         const { success, data } = checkPunchMarkingHr.data
         if (success === 0 || success === 1) {
-            const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(fromDate)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
-            const lastDay_month = format(lastDayOfMonth(new Date(fromDate)), 'yyyy-MM-dd')
+            const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(leave_date)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
+            const lastDay_month = format(lastDayOfMonth(new Date(leave_date)), 'yyyy-MM-dd')
             if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
                 warningNofity("Punch Marking Monthly Process Done !! Can't Approve Leave Request!!  ")
                 setOpenBkDrop(false)
@@ -101,19 +103,19 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
                 })
 
                 //UPDATE HOLIDAY 
-                const holidayLeavePromise = new Promise(async (resolve, reject) => {
-                    if (Holiday?.length > 0) {
-                        const resulthl = await axioslogin.post(`/LeaveRequestApproval/updateHolidayLeaveTable`, Holiday);
-                        const { success, message } = resulthl.data;
-                        if (success === 1) {
-                            resolve('Holiday Leave Request updated')
-                        } else {
-                            reject(`HL Updation ! Error ${message}`)
-                        }
-                    } else {
-                        resolve(1)
-                    }
-                })
+                // const holidayLeavePromise = new Promise(async (resolve, reject) => {
+                //     if (Holiday?.length > 0) {
+                //         const resulthl = await axioslogin.post(`/LeaveRequestApproval/updateHolidayLeaveTable`, Holiday);
+                //         const { success, message } = resulthl.data;
+                //         if (success === 1) {
+                //             resolve('Holiday Leave Request updated')
+                //         } else {
+                //             reject(`HL Updation ! Error ${message}`)
+                //         }
+                //     } else {
+                //         resolve(1)
+                //     }
+                // })
 
                 //EARN LEAVE 
                 const earnLeavePromise = new Promise(async (resolve, reject) => {
@@ -192,7 +194,7 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
                         return {
                             ...val,
                             duty_status: val.leave_typeid === 1 && val.leaveCount === 0.5 ? 0.5 : val.leave_typeid === 7 && val.leaveCount === 0.5 ? 0.5 : 1,
-                            lvereq_desc: val.leave_typeid === 11 ? 'COFF' : val.leave_typeid === 7 && val.leaveCount !== 0.5 ? 'SL' : val.leave_typeid === 8 ? 'EL' : val.leave_typeid === 1 && val.leaveCount !== 0.5 ? 'CL' : val.leave_typeid === 1 && val.leaveCount === 0.5 ? 'HCL' : val.leave_typeid === 7 && val.leaveCount === 0.5 ? 'HSL' : 'ML',
+                            lvereq_desc: val.leave_typeid === 11 ? 'COFF' : val.leave_typeid === 7 && val.leaveCount !== 0.5 ? 'SL' : val.leave_typeid === 8 ? 'EL' : val.leave_typeid === 1 && val.leaveCount !== 0.5 ? 'CL' : val.leave_typeid === 1 && val.leaveCount === 0.5 ? 'HDCL' : val.leave_typeid === 7 && val.leaveCount === 0.5 ? 'HDSL' : 'ML',
                             duty_desc: val.leave_typeid === 11 ? 'COFF' : val.leave_typeid === 7 && val.leaveCount !== 0.5 ? 'SL' : val.leave_typeid === 8 ? 'EL' : val.leave_typeid === 1 && val.leaveCount !== 0.5 ? 'CL' : val.leave_typeid === 1 && val.leaveCount === 0.5 ? 'HCL' : val.leave_typeid === 7 && val.leaveCount === 0.5 ? 'HSL' : 'ML',
                             leave_dates: format(new Date(val.leave_dates), 'yyyy-MM-dd ')
                         }
@@ -213,28 +215,34 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
 
                 Promise.all([
                     casualLeavePromise,
-                    holidayLeavePromise,
+                    // holidayLeavePromise,
                     earnLeavePromise,
                     coffLeavePromise,
-                    updateEsiLeavePunchMaster,
-                    updateLwpPunchMaster,
-                    updateLeavePunchMasterTable
+                    // updateEsiLeavePunchMaster,
+                    // updateLwpPunchMaster,
+                    // updateLeavePunchMasterTable
                 ]).then(async (result) => {
                     if (result) {
-                        const resultdel = await axioslogin.patch(`/LeaveRequestApproval/hrLeaveapprv`, formData);
-                        const { success } = await resultdel.data;
-                        if (success === 1) {
-                            setOpenBkDrop(false)
-                            setCount(Math.random())
-                            succesNofity('Leave Request Approved')
-                            setOpen(false)
-                        }
-                        else {
-                            setCount(Math.random())
-                            errorNofity('Error Updating Leave Request')
-                            setOpenBkDrop(false)
-                            setOpen(false)
-                        }
+                        Promise.all([
+                            updateEsiLeavePunchMaster,
+                            updateLwpPunchMaster,
+                            updateLeavePunchMasterTable
+                        ]).then(async (result) => {
+                            const resultdel = await axioslogin.patch(`/LeaveRequestApproval/hrLeaveapprv`, formData);
+                            const { success } = await resultdel.data;
+                            if (success === 1) {
+                                setOpenBkDrop(false)
+                                setCount(Math.random())
+                                succesNofity('Leave Request Approved')
+                                setOpen(false)
+                            }
+                            else {
+                                setCount(Math.random())
+                                errorNofity('Error Updating Leave Request')
+                                setOpenBkDrop(false)
+                                setOpen(false)
+                            }
+                        })
                     }
                 }).catch(error => {
                     setCount(Math.random())
@@ -255,19 +263,19 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
             errorNofity("Error getting PunchMarkingHR ")
         }
 
-    }, [slno, reqDetl, emno, reason, setCount, setOpen, dept_section, fromDate])
+    }, [reqDetl, emno, reason, setCount, setOpen, dept_section, lve_uniq_no, leave_date, loginem_id])
 
     const LeaveRejectdata = useMemo(() => {
         return {
             hr_apprv_status: 2,
             hr_apprv_cmnt: reason,
-            hr_apprv_date: moment().format('YYYY-MM-DD HH:mm'),
-            hr_uscode: employeeNumber(),
-            lve_uniq_no: slno
+            hr_apprv_date: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
+            hr_uscode: loginem_id,
+            lve_uniq_no: lve_uniq_no
         }
-    }, [reason, slno])
+    }, [reason, lve_uniq_no, loginem_id])
 
-    const handleRegectRequest = useCallback(async () => {
+    const handleRejectRequest = useCallback(async () => {
         //CASUAL LEAVE 
         const casualLev = reqDetl?.filter(val => val.leave_typeid === 1)?.map(val => {
             return { ...val, emno: emno }
@@ -361,7 +369,7 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
         //UPDATE COMMON LEAVE TABLE
         const commonLeavePromise = new Promise(async (resolve, reject) => {
             if (commonLeaves?.length > 0) {
-                const resultcl = await axioslogin.post(`/LeaveRequestApproval/CancelCasualyLeave`, commonLeaves);
+                const resultcl = await axioslogin.post(`/LeaveRequestApproval/CancelCommonLeave`, commonLeaves);
                 const { success, message } = resultcl.data;
                 if (success === 1) {
                     resolve('Common Leave Request Updated')
@@ -388,7 +396,7 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
                 if (result) {
                     setOpenBkDrop(false)
                     setCount(Math.random())
-                    succesNofity('Leave Request Approved')
+                    succesNofity('Leave Request Rejected')
                     setOpen(false)
                 }
             }).catch(error => {
@@ -414,6 +422,7 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
         }
 
     }, [emno, setCount, setOpen, LeaveRejectdata, reqDetl])
+
 
     return (
         <>
@@ -471,77 +480,131 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
                         </Typography>
                         <Typography level="body1" sx={{ px: 1, textTransform: "lowercase" }} >{section}</Typography>
                     </Box>
-                    <Box sx={{ mt: 0.5, pt: 1 }} >
-                        <Typography variant="outlined" color="success">
-                            {status}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, pt: 1 }} >
-                        <Box sx={{ display: 'flex', flex: 1, pr: 1 }} >
+                    <Box
+                        sx={{
+                            display: 'flex', justifyContent: 'center',
+                            alignItems: 'center', px: 1, borderBlockStyle: 'outset',
+                            flexDirection: 'column',
+                        }} >
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Request Date
+                                </Typography>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{reqDate}
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Leave From
+                                </Typography>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{fromDate}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Leave To
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{toDate}
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Reason
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{leave_reason}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Incharge Comment
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{inc_apprv_cmnt === null ? 'NIL' : inc_apprv_cmnt === '' ? 'NIL' : inc_apprv_cmnt}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Hod Comment
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{hod_apprv_cmnt === null ? 'NIL' : hod_apprv_cmnt === '' ? 'NIL' : hod_apprv_cmnt}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Paper variant="outlined" square sx={{ p: 0.5, mb: 0.8, width: '100%' }} >
+                            {
+                                reqDetl?.map((val, idx) => {
+                                    return <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }} key={idx} >
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }} >
+                                            {moment(val.leave_dates).format('DD-MM-YYYY')}
+                                        </Typography>
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
+                                            {val.leavetype_name}
+                                        </Typography>
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
+                                            {val.leave_name}
+                                        </Typography>
+                                    </Box>
+                                })
+                            }
+                        </Paper>
+                        <Box sx={{ flex: 1, py: 1 }}>
                             <Typography
-                                level="body1"
-                                justifyContent="center"
+                                level="body2"
+                                startDecorator={<InfoOutlined />}
+                                sx={{ alignItems: 'left', wordBreak: 'break-all', }}
                             >
-                                Request Date
-                            </Typography>
-                            <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg" >
-                                {moment(reqDate).format('DD-MM-YYYY')}
+                                Previous Leave Information.
                             </Typography>
                         </Box>
+                        <Paper variant="outlined" square sx={{ p: 0.5, mb: 0.8, width: '100%' }} >
+                            {
+                                previousLeave?.map((val, idx) => {
+                                    return <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }} key={idx} >
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }} >
+                                            {moment(val.duty_day).format('DD-MM-YYYY')}
+                                        </Typography>
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
+                                            {val.lvereq_desc}
+                                        </Typography>
+                                        <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
+                                            {val.duty_desc}
+                                        </Typography>
+                                    </Box>
+                                })
+                            }
+                        </Paper>
+
                     </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, pt: 1 }} >
-                        <Box sx={{ display: 'flex', flex: 1, pr: 1, justifyContent: 'space-between' }} >
-                            <Typography
-                                level="body1"
-                                justifyContent="center"
-                            >
-                                Leave From
-                            </Typography>
-                            <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg">
-                                {moment(fromDate).format('DD-MM-YYYY')}
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flex: 1, pr: 1, justifyContent: 'space-between' }} >
-                            <Typography
-                                level="body1"
-                                justifyContent="center"
-                            >
-                                Leave To
-                            </Typography>
-                            <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg">
-                                {moment(toDate).format('DD-MM-YYYY')}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    <Box sx={{ flex: 1, py: 1 }}>
-                        <Typography
-                            level="body2"
-                            startDecorator={<InfoOutlined />}
-                            sx={{ alignItems: 'center', wordBreak: 'break-all', }}
-                        >
-                            Requested Leave Information.
-                        </Typography>
-                    </Box>
-                    <Paper variant="outlined" square sx={{
-                        p: 0.5, mb: 0.8,
-                        overflow: 'auto', '::-webkit-scrollbar': { display: "none" }
-                    }} >
-                        {
-                            reqDetl?.map((val, idx) => {
-                                return <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }} key={idx} >
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }} >
-                                        {moment(val.leave_dates).format('DD-MM-YYYY')}
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
-                                        {val.leavetype_name}
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1 }}>
-                                        {val.leave_name}
-                                    </Typography>
-                                </Box>
-                            })
-                        }
-                    </Paper>
                     <Divider>
                         <Chip variant="outlined" color="info" size="sm">
                             HR Use Only
@@ -553,7 +616,7 @@ const LeaveRequestModal = ({ open, setOpen, data, setCount }) => {
                             <Button variant="solid" color="success" onClick={handleApproverequest}>
                                 Leave Request Approve
                             </Button>
-                            <Button variant="solid" color="danger" onClick={handleRegectRequest}>
+                            <Button variant="solid" color="danger" onClick={handleRejectRequest}>
                                 Leave Request Reject
                             </Button>
                         </Box>

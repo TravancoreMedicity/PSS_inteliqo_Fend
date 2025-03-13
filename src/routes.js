@@ -200,7 +200,7 @@ const SalaryStatement = React.lazy(() => import('./views/Payroll/SalaryStatement
 const AttendanceView = React.lazy(() => import('./views/Attendance/AttendanceView/AttendanceView'))
 const PunchMarkingHR = React.lazy(() => import('./views/Attendance/PunchMarkingHR/PunchMarkingHR'))
 const CompanyInfo = React.lazy(() => import('./views/EmployeeRecord/CompanyInformationLeftMenu/CompanyInformation'))
-const PunchDoneList = React.lazy(() => import('./views/Attendance/PunchMarkingHR/PunchMarkDoneList'))
+// const PunchDoneList = React.lazy(() => import('./views/Attendance/PunchMarkingHR/PunchMarkDoneList'))
 const TrainingType = React.lazy(() => import('./views/Master/TrainingTypeMaster/TrainingType'))
 const TrainingCategory = React.lazy(() => import('./views/Master/TrainingCategoryMaster/TrainingCategory'))
 const TrainingName = React.lazy(() => import('./views/Master/TrainingNameMaster/TrainingName'))
@@ -287,6 +287,7 @@ const DayWiseAttendenceReports = React.lazy(() => import('./views/HrReports/DayW
 const WeekOFFPresentMainpage = React.lazy(() => import('./views/LeaveManagement/WeakOFFPresentSetting/WeekOFFPresentMainpage'))
 const ManualRequest = React.lazy(() => import('./views/LeaveManagement/ManualRequest/ManuanlRequest'))
 const ManualRequestReport = React.lazy(() => import('./views/HrReports/ManualRequestReport/ManualReqstReport'))
+const OnObservationRequest = React.lazy(() => import('./views/LeaveManagement/OnObservation/OnobservationRequest'))
 
 
 const routes = [
@@ -474,7 +475,7 @@ const routes = [
   { path: '/Home/AttendanceView', exact: true, name: 'Attandance View', component: AttendanceView },
   { path: '/Home/PunchMarkingHR', exact: true, name: 'Punch Marking HR ', component: PunchMarkingHR },
   { path: '/Home/CompanyInfo', exact: true, name: 'Punch Marking HR ', component: CompanyInfo },
-  { path: '/Home/PunchDoneList', exact: true, name: 'Punch Marking Done List ', component: PunchDoneList },
+  //{ path: '/Home/PunchDoneList', exact: true, name: 'Punch Marking Done List ', component: PunchDoneList },
   //training
   { path: '/Home/TrainingType', exact: true, name: 'Training Type Master', component: TrainingType },
   { path: '/Home/TrainingCategory', exact: true, name: 'Training Category Master', component: TrainingCategory },
@@ -567,6 +568,7 @@ const routes = [
   { path: '/Home/WeekOFFPresentMainpage', exact: true, name: 'Week OFF Present Setting', component: WeekOFFPresentMainpage },
   { path: '/Home/ManualRequest', exact: true, name: 'Manual Request', component: ManualRequest },
   { path: '/Home/ManualRequestReport', exact: true, name: 'Manual Request Report', component: ManualRequestReport },
+  { path: '/Home/OnObservationRequest', exact: true, name: 'On Observation Request', component: OnObservationRequest },
 ]
 
 export default routes

@@ -1,18 +1,18 @@
-import React, { Fragment, memo, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, memo, useCallback, useEffect, useMemo, useState } from 'react'
 import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDrop'
 import Modal from '@mui/joy/Modal';
 import { Button, ModalClose, ModalDialog, Textarea, Typography } from '@mui/joy';
-import { Box, Paper } from '@mui/material';
+import { Box, } from '@mui/material';
 import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
-import ArrowRightOutlinedIcon from '@mui/icons-material/ArrowRightOutlined';
 import moment from 'moment';
-import InfoOutlined from '@mui/icons-material/InfoOutlined';
-import { employeeNumber } from 'src/views/Constant/Constant';
 import { axioslogin } from 'src/views/Axios/Axios';
 import { errorNofity, infoNofity, succesNofity, warningNofity } from 'src/views/CommonCode/Commonfunc';
-import { format, lastDayOfMonth, startOfMonth } from 'date-fns';
+import { addDays, addHours, format, lastDayOfMonth, startOfMonth, subHours } from 'date-fns';
+import { getAttendanceCalculation, getLateInTimeIntervel, punchInOutChecking } from 'src/views/Attendance/PunchMarkingHR/punchMarkingHrFunc';
+import { useSelector } from 'react-redux';
 
-const OneHourReqstModal = ({ open, setOpen, data, setCount, count, authority }) => {
+
+const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
 
     const [openBkDrop, setOpenBkDrop] = useState(false)
     const [remark, setRemark] = useState('');
@@ -36,38 +36,64 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount, count, authority }) 
             checkInFlag: 0,
             checkOutFlag: 0,
             increq: 0,
-            incaprv: 0
+            incaprv: 0,
+            shift_id: 0
         }
     )
-    const { slno, emno, name, section, status, reqDate, dutyDate, reason, shft_desc, checkIn, checkOut,
-        inchargeComment, hodComment, ceoComment, checkInFlag, checkOutFlag, increq, incaprv, dept_sect_id
+    const { slno, emno, name, section, reqDate, dutyDate, reason, shft_desc,
+        inchargeComment, hodComment, checkInFlag, checkOutFlag, dept_sect_id,
+        one_hour_day, shift_id
     } = details;
+
+    const loginem_id = useSelector((state) => state?.getProfileData?.ProfileData[0]?.em_id ?? 0)
+    const shiftData = useSelector((state) => state?.getShiftList?.shiftDetails)
+    const commonSettings = useSelector((state) => state?.getCommonSettings)
+
+    const {
+        cmmn_early_out, // Early going time interval
+        cmmn_grace_period, // common grace period for late in time
+        cmmn_late_in, //Maximum Late in Time for punch in after that direct HALF DAY 
+        salary_above, //Salary limit for calculating the holiday double wages
+        week_off_day, // week off SHIFT ID
+        notapplicable_shift, //not applicable SHIFT ID
+        default_shift, //default SHIFT ID
+        noff, // night off SHIFT ID
+        halfday_time_count,
+        comp_hour_count
+    } = commonSettings; //COMMON SETTING
+
+    //FIND THE CROSS DAY
+    const crossDay = shiftData?.find(shft => shft.shft_slno === shift_id);
+    //const { shft_chkin_time, shft_chkout_time } = crossDay;
+    const crossDayStat = crossDay?.shft_cross_day ?? 0;
+
 
     useEffect(() => {
         if (Object.keys(data).length !== 0) {
-            const { slno, emno, name, section, status, reqDate, dutyDate, shft_desc,
-                check_in, check_out, inchargeComment, hodComment, reason, ceoComment,
-                emid, checkInFlag, checkOutFlag, increq, incaprv } = data[0];
+            const { slno, emno, name, section, status, requestDate, one_hour_duty_day, shft_desc,
+                check_in, check_out, incharge_approval_comment, hod_approval_comment, reason,
+                emid, checkin_flag, checkout_flag, increq, incaprv, one_hour_day, shift_id } = data;
             const details = {
                 slno: slno,
                 emno: emno,
                 name: name,
                 section: section,
                 status: status,
-                reqDate: reqDate,
-                dutyDate: dutyDate,
+                reqDate: requestDate,
+                dutyDate: one_hour_duty_day,
                 reason: reason,
                 shft_desc: shft_desc,
                 checkIn: check_in,
                 checkOut: check_out,
-                inchargeComment: inchargeComment,
-                hodComment: hodComment,
-                ceoComment: ceoComment,
+                inchargeComment: incharge_approval_comment,
+                hodComment: hod_approval_comment,
                 emid: emid,
-                checkInFlag: checkInFlag,
-                checkOutFlag: checkOutFlag,
+                checkInFlag: checkin_flag,
+                checkOutFlag: checkout_flag,
                 increq: increq,
-                incaprv: incaprv
+                incaprv: incaprv,
+                one_hour_day: one_hour_day,
+                shift_id: shift_id
             }
             setDetails(details)
         } else {
@@ -75,296 +101,210 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount, count, authority }) 
         }
     }, [data])
 
-    const rejectData = useMemo(() => {
-        return {
-            incharge_approval_status: 2,
-            incharge_approval_comment: remark,
-            incharge_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            incharge_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
-    const approveData = useMemo(() => {
-        return {
-            incharge_approval_status: 1,
-            incharge_approval_comment: remark,
-            incharge_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            incharge_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
-
-    const hodApprove = useMemo(() => {
-        return {
-            hod_approval_status: 1,
-            hod_approval_comment: remark,
-            hod_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            hod_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
-    const hodReject = useMemo(() => {
-        return {
-            hod_approval_status: 2,
-            hod_approval_comment: remark,
-            hod_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            hod_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
-    const ceoreject = useMemo(() => {
-        return {
-            ceo_approval_status: 2,
-            ceo_approval_comment: remark,
-            ceo_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            ceo_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
-    const ceoApprove = useMemo(() => {
-        return {
-            ceo_approval_status: 1,
-            ceo_approval_comment: remark,
-            ceo_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            ceo_empid: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno])
-
     const hrReject = useMemo(() => {
         return {
             hr_approval_status: 2,
             hr_approval_comment: remark,
             hr_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            hr_empId: employeeNumber(),
+            hr_empId: loginem_id,
             request_slno: slno
         }
-    }, [remark, slno])
+    }, [remark, slno, loginem_id])
 
-    const hrApprove = useMemo(() => {
-        return {
-            checkintime: checkIn,
-            checkouttime: checkOut,
-            checkinflag: checkInFlag,
-            checkoutflag: checkOutFlag,
-            emno: emno,
-            dutyDay: moment(dutyDate).format('YYYY-MM-DD HH:mm'),
-            hr_approval_status: 1,
-            hr_approval_comment: remark,
-            hr_approval_date: moment().format('YYYY-MM-DD HH:mm'),
-            hr_empId: employeeNumber(),
-            request_slno: slno
-        }
-    }, [remark, slno, checkIn, checkOut, checkInFlag, checkOutFlag,
-        dutyDate, emno])
+    // const hrApprove = useMemo(() => {
+    //     return {
+    //         checkintime: checkIn,
+    //         checkouttime: checkOut,
+    //         checkinflag: checkInFlag,
+    //         checkoutflag: checkOutFlag,
+    //         emno: emno,
+    //         dutyDay: moment(dutyDate).format('YYYY-MM-DD HH:mm'),
+    //         hr_approval_status: 1,
+    //         hr_approval_comment: remark,
+    //         hr_approval_date: moment().format('YYYY-MM-DD HH:mm'),
+    //         hr_empId: loginem_id,
+    //         request_slno: slno
+    //     }
+    // }, [remark, slno, checkIn, checkOut, checkInFlag, checkOutFlag,
+    //     dutyDate, emno, loginem_id])
 
 
-    const handleRejectRequest = async () => {
-        if (authority === 1) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
+    const handleRejectRequest = useCallback(async () => {
+        if (remark === "") {
+            infoNofity("Please Add Remarks!")
+        } else {
+            const result = await axioslogin.patch('/CommonReqst/hr/oneHour', hrReject)
+            const { message, success } = result.data;
+            if (success === 1) {
+                setOpenBkDrop(false)
+                setOpen(false)
+                setCount(Math.random())
+                succesNofity(message)
             } else {
-                const result = await axioslogin.patch('/CommonReqst/incharge/onehour', rejectData)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
-            }
-        } else if (authority === 2) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                const result = await axioslogin.patch('/CommonReqst/hod/onehour', hodReject)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
-            }
-        } else if (authority === 3) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                const result = await axioslogin.patch('/CommonReqst/ceo/ceoOnehour', ceoreject)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
+                setOpenBkDrop(false)
+                setOpen(false)
+                setCount(Math.random())
+                errorNofity(message)
             }
         }
-        else if (authority === 4) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                const result = await axioslogin.patch('/CommonReqst/hr/oneHour', hrReject)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
-            }
-        }
-    }
+    }, [remark, hrReject, setCount, setOpen])
 
-    const handleApproverequest = async () => {
-        if (authority === 1) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                setOpenBkDrop(true)
-                const result = await axioslogin.patch('/CommonReqst/incharge/onehour', approveData)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
+    const handleApproverequest = useCallback(async () => {
+        if (remark === "") {
+            infoNofity("Please Add Remarks!")
+        } else {
+            setOpenBkDrop(true)
+            const postDataForAttendaceMark = {
+                month: format(startOfMonth(new Date(dutyDate)), 'yyyy-MM-dd'),
+                section: dept_sect_id
             }
-        } else if (authority === 2) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                if (increq === 1 && incaprv === 0) {
-                    setOpenBkDrop(true)
-                    const result = await axioslogin.patch('/CommonReqst/incharge/onehour', approveData)
-                    const { message, success } = result.data;
-                    if (success === 1) {
-                        const result = await axioslogin.patch('/CommonReqst/hod/onehour', hodApprove)
-                        const { message, success } = result.data;
+            const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postDataForAttendaceMark);
+            const { success, data } = checkPunchMarkingHr.data
+            if (success === 0 || success === 1) {
+                const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(dutyDate)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
+                const lastDay_month = format(lastDayOfMonth(new Date(dutyDate)), 'yyyy-MM-dd')
+                if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
+                    warningNofity("Punch Marking Monthly Process Done !! Can't Approve Halfday Leave Request!!  ")
+                    setOpenBkDrop(false)
+                    setOpen(false)
+                } else {
+
+                    const postData = {
+                        preFromDate: format(subHours(new Date(dutyDate), comp_hour_count), 'yyyy-MM-dd 00:00:00'),
+                        preToDate: crossDayStat === 0 ? format(addHours(new Date(dutyDate), comp_hour_count), 'yyyy-MM-dd 23:59:59') : format(addHours(new Date(addDays(new Date(dutyDate), 1)), comp_hour_count), 'yyyy-MM-dd 23:59:59'),
+                        empList: [emno],
+                    }
+
+                    const punchmastData = {
+                        empno: emno,
+                        dutyday: format(new Date(dutyDate), 'yyyy-MM-dd')
+                    }
+                    const punch_data = await axioslogin.post("/attendCal/getPunchDataEmCodeWiseDateWise/", postData);
+                    const { su, result_data } = punch_data.data;
+                    if (su === 1) {
+                        const punchaData = result_data;
+                        const punch_master_data = await axioslogin.post("/attendCal/attendanceshiftdetl/", punchmastData); //GET PUNCH MASTER DATA
+                        const { success, data } = punch_master_data.data;
                         if (success === 1) {
-                            setOpenBkDrop(false)
-                            setOpen(false)
-                            setCount(count + 1)
-                            succesNofity(message)
+                            let shiftIn = `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkInTime), 'HH:mm:ss')}`;
+                            let shiftOut = crossDayStat === 0 ? `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}` :
+                                `${format(addDays(new Date(dutyDate), 1), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}`;
+
+                            return Promise.allSettled(
+                                data?.map(async (row, index) => {
+                                    const shiftMergedPunchMaster = {
+                                        ...row,
+                                        shft_chkin_start: crossDay?.shft_chkin_start,
+                                        shft_chkin_end: crossDay?.shft_chkin_end,
+                                        shft_chkout_start: crossDay?.shft_chkout_start,
+                                        shft_chkout_end: crossDay?.shft_chkout_end,
+                                        shft_cross_day: crossDay?.shft_cross_day,
+                                        gross_salary: crossDay?.gross_salary,
+                                        earlyGoingMaxIntervl: cmmn_early_out,
+                                        gracePeriodInTime: cmmn_grace_period,
+                                        maximumLateInTime: cmmn_late_in,
+                                        salaryLimit: salary_above,
+                                        woff: week_off_day,
+                                        naShift: notapplicable_shift,
+                                        defaultShift: default_shift,
+                                        noff: noff,
+                                        holidayStatus: crossDay?.holiday_status
+                                    }
+
+                                    //FUNCTION FOR MAPPING THE PUNCH IN AND OUT 
+                                    return await punchInOutChecking(shiftMergedPunchMaster, punchaData)
+                                })
+                            ).then((data) => {
+                                const punchMasterMappedData = data?.map((e) => e.value)
+                                return Promise.allSettled(
+                                    punchMasterMappedData?.map(async (val) => {
+
+                                        const holidayStatus = val.holiday_status;
+                                        const punch_In = checkInFlag === 1 ? new Date(shiftIn) : val.punch_in === null ? null : new Date(val.punch_in);
+                                        const punch_out = checkOutFlag === 1 ? new Date(shiftOut) : val.punch_out === null ? null : new Date(val.punch_out);
+
+                                        const shift_in = new Date(shiftIn);
+                                        const shift_out = new Date(shiftOut);
+
+                                        //SALARY LINMIT
+                                        const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
+
+                                        const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
+
+                                        const getAttendanceStatus = await getAttendanceCalculation(
+                                            punch_In,
+                                            shift_in,
+                                            punch_out,
+                                            shift_out,
+                                            cmmn_grace_period,
+                                            getLateInTime,
+                                            holidayStatus,
+                                            val.shift_id,
+                                            val.defaultShift,
+                                            val.naShift,
+                                            val.noff,
+                                            val.woff,
+                                            salaryLimit,
+                                            val.maximumLateInTime,
+                                            halfday_time_count
+                                        )
+
+                                        return {
+                                            punch_slno: val.punch_slno,
+                                            punch_in: checkInFlag === 1 ? format(new Date(punch_In), 'yyyy-MM-dd HH:mm:ss') : val.punch_in,
+                                            punch_out: checkOutFlag === 1 ? format(new Date(punch_out), 'yyyy-MM-dd HH:mm:ss') : val.punch_out,
+                                            hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.hrsWorked,
+                                            late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.lateIn,
+                                            early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.earlyOut,
+                                            duty_status: getAttendanceStatus?.duty_status,
+                                            holiday_status: val.holiday_status,
+                                            leave_status: 1,
+                                            lvereq_desc: getAttendanceStatus?.lvereq_desc,
+                                            duty_desc: 'OHP',
+                                            lve_tble_updation_flag: 1,
+                                            duty_day: format(new Date(dutyDate), 'yyyy-MM-dd'),
+
+                                            hr_approval_status: 1,
+                                            hr_approval_comment: remark,
+                                            hr_approval_date: moment().format('YYYY-MM-DD HH:mm'),
+                                            hr_empId: loginem_id,
+                                            request_slno: slno,
+                                            em_no: emno,
+                                        }
+                                    })
+                                ).then(async (element) => {
+                                    const { value } = element[0];
+                                    const result = await axioslogin.patch('/CommonReqst/hr/comment', value)
+                                    const { success } = result.data;
+                                    if (success === 1) {
+                                        setOpenBkDrop(false)
+                                        setOpen(false)
+                                        setCount(Math.random())
+                                        succesNofity("HR Approved Successfully!")
+                                    } else {
+                                        setOpenBkDrop(false)
+                                        setOpen(false)
+                                        setCount(Math.random())
+                                        errorNofity("Error Occured! Contact IT")
+                                    }
+                                })
+                            })
+
                         } else {
-                            setOpenBkDrop(false)
-                            setOpen(false)
-                            setCount(count + 1)
-                            errorNofity(message)
+                            warningNofity("There Is No Punchmast Data!")
                         }
                     } else {
-                        setOpenBkDrop(false)
-                        setOpen(false)
-                        setCount(count + 1)
-                        errorNofity(message)
-                    }
-                } else {
-                    setOpenBkDrop(true)
-                    const result = await axioslogin.patch('/CommonReqst/hod/onehour', hodApprove)
-                    const { message, success } = result.data;
-                    if (success === 1) {
-                        setOpenBkDrop(false)
-                        setOpen(false)
-                        setCount(count + 1)
-                        succesNofity(message)
-                    } else {
-                        setOpenBkDrop(false)
-                        setOpen(false)
-                        setCount(count + 1)
-                        errorNofity(message)
+                        warningNofity("There Is No Punch Data!")
                     }
                 }
-            }
-        } else if (authority === 3) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
             } else {
-                setOpenBkDrop(true)
-                const result = await axioslogin.patch('/CommonReqst/ceo/ceoOnehour', ceoApprove)
-                const { message, success } = result.data;
-                if (success === 1) {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    succesNofity(message)
-                } else {
-                    setOpenBkDrop(false)
-                    setOpen(false)
-                    setCount(count + 1)
-                    errorNofity(message)
-                }
-            }
-        } else if (authority === 4) {
-            if (remark === "") {
-                infoNofity("Please Add Remarks!")
-            } else {
-                setOpenBkDrop(true)
-                const postDataForAttendaceMark = {
-                    month: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-                    section: dept_sect_id
-                }
-                const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postDataForAttendaceMark);
-                const { success, data } = checkPunchMarkingHr.data
-                if (success === 0 || success === 1) {
-                    const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(dutyDate)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
-                    const lastDay_month = format(lastDayOfMonth(new Date(dutyDate)), 'yyyy-MM-dd')
-                    if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
-                        warningNofity("Punch Marking Monthly Process Done !! Can't Approve Halfday Leave Request!!  ")
-                        setOpenBkDrop(false)
-                        setOpen(false)
-                    } else {
-
-                        const result = await axioslogin.patch('/CommonReqst/hr/comment', hrApprove)
-                        const { success } = result.data;
-                        if (success === 1) {
-                            setOpenBkDrop(false)
-                            setOpen(false)
-                            setCount(count + 1)
-                            succesNofity("HR Approved Successfully!")
-                        } else {
-                            setOpenBkDrop(false)
-                            setOpen(false)
-                            setCount(count + 1)
-                            errorNofity("Error Occured! Contact IT")
-                        }
-                    }
-                } else {
-                    errorNofity("Error getting PunchMarkingHR ")
-                }
+                errorNofity("Error getting PunchMarkingHR ")
             }
         }
-    }
+    }, [remark, dutyDate, dept_sect_id, setCount, setOpen, emno, checkInFlag, checkOutFlag,
+        cmmn_early_out, cmmn_grace_period, cmmn_late_in, comp_hour_count, crossDay, crossDayStat,
+        default_shift, halfday_time_count, loginem_id, noff, notapplicable_shift, salary_above,
+        slno, week_off_day])
 
 
     return (
@@ -374,7 +314,8 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount, count, authority }) 
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
                 open={open}
-                onClose={() => setOpen(false)}
+                onClose={() => setOpen(false)
+                }
                 sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
                 <ModalDialog size="lg"  >
@@ -423,115 +364,98 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount, count, authority }) 
                             {section}
                         </Typography>
                     </Box>
-                    <Box sx={{ mt: 0.5, pt: 1 }} >
-                        <Typography variant="outlined" color="success">
-                            {status}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, pt: 1 }} >
-                        <Box sx={{ display: 'flex', flex: 1, pr: 1 }} >
-                            <Typography
-                                level="body1"
-                                justifyContent="center"
-                            >
-                                Request Date
-                            </Typography>
-                            <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg" >
-                                {moment(reqDate).format('DD-MM-YYYY')}
-                            </Typography>
+                    <Box
+                        sx={{
+                            display: 'flex', justifyContent: 'center',
+                            alignItems: 'center', px: 1, borderBlockStyle: 'outset',
+                            flexDirection: 'column',
+                        }} >
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Request Date
+                                </Typography>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{reqDate}
+                                </Typography>
+                            </Box>
                         </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', flex: 1, pt: 1 }} >
-                        <Box sx={{ display: 'flex', flex: 1, pr: 1 }} >
-                            <Typography
-                                level="body1"
-                                justifyContent="center"
-                            >
-                                One Hour Request Date
-                            </Typography>
-                            <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg" >
-                                {moment(dutyDate).format('DD-MM-YYYY')}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    <Box sx={{ flex: 1, py: 1 }}>
-                        <Typography
-                            level="body2"
-                            startDecorator={<InfoOutlined />}
-                            sx={{ alignItems: 'center', wordBreak: 'break-all', }}
-                        >
-                            One Hour Information.
-                        </Typography>
-                    </Box>
-                    <Paper variant="outlined" square sx={{ p: 0.5, mb: 0.8 }} >
 
-                        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1 }} >
-                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ flex: 1 }}>
                                 <Typography fontSize="sm" fontWeight="lg"  >
-                                    Shift:
+                                    Shift
                                 </Typography>
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
                                 <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                    {shft_desc}
+                                    :{shft_desc}
                                 </Typography>
                             </Box>
-                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                <Typography fontSize="sm" fontWeight="lg"  >
-                                    Reason:
-                                </Typography>
-                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                    {reason}
-                                </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                    <Typography fontSize="sm" fontWeight="lg"  >
-                                        Check In Time:
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                        {moment(checkIn).format('HH:mm')}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                    <Typography fontSize="sm" fontWeight="lg"  >
-                                        Check Out Time:
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                        {moment(checkOut).format('HH:mm')}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                            {
-                                authority === 2 || authority === 3 || authority === 4 ? <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                    <Typography fontSize="sm" fontWeight="lg"  >
-                                        Incharge Comment:
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                        {inchargeComment === null ? 'NIL' : inchargeComment}
-                                    </Typography>
-                                </Box> : null
-                            }
-                            {
-                                authority === 3 || authority === 4 ? <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                    <Typography fontSize="sm" fontWeight="lg"  >
-                                        Hod Comment:
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                        {hodComment === null ? 'NIL' : hodComment}
-                                    </Typography>
-                                </Box> : null
-                            }
-                            {
-                                authority === 4 ? <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'left', flex: 1 }}>
-                                    <Typography fontSize="sm" fontWeight="lg"  >
-                                        Ceo Comment:
-                                    </Typography>
-                                    <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
-                                        {ceoComment === null ? 'NIL' : ceoComment}
-                                    </Typography>
-                                </Box> : null
-                            }
                         </Box>
-                    </Paper>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    One Hour day
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{one_hour_day}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    One Hour Time
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{checkInFlag === 1 ? 'In Punch Time' : checkOutFlag === 1 ? 'Out Punch Time' : null}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }} >
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Reason
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{reason}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Incharge Comment
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{inchargeComment === null ? 'NIL' : inchargeComment === '' ? 'NIL' : inchargeComment}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', width: '100%', }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg"  >
+                                    Hod Comment
+                                </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flex: 1 }}>
+                                <Typography fontSize="sm" fontWeight="lg" sx={{ flex: 1, pl: 2 }} >
+                                    :{hodComment === null ? 'NIL' : hodComment === '' ? 'NIL' : hodComment}
+                                </Typography>
+                            </Box>
+                        </Box>
+                    </Box>
 
                     <Box sx={{ pt: 0.5 }} >
                         <Textarea name="Outlined" placeholder="Remark For Approve/Reject The Request here…"

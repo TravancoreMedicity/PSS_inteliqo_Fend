@@ -43,11 +43,13 @@ const DesignationMast = () => {
     }, [desg_status, desg_name, desg_notice_prd])
 
     // reset forn
-    const resetForm = {
-        desg_name: '',
-        desg_notice_prd: '',
-        desg_status: false
-    }
+    const resetForm = useMemo(() => {
+        return {
+            desg_name: '',
+            desg_notice_prd: '',
+            desg_status: false
+        }
+    }, [])
 
     const postDesignationData = useMemo(() => {
         return {

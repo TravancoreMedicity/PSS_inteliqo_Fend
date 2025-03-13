@@ -185,7 +185,6 @@ const DutyPlanTopCard = () => {
 
                 if (lastUpdateDate === lastDay_month) {
                     warningNofity("Punch Marking Monthly Process Done !! Can't do dutyplan!!  ")
-                    console.log("xvcbvn");
                     getEmployeeDetlDutyPlanBased(postData).then((emplyDataArray) => {
                         const { status, data } = emplyDataArray;
                         if (status === 1) {
