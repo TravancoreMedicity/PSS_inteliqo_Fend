@@ -16,6 +16,8 @@ import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDro
 
 const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
 
+    console.log(data);
+
     //STATES
     const [reqDetl, setReqDetl] = useState([]);
     const [reason, setReason] = useState('');
@@ -30,15 +32,14 @@ const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
     })
     const [miss, setMis] = useState('');
     //DISPLAY THE DATA 
-    const { slno, emno, name, section } = data;
+    const { nopunch_slno, em_no, em_name, sect_name } = data;
 
     //GET THE DETAILED TABLE DATA USING API
-    const getLeaveReqDetl = async (slno) => {
-        const resultdel = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${slno}`);
+    const getLeaveReqDetl = async (nopunch_slno) => {
+        const resultdel = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${nopunch_slno}`);
         const { success, data } = resultdel?.data;
         if (success === 1) {
-            const { nopunchdate, shft_desc, np_reason, creteddate, checkinflag, checkintime, checkoutflag,
-                checkouttime, np_hr_apprv_status } = data[0]
+            const { nopunchdate, shft_desc, np_reason, creteddate, checkinflag, np_hr_apprv_status } = data[0]
             setReqDetl(data)
             const formData = {
                 nopunchdate: nopunchdate,
@@ -48,17 +49,17 @@ const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
                 np_hr_apprv_status: np_hr_apprv_status
             }
             setNopunch(formData)
-            setMis(checkinflag === 1 ? checkintime : checkoutflag === 1 ? checkouttime : null)
+            setMis(checkinflag === 1 ? 'In Punch Time' : 'Out Punch Time')
             //setPuncslno(punslno)
         }
     }
     const { nopunchdate, shft_desc, np_reason, creteddate } = nopunch
 
     useEffect(() => {
-        if (slno !== null && slno !== undefined) {
-            getLeaveReqDetl(slno)
+        if (nopunch_slno !== null && nopunch_slno !== undefined) {
+            getLeaveReqDetl(nopunch_slno)
         }
-    }, [slno])
+    }, [nopunch_slno])
 
     const handleClose = () => {
         setOpen(false)
@@ -70,10 +71,11 @@ const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
             status: 1,
             comment: reason,
             apprvdate: moment(new Date()).format('YYYY-MM-DD HH:mm'),
-            us_code: emno,
-            slno: slno
+            us_code: em_no,
+            slno: nopunch_slno
         }
-    }, [emno, reason, slno])
+    }, [em_no, reason, nopunch_slno])
+
     const noPunchCancel = useCallback(async () => {
         if (reason === '') {
             setOpenBkDrop(false)
@@ -125,7 +127,7 @@ const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
                             }
                             sx={{ display: 'flex', alignItems: 'flex-start', mr: 2, }}
                         >
-                            {name}
+                            {em_name}
                         </Typography>
                         <Typography
                             lineHeight={1}
@@ -142,13 +144,13 @@ const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
                                 alignContent='center'
                                 lineHeight={1}
                             >
-                                {emno}
+                                {em_no}
                             </Typography>}
                             sx={{ color: 'neutral.400', display: 'flex', }}
                         >
                             {`employee #`}
                         </Typography>
-                        <Typography level="body1" sx={{ px: 1, textTransform: "lowercase" }} >{section}</Typography>
+                        <Typography level="body1" sx={{ px: 1, textTransform: "lowercase" }} >{sect_name}</Typography>
                     </Box>
                     <Box sx={{ mt: 0.5, pt: 1 }} >
                         <Typography variant="outlined" color="success">

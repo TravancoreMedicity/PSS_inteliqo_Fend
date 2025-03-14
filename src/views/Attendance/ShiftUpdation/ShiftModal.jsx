@@ -125,19 +125,16 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
 
 
         const getLateInTime = await getLateInTimeIntervel(punch_In, shift_In, punch_out, shift_out)
-        // console.log(getLateInTime)
+
 
         setMessage(false)
         if (inTime === outTime) {
             setMessage(true)
-            // console.log(data)
         } else {
             if (isValid(punch_In) === true && isValid(punch_out) === true) {
-                // console.log(data)
                 const getAttendance = await getAttendanceCalculation(
                     punch_In, shift_In, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, default_shift, notapplicable_shift, noff, week_off_day, salary_above, cmmn_late_in
                 )
-
                 const postData = {
                     punch_in: inTime,
                     punch_out: outTime,
@@ -149,7 +146,6 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
                     lvereq_desc: getAttendance?.lvereq_desc,
                     punch_slno: data?.punch_slno,
                 }
-                // console.log(postData)
                 let result = await axioslogin.post("/attendCal/updatePunchMasterSingleRow", postData);
                 const { success } = result.data;
                 if (success === 1) {
@@ -160,7 +156,6 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
                     errorNofity('Punch Data Not Updated ! Contact HR/IT')
                     setOpen(false)
                 }
-                // console.log(result)
             } else {
                 //one of the date or both dates are not a valid dates
                 setMessage(true)

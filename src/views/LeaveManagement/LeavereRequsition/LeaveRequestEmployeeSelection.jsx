@@ -26,7 +26,7 @@ import { getannualleave } from 'src/redux/actions/Profile.action'
 const NormalEmployeeLeveReqPage = lazy(() => import('./NormalEmployeeLeveReqPage'))
 const HrRoleBasedDepartmentAndSection = lazy(() => import('./Func/DepartmentBasedSection'))
 
-const LeaveRequestEmployeeSelection = ({ setRequestType }) => {
+const LeaveRequestEmployeeSelection = ({ setRequestType, requestUser, setRequestUser }) => {
     const dispatch = useDispatch()
 
     // const { FETCH_LEAVE_REQUEST, LEAVE_REQ_DEFAULT } = Actiontypes;
@@ -47,13 +47,7 @@ const LeaveRequestEmployeeSelection = ({ setRequestType }) => {
         }
     }, [em_no, em_id, em_department, em_dept_section])
 
-    // Leave request user User States
-    const [requestUser, setRequestUser] = useState({
-        deptID: 0,
-        sectionID: 0,
-        emNo: 0,
-        emID: 0
-    })
+
     const userPostData = useMemo(() => requestUser, [requestUser])
 
 

@@ -21,13 +21,14 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
     const [openBkDrop, setOpenBkDrop] = useState(false)
 
     //DISPLAY THE DATA 
-    const { slno, emno, name, section, reqDate, fromDate, toDate, leaveid } = data;
+    const { slno, em_no, em_name, section, reqDate, fromDate, toDate, lve_uniq_no,
+        lvDate, leave_slno } = data;
 
 
     useEffect(() => {
         //GET THE DETAILED TABLE DATA USING API
-        const getLeaveReqDetl = async (slno) => {
-            const resultdel = await axioslogin.get(`/LeaveRequestApproval/getlevereqdetl/${leaveid}`);
+        const getLeaveReqDetl = async () => {
+            const resultdel = await axioslogin.get(`/LeaveRequestApproval/getlevereqdetl/${lve_uniq_no}`);
             const { success, data } = resultdel?.data;
             if (success === 1) {
                 setReqDetl(data)
@@ -35,37 +36,37 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                 setReqDetl([])
             }
         }
-        if (leaveid !== null && leaveid !== undefined) {
-            getLeaveReqDetl(leaveid)
+        if (lve_uniq_no !== null && lve_uniq_no !== undefined) {
+            getLeaveReqDetl(lve_uniq_no)
         }
-    }, [leaveid])
+    }, [lve_uniq_no])
 
     const Canceldata = useMemo(() => {
         return {
             status: 1,
             comment: reason,
             apprvdate: moment(new Date()).format('YYYY-MM-DD HH:mm'),
-            us_code: emno,
-            slno: slno
+            us_code: em_no,
+            slno: leave_slno
         }
-    }, [emno, reason, slno])
+    }, [em_no, reason, leave_slno])
 
     const Cancelrequest = useCallback(async () => {
         //CASUAL LEAVE 
         const casualLev = reqDetl?.filter(val => val.leave_typeid === 1)?.map(val => {
-            return { ...val, emno: emno }
+            return { ...val, emno: em_no }
         });
         //NATIONAL HOLIDAY
         const Holiday = reqDetl?.filter(val => val.leave_typeid === 3 || val.leave_typeid === 4)?.map(val => {
-            return { ...val, emno: emno }
+            return { ...val, emno: em_no }
         });
         //EARN LEAVE
         const earnLeave = reqDetl?.filter(val => val.leave_typeid === 8)?.map(val => {
-            return { ...val, emno: emno }
+            return { ...val, emno: em_no }
         });
         //COMPENSATORY OFF
         const compansatoryOff = reqDetl?.filter(val => val.leave_typeid === 11)?.map(val => {
-            return { ...val, emno: emno }
+            return { ...val, emno: em_no }
         });
 
         //COMMON LEAVES 
@@ -75,7 +76,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
             val.leave_typeid !== 8 &&
             val.leave_typeid !== 11
         ).map(val => {
-            return { ...val, emno: emno }
+            return { ...val, emno: em_no }
         });
 
         /**** UPDATE LEAVE TABLES****/
@@ -184,7 +185,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                     const errorLog = {
                         error_log_table: 'punch_master,leave_request,leave_reqdetl',
                         error_log: error,
-                        em_no: emno,
+                        em_no: em_no,
                         formName: 'Leave Cancel Employee'
                     }
                     axioslogin.post(`/common/errorLog`, errorLog);
@@ -200,7 +201,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                 errorNofity('Error Updating Leave Request')
             }
         }
-    }, [Canceldata, emno, reason, setOpen, setCount, reqDetl])
+    }, [Canceldata, em_no, reason, setOpen, setCount, reqDetl])
 
     const handleClose = () => {
         setOpen(false)
@@ -238,7 +239,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                             }
                             sx={{ display: 'flex', alignItems: 'flex-start', mr: 2, }}
                         >
-                            {name}
+                            {em_name}
                         </Typography>
                         <Typography
                             lineHeight={1}
@@ -255,7 +256,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                                 alignContent='center'
                                 lineHeight={1}
                             >
-                                {emno}
+                                {em_no}
                             </Typography>}
                             sx={{ color: 'neutral.400', display: 'flex', }}
                         >
@@ -277,7 +278,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                                 Request Date
                             </Typography>
                             <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg" >
-                                {moment(reqDate).format('DD-MM-YYYY')}
+                                {reqDate}
                             </Typography>
                         </Box>
                     </Box>
@@ -290,7 +291,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                                 Request From
                             </Typography>
                             <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg">
-                                {fromDate}
+                                {lvDate}
                             </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', flex: 1, pr: 1, justifyContent: 'space-between' }} >
@@ -301,7 +302,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
                                 Request To
                             </Typography>
                             <Typography startDecorator={<ArrowRightOutlinedIcon />} fontSize="sm" fontWeight="lg">
-                                {moment(toDate).format('DD-MM-YYYY')}
+                                {toDate}
                             </Typography>
                         </Box>
                     </Box>

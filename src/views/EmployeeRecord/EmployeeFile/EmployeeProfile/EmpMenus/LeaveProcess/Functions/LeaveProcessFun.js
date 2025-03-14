@@ -784,6 +784,7 @@ export const updateCommonLeaves = async (lv_process_slno, em_id, em_no, em_gende
   const { ecat_sl } = category;
   const result = await axioslogin.get('/yearlyleaves/get/getcommonleave');
   const { successcommonleave, messagecommonleave } = result.data;
+
   let commonLeaveMessage = { status: 0, data: [] }
   if (successcommonleave === 1) {
     //const today = new Date();
@@ -794,9 +795,11 @@ export const updateCommonLeaves = async (lv_process_slno, em_id, em_no, em_gende
     }
 
     const arr = messagecommonleave.map((item) => item.lvetype_slno === 6 ? { ...item, ...obj } : item);
+    const newArr = arr.map((item) => item.lvetype_slno === 5 ? { ...item, ...obj } : item);
+
     // Filter the Maternity For the Male Employee
-    const filterCommonArray = arr.filter((val) => val.lvetype_slno !== 2);
-    const newCommonArray = em_gender === 1 ? filterCommonArray : arr;
+    const filterCommonArray = newArr.filter((val) => val.lvetype_slno !== 2);
+    const newCommonArray = em_gender === 1 ? filterCommonArray : newArr;
     let commondata = newCommonArray.map((val) => {
       const commonleave = {
         em_no: em_no,

@@ -76,12 +76,8 @@ const ShiftUpdation = () => {
     const { hod, incharge, em_id, em_name, sect_name, dept_name, em_department, em_dept_section } = employeeProfileDetl;
 
     //DATA SELECTETOR
-    // const empInform = useSelector((state) => state.getEmployeeBasedSection.emp);
-    //const punchMasterDataUpdateData = useSelector((state) => state.fetchupdatedPunchInOutData.puMaData);
-    // const updatedDataPunchInOut = useMemo(() => punchMasterDataUpdateData, [punchMasterDataUpdateData])
     const state = useSelector((state) => state?.getCommonSettings, _.isEqual)
     const commonSetting = useMemo(() => state, [state])
-    // console.log(commonSetting)
     const { group_slno, week_off_day, notapplicable_shift, default_shift, noff } = commonSetting;
 
     useEffect(() => {
@@ -156,7 +152,6 @@ const ShiftUpdation = () => {
         e.preventDefault()
 
         const holidayList = [];
-        // console.log(emply, dept, section, value)
         setOpenBkDrop(true)
         if (Object.keys(emply).length === 0 && dept === 0 && section === 0) {
             warningNofity('Select The basic information for Process')
@@ -168,24 +163,16 @@ const ShiftUpdation = () => {
                 month: monthStartDate,
                 section: section
             }
-            // console.log(postData);
             const checkPunchMarkingHr = await axioslogin.post("/attendCal/checkPunchMarkingHR/", postData);
             const { success, data } = checkPunchMarkingHr.data
-            // console.log("data", data);
-            // console.log("success", success);
-
             if (success === 0 || success === 1) {
 
                 const lastUpdateDate = data?.length === 0 ? format(startOfMonth(new Date(value)), 'yyyy-MM-dd') : format(new Date(data[0]?.last_update_date), 'yyyy-MM-dd')
                 const lastDay_month = format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd')
-                // console.log(lastUpdateDate === lastDay_month);
-                // console.log(lastUpdateDate > lastDay_month);
-                // console.log((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month));
 
                 if ((lastUpdateDate === lastDay_month) || (lastUpdateDate > lastDay_month)) {
                     warningNofity("Punch Marking Monthly Process Done !! can't do the Process !! ")
                     setDisable(true)
-                    // console.log("ghfgjhfjh");
 
                     /////////////// ONLY FOR DISPLAYING PUNCHMARKING DATA AFTER 
                     const getPunchMast_PostData = {
@@ -193,13 +180,8 @@ const ShiftUpdation = () => {
                         toDate_punchMaster: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         empList: [emply.em_no]
                     }
-                    // console.log("getPunchMast_PostData", getPunchMast_PostData);
                     const punch_master_data = await axioslogin.post("/attendCal/getPunchMasterDataSectionWise/", getPunchMast_PostData); //GET PUNCH MASTER DATA
                     const { success, planData } = punch_master_data.data;
-                    //console.log("punch_master_data.data", punch_master_data.data);
-
-
-                    // console.log("planData", planData);
                     if (success === 1) {
                         const tb = planData?.map((e) => {
 
@@ -210,14 +192,12 @@ const ShiftUpdation = () => {
                             let shiftIn = `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_in), 'HH:mm')}`;
                             let shiftOut = crossDayStat === 0 ? `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}` :
                                 `${format(addDays(new Date(e.duty_day), 1), 'yyyy-MM-dd')} ${format(new Date(e.shift_out), 'HH:mm')}`;
-                            // console.log("shiftIn", shiftIn);
-                            // console.log("shiftOut", shiftOut);
+
                             // GET THE HOURS WORKED IN MINITS
                             let interVal = intervalToDuration({
                                 start: isValid(new Date(e.punch_in)) ? new Date(e.punch_in) : 0,
                                 end: isValid(new Date(e.punch_out)) ? new Date(e.punch_out) : 0
                             })
-                            // console.log(formatDuration({ hours: interVal.hours, minutes: interVal.minutes }));
                             return {
                                 punch_slno: e.punch_slno,
                                 duty_day: e.duty_day,
@@ -250,8 +230,6 @@ const ShiftUpdation = () => {
                     }
                     setOpenBkDrop(false)
                 } else {
-                    // console.log("else part");
-                    // console.log(lastUpdateDate)
                     const today = format(new Date(), 'yyyy-MM-dd');
                     const selectedDate = format(new Date(value), 'yyyy-MM-dd');
                     const todayStatus = selectedDate <= today ? true : false; // selected date less than today date
@@ -271,19 +249,14 @@ const ShiftUpdation = () => {
                         trDate: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
                     }
 
-                    // console.log(postData_getPunchData)
                     // GET PUNCH DATA FROM TABLE START
                     const punch_data = await axioslogin.post("/attendCal/getPunchDataEmCodeWiseDateWise/", postData_getPunchData);
                     const { su, result_data } = punch_data.data;
-                    // console.log("result_data", result_data);
-
-                    // console.log(su, result_data)
                     if (su === 1) {
                         const punchaData = result_data;
                         setPunchData(punchaData)
                         const empList = [emply.em_no]
                         // PUNCH MARKING HR PROCESS START
-                        // console.log(shiftInformation);
                         const result = await processShiftPunchMarkingHrFunc(
                             postData_getPunchData,
                             punchaData,
@@ -294,15 +267,11 @@ const ShiftUpdation = () => {
                             empSalary
                         )
                         const { status, message, errorMessage, punchMastData } = result;
-                        // console.log("result", result);
-
                         if (status === 1) {
                             const tb = punchMastData?.map((e) => {
                                 const crossDay = shiftInformation?.find((shft) => shft.shft_slno === e.shift_id);
                                 const crossDayStat = crossDay?.shft_cross_day ?? 0;
                                 //const breakShiftStatus = crossDay?.break_shift_status;
-
-                                // console.log(e);
 
                                 let shiftIn = `${format(new Date(e.duty_day), 'yyyy-MM-dd')} ${format(new Date(e.shift_in), 'HH:mm')}`;
                                 let shiftOut = crossDayStat === 0
@@ -313,10 +282,6 @@ const ShiftUpdation = () => {
                                     start: isValid(new Date(e.punch_in)) ? new Date(e.punch_in) : new Date(),
                                     end: isValid(new Date(e.punch_out)) ? new Date(e.punch_out) : new Date()
                                 });
-
-                                // console.log((isValid(new Date(e.punch_in)) && e.punch_in !== null) && (isValid(new Date(e.punch_out)) && e.punch_out !== null));
-
-
 
                                 function formatMinutesToDaysHoursMinutes(minutes) {
 
@@ -382,11 +347,7 @@ const ShiftUpdation = () => {
                                     duty_desc: e.duty_desc
                                 };
                             });
-
-
-                            // console.log("tb", tb);
                             const array = tb.sort((a, b) => new Date(a.duty_day) - new Date(b.duty_day));
-                            //console.log("array", array);
                             setTableArray(array)
                             setOpenBkDrop(false)
                             succesNofity('Punch Master Updated Successfully')
@@ -394,26 +355,20 @@ const ShiftUpdation = () => {
                             setOpenBkDrop(false)
                             warningNofity(message, errorMessage)
                         }
-                        // console.log(result)
                     } else {
                         warningNofity("Error getting punch Data From DB")
                         setOpenBkDrop(false)
                     }
                 }
-
             } else {
                 errorNofity("Error getting PunchMarkingHR ")
             }
-
         }
-
-
     }, [emply, dept, section, value, shiftInformation, commonSetting, empSalary, default_shift, em_no,
         noff, notapplicable_shift, week_off_day])
-    // console.log(tableArray)
+
     return (
         <Fragment>
-
             <CustomBackDrop open={openBkDrop} text="Please wait !. Leave Detailed information Updation In Process" />
             <CustomLayout title="Punch In/Out Marking" displayClose={true} >
                 <Box sx={{ width: '100%', }}>
@@ -636,41 +591,6 @@ const ShiftUpdation = () => {
                                                         {em_name}
                                                     </Box>
                                                 </Box>
-
-
-
-
-
-                                                {/* <Box sx={{ flex: 1, px: 0.5, width: '25%' }}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        fullWidth
-                                                        size="small"
-                                                        value={dept_name}
-                                                        sx={{ display: 'flex', mt: 0.5 }}
-                                                        disabled
-                                                    />
-                                                </Box>
-                                                <Box sx={{ flex: 1, px: 0.5, width: '25%' }}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        fullWidth
-                                                        size="small"
-                                                        value={sect_name}
-                                                        sx={{ display: 'flex', mt: 0.5 }}
-                                                        disabled
-                                                    />
-                                                </Box>
-                                                <Box sx={{ flex: 1, px: 0.5, width: '10%' }}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        fullWidth
-                                                        size="small"
-                                                        value={em_name}
-                                                        sx={{ display: 'flex', mt: 0.5 }}
-                                                        disabled
-                                                    />
-                                                </Box> */}
                                             </Box>
                                 }
                                 <Box sx={{ display: 'flex', px: 0.5, width: '30%' }}>

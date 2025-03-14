@@ -57,15 +57,13 @@ const EmployeeCompnt = ({ em_no }) => {
                 let emId = empArray?.find(e => e.em_no === el).emp_id;
                 let grossSalary = empArray?.find(e => e.em_no === el).gross_salary;
 
-                // console.log(dateRange)
-                // console.log(empArray)
+
                 return {
                     em_no: el,
                     emName: emName,
                     dateAray: dateRange?.map(e => format(new Date(e), 'dd')),
                     daysAry: dateRange?.map(e => format(new Date(e), 'eee')),
                     punchMaster: dateRange?.map((e) => {
-                        // console.log(e)
                         return {
                             attDate: e,
                             duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
@@ -128,34 +126,36 @@ const EmployeeCompnt = ({ em_no }) => {
     const getFontWeight = (val) => val === 'A' ? 900 : val === 'ESI' ? 900 : val === 'LWP' ? 900 : val === 'EG' ? 800 : val === 'LC' ? 800 : val === 'HD' ? 800 : 700
 
     const levaeDescription = [
-        { lvename: 'A', color: 'danger', desc: "Absent without Permission" },
-        { lvename: 'P', color: 'success', desc: "Present" },
-        // { lvename: 'LWP', color: 'danger', desc: "Approved Leave Without pay" },
-        { lvename: 'NJ', color: 'warning', desc: "Not Joined" },
-        { lvename: 'RD', color: 'neutral', desc: "Resigned" },
-        // { lvename: 'ESI', color: 'danger', desc: "ESI Leave" },
-        { lvename: 'HD', color: 'danger', desc: "Half day lop" },
-        { lvename: 'CHD', color: 'danger', desc: "Calculated Half Day" },
-        { lvename: 'EGHD', color: 'danger', desc: "Early Going Half Day" },
-        { lvename: 'WOFF', color: 'primary', desc: "Weekly off" },
-        // { lvename: 'COFF', color: 'primary', desc: "Componsatory off" },
-        { lvename: 'NOFF', color: 'primary', desc: "Night Off" },
-        // { lvename: 'SL', color: 'warning', desc: "Sick Leave" },
-        // { lvename: 'HSL', color: 'warning', desc: "Half Day Sick Leave" },
-        //{ lvename: 'CL', color: 'warning', desc: "Casual Leave" },
-        //{ lvename: 'HCL', color: 'warning', desc: "Half Day Casual Leave" },
-        // { lvename: 'EL', color: 'warning', desc: "Earn Leave" },
-        { lvename: 'H', color: 'primary', desc: "Holiday" },
-        { lvename: 'OHP', color: 'success', desc: "One Hour Request Present" },
-        //{ lvename: 'ODP', color: 'success', desc: "On Duty Present" },
-        { lvename: 'MPP', color: 'success', desc: "Miss Punch Request Present" },
-        { lvename: 'HP', color: 'success', desc: "Holiday Present" },
-        // { lvename: 'ML', color: 'danger', desc: "Maternity Leave" },
-        { lvename: 'LC', color: 'danger', desc: "Late Coming" },
-        { lvename: 'DP', color: 'success', desc: "Double Present" },
-        { lvename: 'WP', color: 'success', desc: "Week Off Present" },
+        { lvename: 'A', color: 'danger', desc: 'Absent without Permission' },
+        {
+            lvename: 'LWP',
+            color: 'danger',
+            desc: 'Approved Leave Without pay'
+        },
+        { lvename: 'HD', color: 'danger', desc: 'Half day lop' },
+        { lvename: 'CHD', color: 'danger', desc: 'Calculated Half Day' },
+        { lvename: 'EGHD', color: 'danger', desc: 'Early Going Half Day' },
+        { lvename: 'LC', color: 'danger', desc: 'Late Coming' },
+        { lvename: 'WOFF', color: 'primary', desc: 'Weekly off' },
+        { lvename: 'NOFF', color: 'primary', desc: 'Night Off' },
+        { lvename: 'H', color: 'primary', desc: 'Holiday' },
+        { lvename: 'RD', color: 'neutral', desc: 'Resigned' },
+        { lvename: 'P', color: 'success', desc: 'Present' },
+        {
+            lvename: 'OHP',
+            color: 'success',
+            desc: 'One Hour Request Present'
+        },
+        {
+            lvename: 'MPP',
+            color: 'success',
+            desc: 'Miss Punch Request Present'
+        },
+        { lvename: 'HP', color: 'success', desc: 'Holiday Present' },
+        { lvename: 'DP', color: 'success', desc: 'Double Present' },
+        { lvename: 'WP', color: 'success', desc: 'Week Off Present' },
+        { lvename: 'NJ', color: 'warning', desc: 'Not Joined' }
     ]
-
     return (
         <CustomLayout title="Attendance View" displayClose={true} >
             <Box sx={{ display: 'flex', flex: 1, px: 0.8, mt: 0.3, flexDirection: 'column', width: '100%' }}>

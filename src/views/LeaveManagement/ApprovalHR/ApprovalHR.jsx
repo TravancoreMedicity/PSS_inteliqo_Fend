@@ -1,77 +1,229 @@
-import React, { Fragment, memo, useCallback, useEffect, useState, lazy } from 'react'
-import { useHistory } from 'react-router'
-import Tooltip from "@material-ui/core/Tooltip";
-import { getleaverequest, infoNofity } from 'src/views/CommonCode/Commonfunc';
-import PageLayoutCloseOnly from 'src/views/CommonCode/PageLayoutCloseOnly';
-import { Box, IconButton, Paper } from '@mui/material';
 import { CssVarsProvider, Radio, RadioGroup } from '@mui/joy';
-import CommonAgGrid from 'src/views/Component/CommonAgGrid'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import { useDispatch, useSelector } from 'react-redux';
-import { getCompOffRqstAll, getHalfdayRqstAll, getLeaveRequestAll, getNopunchRqstAll } from 'src/redux/actions/LeaveApprovalAction';
-import _ from 'underscore';
+import { Box, IconButton, Paper, Tooltip } from '@mui/material';
+import React, { lazy, memo, useCallback, useEffect, useState } from 'react'
+import { axioslogin } from 'src/views/Axios/Axios';
+import { getleaverequest } from 'src/views/CommonCode/Commonfunc';
+import CommonAgGrid from 'src/views/Component/CommonAgGrid';
+import CustomLayout from 'src/views/Component/MuiCustomComponent/CustomLayout'
 import BeenhereIcon from '@mui/icons-material/Beenhere';
-import { Suspense } from 'react';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
+import { getDutyPlannedShiftForHalfDayRequest } from 'src/redux/actions/LeaveReqst.action';
+import { useDispatch } from 'react-redux';
 import { setCommonSetting } from 'src/redux/actions/Common.Action';
 import { setShiftDetails } from 'src/redux/actions/Shift.Action';
+
 const LeaveRequestModal = lazy(() => import('./Modal/LeaveRequestModal'));
 // const CompansatoryOff = lazy(() => import('./Modal/CompansatoryOff'));
 const NoPunchLeaveRequest = lazy(() => import('./Modal/NoPunchLeaveRequest'));
 const HalfDayLeaveRequest = lazy(() => import('./Modal/HalfDayLeaveRequest'));
+const OndutyReqstModal = lazy(() => import('../CommonRequest/Approvals/Modals/OndutyReqstModal'));
+const OneHourReqstModal = lazy(() => import('../CommonRequest/Approvals/Modals/OneHourReqstModal'))
 
 const ApprovalHR = () => {
 
-    const history = useHistory()
     const dispatch = useDispatch()
+    const [leaverequesttype, setleaverequesttype] = useState([]);
+    const [value, setValue] = useState(1);
+    const [tableData, setTableData] = useState([])
 
     const [count, setCount] = useState(0)
 
-    useEffect(() => {
-        dispatch(getLeaveRequestAll())
-        dispatch(getHalfdayRqstAll())
-        dispatch(getNopunchRqstAll())
-        dispatch(getCompOffRqstAll())
-        setCount(0)
-    }, [dispatch, count])
+    const [ondutyOpen, setOndutyOpen] = useState(false)
+    const [onhourOpen, setOneHourOpen] = useState(false)
+    const [misspunchOpen, setMisspunchOpen] = useState(false)
+    const [halfdayOpen, setHalfdayOpen] = useState(false)
+    const [leaveOpen, setLeaveOpen] = useState(false)
 
-    //API DATA 
-    const halfdayRqList = useSelector(state => state.setAllLeaveApproval.halfdayRqData.halfdayRqList, _.isEqual);
-    const leaveRqList = useSelector(state => state.setAllLeaveApproval.leaveRqData.leaveRqList, _.isEqual);
-    const nopunchRqList = useSelector(state => state.setAllLeaveApproval.nopunchRqData.nopunchRqList, _.isEqual);
-    //const compOffRqList = useSelector(state => state.setAllLeaveApproval.compOffrqData.compOffRqList, _.isEqual);
+    const [ondutyData, setOndutyData] = useState({})
+    const [oneHourData, setOneHourData] = useState({})
+    const [misspunchData, setmisspunchData] = useState({})
+    const [halfdayData, setHalfdayData] = useState({})
+    const [leaveData, setLeaveData] = useState({})
 
-    // HR APPROVLA REQUEST FORM DATA STATE
-    const [leaverequesttype, setleaverequesttype] = useState([]);
-    const [value, setValue] = useState(3);
-    const [tableData, setTableData] = useState([])
+    const [previousLeave, setPreviousLeave] = useState([])
 
-    //LEAVE TYPE GET FUNCTION FROM DB
     useEffect(() => {
         getleaverequest().then((val) => {
             setleaverequesttype(val)
         })
-    }, [setleaverequesttype])
+    }, [])
 
-    //RADIO BUTTON HANDLE FUNCTION
     const handleChangeRadioBtn = useCallback(async (event) => {
         let radioBtnVal = event.target.value;
         setValue(radioBtnVal);
-        //CALCULATE AND FILTER THE FUNCTION
+    }, [])
 
-        if (radioBtnVal === '1') {
-            //LEAVE REQUEST 
-            if (Object.keys(leaveRqList).length > 0) {
 
-                const arrinch = leaveRqList?.filter((k) => k.incapprv_status !== 2)
-                    ?.filter((k) => k.hod_apprv_status !== 2)
-                    ?.filter((k) => k.hr_apprv_status !== 2)
-                    ?.map((val) => {
-                        return {
-                            slno: val.lve_uniq_no,
-                            emno: val.em_no,
-                            name: val.em_name,
-                            section: val.sect_name,
-                            status: (val.inc_apprv_req === 1 && val.incapprv_status === 0) ? 'Incharge Approval Pending' :
+    useEffect(() => {
+
+        const getAllOnHour = async () => {
+            const result = await axioslogin.get('/CommonReqst/approval/onehour')
+            const { data, success } = result.data;
+            if (success === 1) {
+                const arr = data?.map((val) => {
+                    const obj = {
+                        slno: val.request_slno,
+                        emno: val.em_no,
+                        name: val.em_name,
+                        department: val.dept_name,
+                        section: val.sect_name,
+                        code: 5,
+                        requestDate: format(new Date(val.request_date), 'dd-MM-yyyy'),
+                        one_hour_day: format(new Date(val.one_hour_duty_day), 'dd-MM-yyyy'),
+                        status: (val.incharge_req_status === 1 && val.incharge_approval_status === 0) ? 'Incharge Approval Pending' :
+                            (val.incharge_req_status === 1 && val.incharge_approval_status === 2) ? 'Incharge Rejected' :
+                                (val.incharge_req_status === 0 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                    (val.incharge_req_status === 1 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                        (val.incharge_req_status === 1 && val.incharge_approval_status === 1 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                            (val.incharge_req_status === 0 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                (val.incharge_req_status === 1 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                    (val.incharge_req_status === 1 && val.incharge_approval_status === 1 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                        (val.hod_req_status === 0 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 1) ? 'HR Approved' :
+                                                            (val.hod_req_status === 1 && val.hod_approval_status === 1 && val.hr_req_status === 1 && val.hr_approval_status === 1) ? 'HR Approved' :
+                                                                (val.hod_req_status === 1 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' :
+                                                                    (val.hod_req_status === 1 && val.hod_approval_status === 1 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' :
+                                                                        (val.hod_req_status === 0 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
+                    }
+                    return {
+                        ...val,
+                        ...obj
+                    }
+                })
+                setTableData(arr)
+            } else {
+                setTableData([])
+            }
+        }
+
+        const getAllOnDuty = async () => {
+            const result = await axioslogin.get('/CommonReqst/approval/onduty')
+            const { data, success } = result.data;
+            if (success === 1) {
+                const arr = data?.map((val) => {
+                    const obj = {
+                        slno: val.onduty_slno,
+                        emno: val.em_no,
+                        name: val.em_name,
+                        department: val.dept_name,
+                        section: val.sect_name,
+                        code: 6,
+                        requestDate: format(new Date(val.request_date), 'dd-MM-yyyy'),
+                        on_dutydate: format(new Date(val.on_duty_date), 'dd-MM-yyyy'),
+                        status: (val.incharge_req_status === 1 && val.incharge_approval_status === 0) ? 'Incharge Approval Pending' :
+                            (val.incharge_req_status === 1 && val.incharge_approval_status === 2) ? 'Incharge Rejected' :
+                                (val.incharge_req_status === 0 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                    (val.incharge_req_status === 1 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                        (val.incharge_req_status === 1 && val.incharge_approval_status === 1 && val.hod_req_status === 1 && val.hod_approval_status === 0) ? 'HOD Approval Pending' :
+                                            (val.incharge_req_status === 0 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                (val.incharge_req_status === 1 && val.incharge_approval_status === 0 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                    (val.incharge_req_status === 1 && val.incharge_approval_status === 1 && val.hod_req_status === 1 && val.hod_approval_status === 2) ? 'HOD Rejected' :
+                                                        (val.hod_req_status === 0 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 1) ? 'HR Approved' :
+                                                            (val.hod_req_status === 1 && val.hod_approval_status === 1 && val.hr_req_status === 1 && val.hr_approval_status === 1) ? 'HR Approved' :
+                                                                (val.hod_req_status === 1 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' :
+                                                                    (val.hod_req_status === 1 && val.hod_approval_status === 1 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' :
+                                                                        (val.hod_req_status === 0 && val.hod_approval_status === 0 && val.hr_req_status === 1 && val.hr_approval_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
+                    }
+                    return {
+                        ...val,
+                        ...obj
+                    }
+                })
+                setTableData(arr)
+            } else {
+                setTableData([])
+            }
+        }
+
+        const getAllMisspunch = async () => {
+            const resultdel = await axioslogin.get('/LeaveRequestApproval/approval/misspunch');
+            const { success, data } = await resultdel.data;
+            if (success === 1) {
+                const arr = data?.map((val) => {
+                    const obj = {
+                        slno: val.nopunch_slno,
+                        emno: val.em_no,
+                        name: val.em_name,
+                        department: val.dept_name,
+                        section: val.sect_name,
+                        code: 3,
+                        requestDate: format(new Date(val.creteddate), 'dd-MM-yyyy'),
+                        nopunch_date: format(new Date(val.nopunchdate), 'dd-MM-yyyy'),
+                        status: (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 0) ? 'Incharge Approval Pending' :
+                            (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 2) ? 'Incharge Rejected' :
+                                (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
+                                    (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 1 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
+                                        (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected' :
+                                            (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 1 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected' :
+                                                (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' :
+                                                    (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' :
+                                                        (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 2) ? 'HR Rejected' :
+                                                            (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
+                    }
+                    return {
+                        ...val,
+                        ...obj
+                    }
+                })
+                setTableData(arr)
+            } else {
+                setTableData([])
+            }
+        }
+
+        const getAllHalfDay = async () => {
+            const resultdel = await axioslogin.get('/LeaveRequestApproval/approval/halfday');
+            const { success, data } = await resultdel.data;
+            if (success === 1) {
+                const arr = data?.map((val) => {
+                    const obj = {
+                        slno: val.half_slno,
+                        emno: val.em_no,
+                        name: val.em_name,
+                        department: val.dept_name,
+                        section: val.sect_name,
+                        code: 2,
+                        requestDate: format(new Date(val.requestdate), 'dd-MM-yyyy'),
+                        halfday_date: format(new Date(val.leavedate), 'dd-MM-yyyy'),
+                        status: (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0) ? 'Incharge Approval Pending' :
+                            (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 2) ? 'Incharge Rejected' :
+                                (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
+                                    (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
+                                        (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
+                                            (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
+                                                (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
+                                                    (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
+                                                        (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 2) ? 'HR Rejected' :
+                                                            (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
+                    }
+                    return {
+                        ...val,
+                        ...obj
+                    }
+                })
+                setTableData(arr)
+            } else {
+                setTableData([])
+            }
+        }
+
+        const getAllLeave = async () => {
+            const result = await axioslogin.get('/LeaveRequestApproval/approval/leave')
+            const { data, success } = result.data
+            if (success === 1) {
+                const arr = data?.map((val) => {
+                    const obj = {
+                        slno: val.leave_slno,
+                        emno: val.em_no,
+                        name: val.em_name,
+                        department: val.dept_name,
+                        section: val.sect_name,
+                        code: 1,
+                        requestDate: format(new Date(val.request_date), 'dd-MM-yyyy'),
+                        fromDate: format(new Date(val.leave_date), 'dd-MM-yyyy'),
+                        toDate: format(new Date(val.leavetodate), 'dd-MM-yyyy'),
+                        status:
+                            (val.inc_apprv_req === 1 && val.incapprv_status === 0) ? 'Incharge Approval Pending' :
                                 (val.inc_apprv_req === 1 && val.incapprv_status === 2) ? 'Incharge Rejected' :
                                     (val.inc_apprv_req === 0 && val.incapprv_status === 0 && val.hod_apprv_req === 1 && val.hod_apprv_status === 0) ? 'HOD Approval Pending' :
                                         (val.inc_apprv_req === 1 && val.incapprv_status === 1 && val.hod_apprv_req === 1 && val.hod_apprv_status === 0 && val.hr_apprv_status === 0) ? 'HOD Approval Pending' :
@@ -79,215 +231,35 @@ const ApprovalHR = () => {
                                                 (val.inc_apprv_req === 1 && val.incapprv_status === 1 && val.hod_apprv_req === 1 && val.hod_apprv_status === 2) ? 'HOD Rejected' :
                                                     (val.hod_apprv_req === 1 && val.hod_apprv_status === 0 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 1) ? 'HR Approved' :
                                                         (val.hod_apprv_req === 1 && val.hod_apprv_status === 1 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 1) ? 'HR Approved' :
-                                                            (val.hr_aprrv_requ === 1 && val.hr_apprv_status === 2 && val.hod_apprv_status === 1) ? 'HR Rejected' : 'HR Approval Pending',
-                            hrstatus: val.hr_apprv_status,
-                            code: 1,
-                            reqDate: val.request_date,
-                            fromDate: val.leave_date,
-                            toDate: val.leavetodate
-                        }
-                    })?.filter((k) => k.hrstatus !== 1)
-                setTableData(arrinch)
-            } else {
-
-                setTableData([])
-                infoNofity('No Leave Request Found')
-            }
-        } else if (radioBtnVal === '2') {
-
-            //HALF DAY LEAVE REQUEST
-            if (Object.keys(halfdayRqList).length > 0) {
-
-                const arr = await halfdayRqList
-                    ?.filter((k) => k.hf_incapprv_status !== 2)
-                    ?.filter((k) => k.hf_hod_apprv_status !== 2)
-                    ?.filter((k) => k.hf_hr_apprv_status !== 2)
-                    ?.map((val) => {
-                        return {
-                            slno: val.half_slno,
-                            emno: val.em_no,
-                            name: val.em_name,
-                            section: val.sect_name,
-                            dept_section: val.dept_section,
-                            checkIn: val.checkIn,
-                            checkOut: val.checkOut,
-                            month: val.month,
-                            halfday_status: val.halfday_status,
-                            status: (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0) ? 'Incharge Approval Pending' :
-                                (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 2) ? 'Incharge Rejected' :
-                                    (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                        (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                            (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                    (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
-                                                        (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
-                                                            (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
-                            hrstatus: val.hf_hr_apprv_status,
-                            code: 2,
-                            reqDate: val.requestdate,
-                            leaveDate: val.leavedate,
-                            shift_id: val.shift_id,
-                            planslno: val.planslno
-
-                        }
-                    })?.filter((k) => k.hrstatus !== 1)
-
-                setTableData(arr)
-
-            } else {
-                setTableData([])
-                infoNofity('No Halfday Request Found')
-            }
-        } else if (radioBtnVal === '3') {
-            //NO PUNCH
-            if (Object.keys(nopunchRqList).length > 0) {
-                const arrinch = nopunchRqList
-                    ?.filter((k) => k.np_incapprv_status !== 2)
-                    ?.filter((k) => k.np_hod_apprv_status !== 2)
-                    ?.filter((k) => k.np_hr_apprv_status !== 2)
-                    ?.map((val) => {
-                        return {
-                            slno: val.nopunch_slno,
-                            emno: val.em_no,
-                            name: val.em_name,
-                            section: val.sect_name,
-                            dept_section: val.dept_section,
-                            shift_id: val.shift_id,
-                            status: (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 0) ? 'Incharge Approval Pending' :
-                                (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 2) ? 'Incharge Rejected' :
-                                    (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                        (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                            (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected ' :
-                                                (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 1 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                    (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 2) ? 'HR Rejected' :
-                                                        (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' :
-                                                            (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' : 'HR Approval Pending',
-                            hrstatus: val.np_hr_apprv_status,
-                            code: 3,
-                            reqDate: val.request_date,
-                            fromDate: val.leave_date,
-                            toDate: val.leavetodate
-                        }
-                    })?.filter((k) => k.hrstatus !== 1)
-                setTableData(arrinch)
-            } else {
-                setTableData([])
-                infoNofity('No Nopunch Request Found')
-            }
-        }
-    }, [halfdayRqList, leaveRqList, nopunchRqList]);
-
-    useEffect(() => {
-        if (value === 1) {
-            const arrinch = leaveRqList
-                ?.filter((k) => k.incapprv_status !== 2)
-                ?.filter((k) => k.hod_apprv_status !== 2)
-                ?.filter((k) => k.hr_apprv_status !== 2)
-                ?.map((val) => {
-                    return {
-                        slno: val.lve_uniq_no,
-                        emno: val.em_no,
-                        name: val.em_name,
-                        section: val.sect_name,
-                        dept_section: val.dept_section,
-                        status: (val.inc_apprv_req === 1 && val.incapprv_status === 0) ? 'Incharge Approval Pending' :
-                            (val.inc_apprv_req === 1 && val.incapprv_status === 2) ? 'Incharge Rejected' :
-                                (val.inc_apprv_req === 0 && val.incapprv_status === 0 && val.hod_apprv_req === 1 && val.hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                    (val.inc_apprv_req === 1 && val.incapprv_status === 1 && val.hod_apprv_req === 1 && val.hod_apprv_status === 0 && val.hr_apprv_status === 0) ? 'HOD Approval Pending' :
-                                        (val.inc_apprv_req === 0 && val.incapprv_status === 0 && val.hod_apprv_req === 1 && val.hod_apprv_status === 2) ? 'HOD Rejected' :
-                                            (val.inc_apprv_req === 1 && val.incapprv_status === 1 && val.hod_apprv_req === 1 && val.hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                (val.hod_apprv_req === 1 && val.hod_apprv_status === 0 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 1) ? 'HR Approved' :
-                                                    (val.hod_apprv_req === 1 && val.hod_apprv_status === 1 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 1) ? 'HR Approved' :
-                                                        (val.hr_aprrv_requ === 1 && val.hr_apprv_status === 2 && val.hod_apprv_status === 1) ? 'HR Rejected' : 'HR Approval Pending',
-                        hrstatus: val.hr_apprv_status,
-                        code: 1,
-                        reqDate: val.request_date,
-                        fromDate: val.leave_date,
-                        toDate: val.leavetodate
+                                                            (val.hod_apprv_req === 1 && val.hod_apprv_status === 0 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 2) ? 'HR Rejected' :
+                                                                (val.hod_apprv_req === 1 && val.hod_apprv_status === 1 && val.hr_aprrv_requ === 1 && val.hr_apprv_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
                     }
-                })?.filter((k) => k.hrstatus !== 1 && k.hrstatus !== 2)
-
-            setTableData(arrinch)
-
-        } else if (value === 2) {
-            if (Object.keys(halfdayRqList).length > 0) {
-                const arrinch = halfdayRqList
-                    ?.filter((k) => k.hf_incapprv_status !== 2)
-                    ?.filter((k) => k.hf_hod_apprv_status !== 2)
-                    ?.filter((k) => k.hf_hr_apprv_status !== 2)
-                    ?.map((val) => {
-                        return {
-                            slno: val.half_slno,
-                            emno: val.em_no,
-                            name: val.em_name,
-                            section: val.sect_name,
-                            dept_section: val.dept_section,
-                            checkIn: val.checkIn,
-                            checkOut: val.checkOut,
-                            month: val.month,
-                            halfday_status: val.halfday_status,
-                            status: (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0) ? 'Incharge Approval Pending' :
-                                (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 2) ? 'Incharge Rejected' :
-                                    (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                        (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                            (val.hf_inc_apprv_req === 0 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                (val.hf_inc_apprv_req === 1 && val.hf_incapprv_status === 0 && val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                    (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 0 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
-                                                        (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 1) ? 'HR Approved' :
-                                                            (val.hf_hod_apprv_req === 1 && val.hf_hod_apprv_status === 1 && val.hf_hr_aprrv_requ === 1 && val.hf_hr_apprv_status === 2) ? 'HR Rejected' : 'HR Approval Pending',
-                            hrstatus: val.hf_hr_apprv_status,
-                            code: 2,
-                            reqDate: val.requestdate,
-                            leaveDate: val.leavedate,
-                            shift_id: val.shift_id,
-                            planslno: val.planslno
-                        }
-                    })?.filter((k) => k.hrstatus !== 1)
-                setTableData(arrinch)
-            }
-            else {
-                setTableData([])
-            }
-        } else if (value === 3) {
-            if (Object.keys(nopunchRqList).length > 0) {
-                const arrinch = nopunchRqList
-                    ?.filter((k) => k.np_incapprv_status !== 2)
-                    ?.filter((k) => k.np_hod_apprv_status !== 2)
-                    ?.filter((k) => k.np_hr_apprv_status !== 2)
-                    ?.map((val) => {
-                        return {
-                            slno: val.nopunch_slno,
-                            emno: val.em_no,
-                            name: val.em_name,
-                            section: val.sect_name,
-                            dept_section: val.dept_section,
-                            shift_id: val.shift_id,
-                            status: (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 0) ? 'Incharge Approval Pending' :
-                                (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 2) ? 'Incharge Rejected' :
-                                    (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                        (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0) ? 'HOD Approval Pending' :
-                                            (val.np_inc_apprv_req === 0 && val.np_incapprv_status === 0 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected ' :
-                                                (val.np_inc_apprv_req === 1 && val.np_incapprv_status === 1 && val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 2) ? 'HOD Rejected' :
-                                                    (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 2) ? 'HR Rejected' :
-                                                        (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 1 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' :
-                                                            (val.np_hod_apprv_req === 1 && val.np_hod_apprv_status === 0 && val.np_hr_aprrv_requ === 1 && val.np_hr_apprv_status === 1) ? 'HR Approved' : 'HR Approval Pending',
-                            hrstatus: val.np_hr_apprv_status,
-                            code: 3,
-                            reqDate: val.request_date,
-                            fromDate: val.leave_date,
-                            toDate: val.leavetodate
-                        }
-                    })?.filter((k) => k.hrstatus !== 1)
-                setTableData(arrinch)
-            }
-            else {
+                    return {
+                        ...val,
+                        ...obj
+                    }
+                })
+                setTableData(arr)
+            } else {
                 setTableData([])
             }
         }
-    }, [leaveRqList, value, halfdayRqList, nopunchRqList])
+
+        if (value === 1 || value === '1') {
+            getAllLeave()
+        } else if (value === '2') {
+            getAllHalfDay()
+        } else if (value === '3') {
+            getAllMisspunch()
+        } else if (value === '5') {
+            getAllOnHour()
+        } else if (value === '6') {
+            getAllOnDuty()
+        }
+    }, [value, count])
+
 
     const [columnDef] = useState([
-        { headerName: 'Slno', field: 'slno', filter: true, minWidth: 100 },
         { headerName: 'ID#', field: 'emno', filter: true, minWidth: 100 },
         { headerName: 'Name ', field: 'name', filter: true, minWidth: 200 },
         { headerName: 'Department Section', field: 'section', filter: true, minWidth: 200 },
@@ -310,59 +282,71 @@ const ApprovalHR = () => {
                         </Tooltip>
                     </IconButton>
                 }
-            }
-        },
+            }, minWidth: 200
+        }
     ])
 
-
-    //MODAL STATES FOR RENDERING OPEN MODAL & UPDATE DATA
-    const [leaveReqModal, setleaveReqModal] = useState(false);
-    //const [coffReqModal, setcoffReqModal] = useState(false);
-    const [halfDayReqModal, sethalfDayReqModal] = useState(false);
-    const [noPunchReqModal, setnoPunchReqModal] = useState(false);
-
-    //UPDATE DATA
-    const [lveData, setlveData] = useState({});
-    // const [coffData, setcoffData] = useState({});
-    const [halfData, sethalfData] = useState({});
-    const [noPunchData, setnoPunchData] = useState({});
-
-    //MODAL OPENING FUNCTION
-    let handleClickIcon = useCallback(async (table) => {
+    const handleClickIcon = useCallback(async (params) => {
+        const { code } = params.data
         dispatch(setCommonSetting())
         dispatch(setShiftDetails())
-        const { code } = table.data;
         if (code === 1) {
-            setlveData(table.data)
-            setleaveReqModal(true)
-        } else if (code === 2) {
-            sethalfData(table.data)
-            sethalfDayReqModal(true)
-        } else if (code === 3) {
-            setnoPunchData(table.data)
-            setnoPunchReqModal(true)
-        }
 
+            // setLeaveOpen(true)
+            // setLeaveData(params.data)
+            const { leave_date, em_id } = params.data
+            const postdata = {
+                emp_id: [em_id],
+                // emp_id: [168],
+                from: format(startOfMonth(new Date(leave_date)), 'yyyy-MM-dd'),
+                to: format(endOfMonth(new Date(leave_date)), 'yyyy-MM-dd'),
+            }
+            const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
+            const { success, data: punchmast } = result.data
+            if (success === 1) {
+                const leaveDays = punchmast?.filter((val) => val.duty_desc === 'SL' || val.duty_desc === 'CL'
+                    || val.duty_desc === 'EL' || val.duty_desc === 'HCL' || val.duty_desc === 'HDCL' || val.duty_desc === 'COFF')
+                setPreviousLeave(leaveDays)
+                setLeaveOpen(true)
+                setLeaveData(params.data)
+            } else {
+                setPreviousLeave([])
+                setLeaveOpen(true)
+                setLeaveData(params.data)
+            }
+
+        } else if (code === 2) {
+            setHalfdayOpen(true)
+            setHalfdayData(params.data)
+        } else if (code === 3) {
+            setMisspunchOpen(true)
+            setmisspunchData(params.data)
+        } else if (code === 5) {
+            setOneHourOpen(true)
+            setOneHourData(params.data)
+        } else if (code === 6) {
+            const { on_duty_date, em_id } = params.data
+            const postData = {
+                startDate: format(new Date(on_duty_date), 'yyyy-MM-dd'),
+                em_id: em_id
+            }
+            dispatch(getDutyPlannedShiftForHalfDayRequest(postData));
+            setOndutyOpen(true)
+            setOndutyData(params.data)
+        }
     }, [dispatch])
 
-    const RedirectToProfilePage = () => {
-        history.push(`/Home`)
-    }
 
     return (
-        <Fragment>
-            <Suspense>
-                <LeaveRequestModal open={leaveReqModal} setOpen={setleaveReqModal} data={lveData} setCount={setCount} />
-                {/* <CompansatoryOff open={coffReqModal} setOpen={setcoffReqModal} data={coffData} setCount={setCount} /> */}
-                <NoPunchLeaveRequest open={noPunchReqModal} setOpen={setnoPunchReqModal} data={noPunchData} setCount={setCount} />
-                <HalfDayLeaveRequest open={halfDayReqModal} setOpen={sethalfDayReqModal} data={halfData} setCount={setCount} />
-            </Suspense>
-            <PageLayoutCloseOnly
-                heading="Leave Approval HR"
-                redirect={RedirectToProfilePage}
-            >
-                <Paper variant="outlined" square sx={{ display: 'flex', flex: 1, mb: 0.4, p: 0.8, alignItems: 'center' }} >
-                    <Box sx={{ display: 'flex', flex: 2 }}>
+        <CustomLayout title="Leave Approval HR" displayClose={true} >
+            <LeaveRequestModal open={leaveOpen} setOpen={setLeaveOpen} data={leaveData} setCount={setCount} previousLeave={previousLeave} />
+            <NoPunchLeaveRequest open={misspunchOpen} setOpen={setMisspunchOpen} data={misspunchData} setCount={setCount} />
+            <HalfDayLeaveRequest open={halfdayOpen} setOpen={setHalfdayOpen} data={halfdayData} setCount={setCount} />
+            <OndutyReqstModal open={ondutyOpen} setOpen={setOndutyOpen} data={ondutyData} setCount={setCount} />
+            <OneHourReqstModal open={onhourOpen} setOpen={setOneHourOpen} data={oneHourData} setCount={setCount} />
+            <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', p: 1 }}>
+                <Box sx={{ display: 'flex', flex: 1, p: 1, border: '1px solid #e0e0e0' }}>
+                    {
                         <CssVarsProvider>
                             {
                                 <RadioGroup
@@ -388,9 +372,9 @@ const ApprovalHR = () => {
                                 </RadioGroup>
                             }
                         </CssVarsProvider>
-                    </Box>
-                </Paper>
-                <Paper square elevation={0} sx={{ pt: 1, mt: 0.5, display: 'flex', flexDirection: "column" }} >
+                    }
+                </Box>
+                <Paper square elevation={0} sx={{ p: 0.5, mt: 0.5, display: 'flex', flexDirection: "column" }} >
                     <CommonAgGrid
                         columnDefs={columnDef}
                         tableData={tableData}
@@ -402,8 +386,8 @@ const ApprovalHR = () => {
                         headerHeight={30}
                     />
                 </Paper>
-            </PageLayoutCloseOnly>
-        </Fragment >
+            </Box>
+        </CustomLayout>
     )
 }
 
