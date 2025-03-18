@@ -9,7 +9,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="left" ref={ref} {...props} />;
 });
 const ContractRenewModel = ({ data, open, setOpenn, contractenewModelclose }) => {
-    console.log(data)
     const [dutytotal, setdutydatatotal] = useState([])
     const rage = eachDayOfInterval(
         { start: new Date(data.start), end: new Date(data.end) }
@@ -46,7 +45,6 @@ const ContractRenewModel = ({ data, open, setOpenn, contractenewModelclose }) =>
             contract_renew_date: moment(new Date()).format('YYYY-MM-DD')
         }
     })
-    console.log(postDataa)
     const submitFormdata = async (e) => {
         e.preventDefault();
         const result = await axioslogin.post('/attedancemarkSave', postDataa)

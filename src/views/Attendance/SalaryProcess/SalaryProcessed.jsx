@@ -80,8 +80,10 @@ const SalaryProcessed = () => {
                         const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
                         const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
                             || val.lvereq_desc === 'LC')).length
-                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'DOFF')).length
-                        const totalWeekOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
+                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'DOFF' || val.lvereq_desc === 'EOFF')).length
+
+                        const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
+
                         const totalDp = (empwise?.filter(val => val.lvereq_desc === 'DP')).length
                         const totaldpOff = (empwise?.filter(val => val.lvereq_desc === 'DOFF')).length
 
@@ -93,6 +95,12 @@ const SalaryProcessed = () => {
                         const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp
                         const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
                         const paydaySalay = (val.gross_salary / totalDays) * presentDays
+
+                        const egWOFF = presentDays >= 24 ? commonSettings?.week_off_count :
+                            presentDays < 24 && presentDays >= 18 ? commonSettings?.week_off_count - 1 :
+                                presentDays < 18 && presentDays >= 12 ? commonSettings?.week_off_count - 2 :
+                                    presentDays < 12 && presentDays >= 6 ? commonSettings?.week_off_count - 3 : 0
+
 
                         return {
                             em_no: val.em_no,
@@ -107,11 +115,11 @@ const SalaryProcessed = () => {
                             totalDays: getDaysInMonth(new Date(value)),
                             totallopCount: totallopCount,
                             totalHD: totalHD,
-                            totalWeekOff: commonSettings?.week_off_count,
-                            takenWeekoff: totalWeekOff,
-                            remainingOff: commonSettings?.week_off_count - totalWeekOff,
+                            eligibleWeekOff: egWOFF,
+                            takenWeekoff: totalWOFF,
+                            remainingOff: egWOFF - totalWOFF,
                             totalDp: totalDp,
-                            totaldoff: totalDp,
+                            eligibledoff: totalDp,
                             takendoff: totaldpOff,
                             remainingDoff: extraDp,
                             paydays: presentDays,
@@ -146,13 +154,16 @@ const SalaryProcessed = () => {
                 const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
                 const { success, data } = result.data
                 if (success === 1) {
+
                     const finalDataArry = employeeData?.map((val) => {
                         const empwise = data.filter((value) => value.emp_id === val.em_id)
                         const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
                         const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
                             || val.lvereq_desc === 'LC')).length
-                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'DOFF')).length
+                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'DOFF' || val.lvereq_desc === 'EOFF')).length
+
                         const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
+
                         const totalDp = (empwise?.filter(val => val.lvereq_desc === 'DP')).length
                         const totaldpOff = (empwise?.filter(val => val.lvereq_desc === 'DOFF')).length
 
@@ -164,6 +175,12 @@ const SalaryProcessed = () => {
                         const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp
                         const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
                         const paydaySalay = (val.gross_salary / totalDays) * presentDays
+
+                        const egWOFF = presentDays >= 24 ? commonSettings?.week_off_count :
+                            presentDays < 24 && presentDays >= 18 ? commonSettings?.week_off_count - 1 :
+                                presentDays < 18 && presentDays >= 12 ? commonSettings?.week_off_count - 2 :
+                                    presentDays < 12 && presentDays >= 6 ? commonSettings?.week_off_count - 3 : 0
+
 
                         return {
                             em_no: val.em_no,
@@ -178,11 +195,11 @@ const SalaryProcessed = () => {
                             totalDays: getDaysInMonth(new Date(value)),
                             totallopCount: totallopCount,
                             totalHD: totalHD,
-                            totalWeekOff: commonSettings?.week_off_count,
+                            eligibleWeekOff: egWOFF,
                             takenWeekoff: totalWOFF,
-                            remainingOff: commonSettings?.week_off_count - totalWOFF,
+                            remainingOff: egWOFF - totalWOFF,
                             totalDp: totalDp,
-                            totaldoff: totalDp,
+                            eligibledoff: totalDp,
                             takendoff: totaldpOff,
                             remainingDoff: extraDp,
                             paydays: presentDays,
@@ -213,13 +230,13 @@ const SalaryProcessed = () => {
         { headerName: 'Total Days ', field: 'totalDays' },
         { headerName: 'No Of Half Day LOP(HD)', field: 'totalHD', minWidth: 250 },
         { headerName: 'Total LOP', field: 'totallopCount' },
-        { headerName: 'Eligible WOFF', field: 'totalWeekOff' },
-        { headerName: 'Taken WOFF', field: 'totalWeekOff' },
+        { headerName: 'Eligible WOFF', field: 'eligibleWeekOff' },
+        { headerName: 'Taken WOFF', field: 'takenWeekoff' },
         { headerName: 'Remaining WOFF', field: 'remainingOff' },
         { headerName: 'Total DP', field: 'totalDp' },
-        { headerName: 'Eligible DOFF', field: 'totaldoff' },
+        { headerName: 'Eligible DOFF', field: 'eligibledoff' },
         { headerName: 'Taken DOFF', field: 'takendoff' },
-        { headerName: 'Remaining DOFF', field: 'remainingOff' },
+        { headerName: 'Remaining DOFF', field: 'remainingDoff' },
         { headerName: 'Total Pay Day', field: 'paydays' },
         { headerName: 'LOP Amount ', field: 'lopAmount' },
         { headerName: 'Total Salary', field: 'totalSalary' },
@@ -255,7 +272,6 @@ const SalaryProcessed = () => {
                         ?.map(e => format(new Date(e), 'yyyy-MM-dd'));
 
                     const resultss = [...new Set(punchMasteData?.map(e => e.em_no))]?.map((el) => {
-                        // console.log(el);
                         const empArray = punchMasteData?.filter(e => e.em_no === el)
                         let emName = empArray?.find(e => e.em_no === el).em_name;
                         let emNo = empArray?.find(e => e.em_no === el).em_no;
@@ -269,7 +285,6 @@ const SalaryProcessed = () => {
                             dept_name: deptName,
                             sect_name: sectName,
                             arr: dateRange?.map((e) => {
-                                // console.log(e)
                                 return {
                                     attDate: e,
                                     duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
