@@ -13,14 +13,12 @@ import { useMemo } from 'react';
 const ShiftModal = lazy(() => import('./ShiftModal'))
 
 const TableRows = ({ data, disable, no, punchData, punchMaster, setTableArray }) => {
-    // console.log(disable)
     const state = useSelector((state) => state?.getCommonSettings)
     const commonSetting = useMemo(() => state, [state])
 
     const { cmmn_grace_period } = commonSetting;
 
-    // console.log(data)
-    const { isNOff, isWeekOff } = data;
+    const { isNOff, isWeekOff, isDoff, isEoff } = data;
     const hideStatus = data?.hideStatus;
     //MODAL OPEN STATE
     const [open, setOpen] = useState(false);
@@ -37,7 +35,7 @@ const TableRows = ({ data, disable, no, punchData, punchMaster, setTableArray })
                                 disable === true ?
                                     <IconButton aria-label="delete" size="small" sx={{ p: 0 }} disabled><ArticleOutlinedIcon /></IconButton>
                                     :
-                                    (isNOff === true || isWeekOff === true) ?
+                                    (isNOff === true || isWeekOff === true || isDoff === true || isEoff === true) ?
                                         <IconButton aria-label="delete" size="small" sx={{ p: 0 }} disabled  ><ArticleOutlinedIcon color='disabled' /></IconButton>
                                         :
                                         <IconButton aria-label="delete" size="small" sx={{ p: 0 }} onClick={() => setOpen(true)} ><ArticleOutlinedIcon color='secondary' /></IconButton>

@@ -128,8 +128,6 @@ const ContractRenewalProcess = () => {
 
   useEffect(() => {
 
-    console.log(contractStartDate);
-
     const getDutyplan = {
       emp_id: no,
       start_date: contstatus === 1 && contractrenew === true ? moment(new Date(contractStartDate)).format('YYYY-MM-DD') : moment(new Date(permanetDOJ)).format('YYYY-MM-DD'),
@@ -172,7 +170,6 @@ const ContractRenewalProcess = () => {
       const result = await axioslogin.post("/payrollprocess/getPunchAboveSelectedDate", postdata);
       const { success, data } = result.data
       if (success === 1) {
-        console.log(data);
         const punchslno = data?.map(val => val.slno)
         setPunchSlno(punchslno)
       } else {

@@ -32,6 +32,7 @@ const CommonSettingNew = () => {
     const [group_slno, setGroup_Slno] = useState([])
     const [training_group_slno, setTraining_Group_Slno] = useState([])
     const [dutyoff, setdutyoff] = useState(0)
+    const [extra_off, setExtraoff] = useState(0)
     const [FormData, setFormData] = useState({
         slno: '',
         commn_grace: '',
@@ -119,7 +120,7 @@ const CommonSettingNew = () => {
                     areartype, max_late_day_count, leave_count, noff_selct_day_count, noff, group_slno, dutyoff, comp_day_count,
                     comp_hour_count, training_mastergroup, holiday_policy_count, weekoff_policy_max_count,
                     weekoff_policy_min_count, coff_min_working_hour, break_shift_taken_count, halfday_time_count, punch_taken_hour_count,
-                    week_off_count } = data[0]
+                    week_off_count, extra_off } = data[0]
 
                 const frmData = {
                     slno: setting_slno,
@@ -176,6 +177,7 @@ const CommonSettingNew = () => {
                 setTraining_Group_Slno(training === null ? [] : training)
                 setNoff(noff)
                 setdutyoff(dutyoff)
+                setExtraoff(extra_off)
             }
             else if (success === 0) {
                 setValue(0)
@@ -236,6 +238,7 @@ const CommonSettingNew = () => {
             halfday_time_count: halfday_time_count,
             punch_taken_hour_count: punch_taken_hour_count,
             week_off_count: week_off_count,
+            extra_off: extra_off,
         }
     }, [commn_grace, commn_latein, commn_earlyout, commn_latein_grace, commn_earlyout_grace,
         carry_hl, carry_el, carry_cl, carry_sl, esi_employer, esi_employee, esi_limit, pf_employer,
@@ -244,8 +247,8 @@ const CommonSettingNew = () => {
         max_late_day_count, noff_selct_day_count, comp_day_count, comp_hour_count, holiday_policy_count,
         weekoff_policy_max_count, weekoff_policy_min_count, areartype, defshift, em_id, dutyoff, group_slno,
         levaetype, noff, notappshift, workoff, training_group_slno, break_shift_taken_count, halfday_time_count,
-        punch_taken_hour_count, week_off_count])
-    // console.log(postData);
+        punch_taken_hour_count, week_off_count, extra_off])
+
 
     //data to edit
     const postDataEdit = useMemo(() => {
@@ -297,6 +300,7 @@ const CommonSettingNew = () => {
             halfday_time_count: halfday_time_count,
             punch_taken_hour_count: punch_taken_hour_count,
             week_off_count: week_off_count,
+            extra_off: extra_off
         }
     }, [slno, commn_grace, commn_latein, commn_earlyout, commn_latein_grace, commn_earlyout_grace,
         carry_hl, carry_el, carry_cl, carry_sl, esi_employer, esi_employee, esi_limit, pf_employer,
@@ -305,7 +309,7 @@ const CommonSettingNew = () => {
         max_late_day_count, noff_selct_day_count, comp_day_count, comp_hour_count, holiday_policy_count,
         weekoff_policy_max_count, weekoff_policy_min_count, areartype, defshift, em_id, dutyoff, group_slno,
         levaetype, noff, notappshift, workoff, training_group_slno, break_shift_taken_count, halfday_time_count,
-        punch_taken_hour_count, week_off_count])
+        punch_taken_hour_count, week_off_count, extra_off])
 
 
     //save
@@ -939,6 +943,14 @@ const CommonSettingNew = () => {
                                     </Box>
                                     <Box sx={{ flex: 1, px: 0.5 }} >
                                         <ShiftSelectByRedux value={dutyoff} setValue={setdutyoff} />
+                                    </Box>
+                                </Box>
+                                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', px: 10 }}>
+                                    <Box sx={{ flex: 1, px: 0.5 }} >
+                                        <Typography level="body1">Extra OFF</Typography>
+                                    </Box>
+                                    <Box sx={{ flex: 1, px: 0.5 }} >
+                                        <ShiftSelectByRedux value={extra_off} setValue={setExtraoff} />
                                     </Box>
                                 </Box>
                                 <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', px: 10, mt: 0.5 }}>

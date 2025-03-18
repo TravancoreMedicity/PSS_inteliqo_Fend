@@ -25,7 +25,8 @@ export const processPunchMarkingHrFunc = async (
         holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
         weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT
         weekoff_policy_min_count,
-        dutyoff
+        dutyoff,
+        extra_off
     } = commonSettings; //COMMON SETTING
 
     //GET DUTY PLAN AND CHECK DUTY PLAN IS EXCIST OR NOT
@@ -69,7 +70,8 @@ export const processPunchMarkingHrFunc = async (
                         first_half_out: sortedShiftData?.first_half_out,
                         second_half_in: sortedShiftData?.second_half_in,
                         second_half_out: sortedShiftData?.second_half_out,
-                        dutyoff: dutyoff
+                        dutyoff: dutyoff,
+                        extra_off: extra_off
                     }
                     const employeeBasedPunchData = punchaData?.filter((e) => e.emp_code == data.em_no)
 
@@ -145,15 +147,16 @@ export const processPunchMarkingHrFunc = async (
                                 second_shift_in,
                                 second_shift_out,
                                 duty_day,
-                                val.dutyoff
+                                val.dutyoff,
+                                val.extra_off
                             )
                             return {
                                 punch_slno: val.punch_slno,
                                 punch_in: val.break_first_punch_in,
                                 punch_out: val.break_second_punch_out,
-                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.hrsWorked,
-                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.lateIn,
-                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.earlyOut,
+                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
+                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
+                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
                                 duty_status: getAttendanceStatus?.duty_status,
                                 holiday_status: val.holiday_status,
                                 leave_status: val.leave_status,
@@ -192,7 +195,8 @@ export const processPunchMarkingHrFunc = async (
                                 second_shift_in,
                                 second_shift_out,
                                 duty_day,
-                                val.dutyoff
+                                val.dutyoff,
+                                val.extra_off
                             )
 
                             return {
@@ -334,7 +338,7 @@ export const getAttendanceCalculation = async (
     shft_duty_day, break_shift_status, break_first_punch_in,
     break_first_punch_out, break_second_punch_in, break_second_punch_out,
     first_shift_in, first_shift_out, second_shift_in,
-    second_shift_out, duty_day, dutyoff
+    second_shift_out, duty_day, dutyoff, extra_off
 ) => {
     const {
         // hrsWorked, 
@@ -344,7 +348,7 @@ export const getAttendanceCalculation = async (
     //SHIFT ID CHECKING
     // ( !== default shift , !== not applicable shift , !== Night off , !== week off) 
     // if true ==> ( its a working shift ) 
-    const checkShiftIdStatus = (shiftId !== defaultShift && shiftId !== NAShift && shiftId !== NightOffShift && shiftId !== WoffShift && shiftId !== dutyoff)
+    const checkShiftIdStatus = (shiftId !== defaultShift && shiftId !== NAShift && shiftId !== NightOffShift && shiftId !== WoffShift && shiftId !== dutyoff && shiftId !== extra_off)
     //HALF DAY CALCULATION
     const totalShiftInMInits = differenceInMinutes(new Date(shift_out), new Date(shift_in))
     const halfDayInMinits = totalShiftInMInits / 2;
@@ -642,7 +646,9 @@ export const getAttendanceCalculation = async (
                     ? { duty_status: 1, duty_desc: 'NOFF', lvereq_desc: 'NOFF', duty_remark: 'night off' }
                     : shiftId === dutyoff
                         ? { duty_status: 1, duty_desc: 'DOFF', lvereq_desc: 'DOFF', duty_remark: 'day off' }
-                        : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no applicable' };
+                        : shiftId === extra_off
+                            ? { duty_status: 1, duty_desc: 'EOFF', lvereq_desc: 'EOFF', duty_remark: 'extra off' }
+                            : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no applicable' };
     }
 
 }
@@ -1009,7 +1015,8 @@ export const processShiftPunchMarkingHrFunc = async (
         noff, // night off SHIFT ID,
         max_late_day_count,
         break_shift_taken_count,
-        dutyoff
+        dutyoff,
+        extra_off
     } = commonSettings; //COMMON SETTING
     //GET DUTY PLAN AND CHECK DUTY PLAN IS EXCIST OR NOT
     const getDutyPlan = await axioslogin.post("/attendCal/getDutyPlanBySection/", postData_getPunchData); //GET DUTY PLAN DAAT
@@ -1048,7 +1055,8 @@ export const processShiftPunchMarkingHrFunc = async (
                         first_half_out: sortedShiftData?.first_half_out,
                         second_half_in: sortedShiftData?.second_half_in,
                         second_half_out: sortedShiftData?.second_half_out,
-                        dutyoff: dutyoff
+                        dutyoff: dutyoff,
+                        extra_off: extra_off
                     }
                     const employeeBasedPunchData = punchaData?.filter((e) => e.emp_code == data.em_no)
                     //Functions for break duty and Normal duty
@@ -1123,7 +1131,8 @@ export const processShiftPunchMarkingHrFunc = async (
                                 second_shift_in,
                                 second_shift_out,
                                 duty_day,
-                                val.dutyoff
+                                val.dutyoff,
+                                val.extra_off
                             )
                             return {
                                 punch_slno: val.punch_slno,
@@ -1131,9 +1140,9 @@ export const processShiftPunchMarkingHrFunc = async (
                                 punch_out: val.break_second_punch_out,
                                 // punch_in: val.break_shift_status === 1 ? val.break_first_punch_in : val.punch_in,
                                 // punch_out: val.break_shift_status === 1 ? val.break_second_punch_out : val.punch_out,
-                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.hrsWorked,
-                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.lateIn,
-                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getBreakDutyLateInTime?.earlyOut,
+                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
+                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
+                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
                                 duty_status: getAttendanceStatus?.duty_status,
                                 holiday_status: val.holiday_status,
                                 leave_status: val.leave_status,
@@ -1172,16 +1181,17 @@ export const processShiftPunchMarkingHrFunc = async (
                                 second_shift_in,
                                 second_shift_out,
                                 duty_day,
-                                val.dutyoff
+                                val.dutyoff,
+                                val.extra_off
                             )
 
                             return {
                                 punch_slno: val.punch_slno,
                                 punch_in: val.punch_in,
                                 punch_out: val.punch_out,
-                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getLateInTime?.hrsWorked,
-                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getLateInTime?.lateIn,
-                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff) ? 0 : getLateInTime?.earlyOut,
+                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.hrsWorked,
+                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.lateIn,
+                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.earlyOut,
                                 duty_status: getAttendanceStatus?.duty_status,
                                 holiday_status: val.holiday_status,
                                 leave_status: val.leave_status,

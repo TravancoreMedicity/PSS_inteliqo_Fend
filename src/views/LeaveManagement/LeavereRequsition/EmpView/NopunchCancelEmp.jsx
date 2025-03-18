@@ -16,8 +16,6 @@ import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDro
 
 const NopunchCancelEmp = ({ open, setOpen, data, setCount }) => {
 
-    console.log(data);
-
     //STATES
     const [reqDetl, setReqDetl] = useState([]);
     const [reason, setReason] = useState('');
