@@ -17,8 +17,8 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
     const [openBkDrop, setOpenBkDrop] = useState(false)
     const [reason, setreason] = useState('')
 
-    const { Employee_name, Emp_no, sect_name, requestDate, nopunchdate, np_reason, checkintime,
-        checkouttime, shft_desc, SlNo } = empData;
+    const { name, emno, sect_name, requestDate, nopunchdate, np_reason, checkintime,
+        checkouttime, shft_desc, slno } = empData;
 
     //login incharge id
     const em_id = useSelector((state) => state?.getProfileData?.ProfileData[0]?.em_id ?? 0)
@@ -27,21 +27,21 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
         return {
             status: 1,
             comment: reason,
-            slno: SlNo,
+            slno: slno,
             apprvdate: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
             us_code: em_id
         }
-    }, [reason, SlNo, em_id])
+    }, [reason, slno, em_id])
 
     const rejectd = useMemo(() => {
         return {
             status: 2,
             comment: reason,
-            slno: SlNo,
+            slno: slno,
             apprvdate: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
             us_code: em_id
         }
-    }, [reason, SlNo, em_id])
+    }, [reason, slno, em_id])
 
 
 
@@ -70,15 +70,15 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
             if (reason === '') {
                 infoNofity("Please Add Remark")
             } else {
-                const result = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${SlNo}`)
+                const result = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${slno}`)
                 const { success, data } = result.data;
                 if (success === 1) {
                     const { np_inc_apprv_req, np_incapprv_status } = data[0]
                     if (np_inc_apprv_req === 1 && np_incapprv_status === 0) {
-                        const result = await axioslogin.patch('./LeaveRequestApproval/inchargeapprvnopunch', approve)
+                        const result = await axioslogin.patch('/LeaveRequestApproval/inchargeapprvnopunch', approve)
                         const { success } = result.data
                         if (success === 1) {
-                            const result = await axioslogin.patch('./LeaveRequestApproval/hodapprvlnopunch', approve)
+                            const result = await axioslogin.patch('/LeaveRequestApproval/hodapprvlnopunch', approve)
                             const { success, message } = result.data
                             if (success === 1) {
                                 succesNofity(message)
@@ -94,7 +94,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                             }
                         }
                     } else {
-                        const result = await axioslogin.patch('./LeaveRequestApproval/hodapprvlnopunch', approve)
+                        const result = await axioslogin.patch('/LeaveRequestApproval/hodapprvlnopunch', approve)
                         const { success, message } = result.data
                         if (success === 1) {
                             succesNofity(message)
@@ -112,7 +112,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                 }
             }
         }
-    }, [authority, approve, setOpen, setcount, SlNo, reason])
+    }, [authority, approve, setOpen, setcount, slno, reason])
 
     const handleRegectRequest = useCallback(async () => {
         setOpenBkDrop(true)
@@ -120,7 +120,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
             if (reason === '') {
                 infoNofity("Please Add Remark")
             } else {
-                const result = await axioslogin.patch('./LeaveRequestApproval/inchargeapprvnopunch', rejectd)
+                const result = await axioslogin.patch('/LeaveRequestApproval/inchargeapprvnopunch', rejectd)
                 const { success, message } = result.data
                 if (success === 1) {
                     succesNofity(message)
@@ -141,15 +141,15 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
             if (reason === '') {
                 infoNofity("Please Add Remark")
             } else {
-                const result = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${SlNo}`)
+                const result = await axioslogin.get(`/LeaveRequestApproval/leave/nopunch/getnopunchreq/${slno}`)
                 const { success, data } = result.data;
                 if (success === 1) {
                     const { np_inc_apprv_req, np_incapprv_status } = data[0]
                     if (np_inc_apprv_req === 1 && np_incapprv_status === 0) {
-                        const result = await axioslogin.patch('./LeaveRequestApproval/inchargeapprvnopunch', rejectd)
+                        const result = await axioslogin.patch('/LeaveRequestApproval/inchargeapprvnopunch', rejectd)
                         const { success } = result.data
                         if (success === 1) {
-                            const result = await axioslogin.patch('./LeaveRequestApproval/hodapprvlnopunch', rejectd)
+                            const result = await axioslogin.patch('/LeaveRequestApproval/hodapprvlnopunch', rejectd)
                             const { success, message } = result.data
                             if (success === 1) {
                                 succesNofity(message)
@@ -165,7 +165,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                             }
                         }
                     } else {
-                        const result = await axioslogin.patch('./LeaveRequestApproval/hodapprvlnopunch', rejectd)
+                        const result = await axioslogin.patch('/LeaveRequestApproval/hodapprvlnopunch', rejectd)
                         const { success, message } = result.data
                         if (success === 1) {
                             succesNofity(message)
@@ -183,7 +183,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                 }
             }
         }
-    }, [rejectd, authority, setcount, SlNo, setOpen, reason])
+    }, [rejectd, authority, setcount, slno, setOpen, reason])
 
     return (
         <>
@@ -216,7 +216,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                             }
                             sx={{ display: 'flex', alignItems: 'flex-start', mr: 2, }}
                         >
-                            {Employee_name}
+                            {name}
                         </Typography>
                         <Typography
                             lineHeight={1}
@@ -233,7 +233,7 @@ const NopunchRqModel = ({ setOpen, open, authority, empData, setcount }) => {
                                 alignContent='center'
                                 lineHeight={1}
                             >
-                                {Emp_no}
+                                {emno}
                             </Typography>}
                             sx={{ color: 'neutral.400', display: 'flex', }}
                         >

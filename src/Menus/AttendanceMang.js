@@ -62,6 +62,18 @@ const AttendanceManagement = [
         name: 'Attendance Report',
         to: '/Home/EmpPreviouspunchreport',
     },
+    {
+        men_slno: 294,
+        component: CNavItem,
+        name: 'Monthly Payroll Process',
+        to: '/Home/MonthlySalaryProcess',
+    },
+    {
+        men_slno: 295,
+        component: CNavItem,
+        name: 'Payroll Processed Report',
+        to: '/Home/ProcessedSalaryReport',
+    },
 
 ]
 

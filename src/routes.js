@@ -288,7 +288,8 @@ const WeekOFFPresentMainpage = React.lazy(() => import('./views/LeaveManagement/
 const ManualRequest = React.lazy(() => import('./views/LeaveManagement/ManualRequest/ManuanlRequest'))
 const ManualRequestReport = React.lazy(() => import('./views/HrReports/ManualRequestReport/ManualReqstReport'))
 const OnObservationRequest = React.lazy(() => import('./views/LeaveManagement/OnObservation/OnobservationRequest'))
-
+const MonthlySalaryProcess = React.lazy(() => import('./views/Attendance/SalaryProcess/MonthlySalaryProcess'))
+const ProcessedSalaryReport = React.lazy(() => import('./views/Attendance/SalaryProcess/ProcessedSalaryReport'))
 
 const routes = [
 
@@ -569,6 +570,8 @@ const routes = [
   { path: '/Home/ManualRequest', exact: true, name: 'Manual Request', component: ManualRequest },
   { path: '/Home/ManualRequestReport', exact: true, name: 'Manual Request Report', component: ManualRequestReport },
   { path: '/Home/OnObservationRequest', exact: true, name: 'On Observation Request', component: OnObservationRequest },
+  { path: '/Home/MonthlySalaryProcess', exacr: true, name: 'Monthly Salary Process', component: MonthlySalaryProcess },
+  { path: '/Home/ProcessedSalaryReport', exact: true, name: 'Processed Salary Report', component: ProcessedSalaryReport }
 ]
 
 export default routes
