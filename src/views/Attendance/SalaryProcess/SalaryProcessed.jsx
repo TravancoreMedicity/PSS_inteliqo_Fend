@@ -76,7 +76,7 @@ const SalaryProcessed = () => {
                 const { success, data } = result.data
                 if (success === 1) {
                     const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data.filter((value) => value.emp_id === val.em_id)
+                        const empwise = data?.filter((value) => value.emp_id === val.em_id)
                         const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
                         const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
                             || val.lvereq_desc === 'LC')).length
@@ -92,7 +92,7 @@ const SalaryProcessed = () => {
                         const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
 
                         const totalDays = getDaysInMonth(new Date(value))
-                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + (totalDp * 2)
+                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp + totaldpOff
                         const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
                         const paydaySalay = (val.gross_salary / totalDays) * presentDays
 
@@ -156,7 +156,7 @@ const SalaryProcessed = () => {
                 if (success === 1) {
 
                     const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data.filter((value) => value.emp_id === val.em_id)
+                        const empwise = data?.filter((value) => value.emp_id === val.em_id)
                         const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
                         const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
                             || val.lvereq_desc === 'LC')).length
@@ -172,7 +172,7 @@ const SalaryProcessed = () => {
                         const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
 
                         const totalDays = getDaysInMonth(new Date(value))
-                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + (totalDp * 2)
+                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp + totaldpOff
                         const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
                         const paydaySalay = (val.gross_salary / totalDays) * presentDays
 
