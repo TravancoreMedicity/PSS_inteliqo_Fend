@@ -13,15 +13,11 @@ import moment from 'moment';
 import { errorNofity, succesNofity, } from 'src/views/CommonCode/Commonfunc';
 import { useCallback } from 'react';
 import { axioslogin } from 'src/views/Axios/Axios';
-// import { Actiontypes } from 'src/redux/constants/action.type';
 import { memo } from 'react';
 import EmailIcon from '@mui/icons-material/Email';
 import { getAttendanceCalculation, getLateInTimeIntervel } from '../PunchMarkingHR/punchMarkingHrFunc';
 
 const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }) => {
-
-    // const dispatch = useDispatch()
-    //const { UPDATE_PUNCHMASTER_TABLE } = Actiontypes
 
     const selectedDate = format(new Date(data?.duty_day), 'yyyy-MM-dd');
 
@@ -29,14 +25,7 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
     const [inTime, setInTime] = useState(null)
     const [outTime, setOutTime] = useState(null)
     const [message, setMessage] = useState(false)
-    // console.log(punchData)
-    // console.log(data)
-    // console.log(punchMast)
-    // console.log(selectedDate)
 
-    //FETCH DATA'S
-    // const punchData = useSelector((state) => state.getPunchData.punchDta)
-    // const shiftData = useSelector((state) => state.getShiftData.shiftData)
     const shiftData = useSelector((state) => state?.getShiftList?.shiftDetails)
     const commonSettings = useSelector((state) => state?.getCommonSettings)
 
@@ -48,25 +37,24 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         week_off_day, // week off SHIFT ID
         notapplicable_shift, //not applicable SHIFT ID
         default_shift, //default SHIFT ID
-        noff // night off SHIFT ID
+        noff, // night off SHIFT ID
+        punch_taken_hour_count,
+        dutyoff,
+        extra_off
     } = commonSettings; //COMMON SETTING
 
     //FIND THE CROSS DAY
-    const crossDay = shiftData?.find(shft => shft.shft_slno === data.shift_id);
+    const crossDay = shiftData?.find(shft => shft?.shft_slno === data?.shift_id);
     const crossDayStat = crossDay?.shft_cross_day ?? 0;
 
     //DISPLAY DATA'S
 
-    let shiftIn = `${format(new Date(data.duty_day), 'yyyy-MM-dd')} ${format(new Date(data?.shiftIn), 'HH:mm')}`;
-    let shiftOut = crossDayStat === 0 ? `${format(new Date(data.duty_day), 'yyyy-MM-dd')} ${format(new Date(data?.shiftOut), 'HH:mm')}` :
+    let shiftIn = `${format(new Date(data?.duty_day), 'yyyy-MM-dd')} ${format(new Date(data?.shiftIn), 'HH:mm')}`;
+    let shiftOut = crossDayStat === 0 ? `${format(new Date(data?.duty_day), 'yyyy-MM-dd')} ${format(new Date(data?.shiftOut), 'HH:mm')}` :
         `${format(addDays(new Date(data.duty_day), 1), 'yyyy-MM-dd')} ${format(new Date(data?.shiftOut), 'HH:mm')}`;
 
-    // console.log(shiftIn, shiftOut)
-
-    const startPunchInTime = subHours(new Date(shiftIn), 16); //last 24 hours from shift in time
-    const endPunchOutTime = addHours(new Date(shiftOut), 16); //last 24 hours from shift out time
-
-    // console.log(startPunchInTime, endPunchOutTime)
+    const startPunchInTime = subHours(new Date(shiftIn), punch_taken_hour_count); //last 24 hours from shift in time
+    const endPunchOutTime = addHours(new Date(shiftOut), punch_taken_hour_count); //last 24 hours from shift out time
 
     //filter punch data based on in and out time
     const filterdPunchData = punchData
@@ -95,26 +83,10 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         ?.filter((e) => e !== false)?.filter((el) => startPunchInTime <= el && el <= endPunchOutTime)
         ?.map((e) => format(new Date(e), 'yyyy-MM-dd HH:mm'))
 
-    // console.log(filterdPunchMasterDataSelectedDate)
     // FILTER AND REMOVE FROM filterdPunchData ARRAY USING THIS ARRAY filterdPunchMasterDataAll punch master in and out punch 
     const filterData = filterdPunchData?.filter((el) => !filterdPunchMasterDataAll?.includes(el))?.concat(filterdPunchMasterDataSelectedDate)
-    // console.log(removedPTime)
-
-    //GET DUTY DAY ALREADY UPDATED PUNCH IN AND OUT FROM PUNCH MASTER TABLE
-    // const updatedPunchMasterDta = punchMast?.filter((e) => e.duty_day === selectedDate)
-    //     ?.map((e) => [e.punch_in !== null && isValid(new Date(e.punch_in)) && new Date(e.punch_in), e.punch_out !== null && isValid(new Date(e.punch_out)) && new Date(e.punch_out)])
-
-
-    // const filterData = filterdPunchData
-    //     // ?.filter((val) => filterdPunchMasterData?.find((e) => format(new Date(e), 'yyyy-MM-dd HH:mm') === format(new Date(val), 'yyyy-MM-dd HH:mm')) === undefined)
-    //     ?.concat(updatedPunchMasterDta)
-    //     ?.flat()
-    //     ?.filter((e) => e !== false)
-
-    // console.log(filterData)
 
     //UPDATE DATA TO PUNCH MASTER
-
     const updatePunchInOutData = useCallback(async () => {
         const punch_In = new Date(inTime);
         const punch_out = new Date(outTime);
@@ -123,9 +95,7 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         const holidayStatus = data?.holiday_status;
         const shiftId = data?.shift_id
 
-
         const getLateInTime = await getLateInTimeIntervel(punch_In, shift_In, punch_out, shift_out)
-
 
         setMessage(false)
         if (inTime === outTime) {
@@ -133,7 +103,10 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         } else {
             if (isValid(punch_In) === true && isValid(punch_out) === true) {
                 const getAttendance = await getAttendanceCalculation(
-                    punch_In, shift_In, punch_out, shift_out, cmmn_grace_period, getLateInTime, holidayStatus, shiftId, default_shift, notapplicable_shift, noff, week_off_day, salary_above, cmmn_late_in
+                    punch_In, shift_In, punch_out, shift_out, cmmn_grace_period,
+                    getLateInTime, holidayStatus, shiftId, default_shift,
+                    notapplicable_shift, noff, week_off_day, salary_above, cmmn_late_in,
+                    dutyoff, extra_off
                 )
                 const postData = {
                     punch_in: inTime,
@@ -163,7 +136,8 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         }
 
     }, [inTime, outTime, shiftIn, shiftOut, data, default_shift, notapplicable_shift, noff,
-        week_off_day, salary_above, cmmn_late_in, cmmn_grace_period, setOpen, setTableArray])
+        week_off_day, salary_above, cmmn_late_in, cmmn_grace_period, setOpen, setTableArray,
+        dutyoff, extra_off])
 
     return (
         <Modal
@@ -216,7 +190,6 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
                             placeholder="Punch In....."
                             size="sm"
                             variant="outlined"
-                            // value={inTime}
                             onChange={(e) => setInTime(e.target.innerText)}
                         >
                             {filterData?.map((val, idx) => <Option key={idx} value={format(new Date(val), 'yyyy-MM-dd HH:mm')} >{format(new Date(val), 'yyyy-MM-dd HH:mm')}</Option>)}
@@ -231,7 +204,6 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
                             placeholder="Punch Out....."
                             size="sm"
                             variant="outlined"
-                            // value={outTime}
                             onChange={(e) => setOutTime(e.target.innerText)}
                         >
                             {filterData?.map((val, idx) => <Option key={idx} value={format(new Date(val), 'yyyy-MM-dd HH:mm')} >{format(new Date(val), 'yyyy-MM-dd HH:mm')}</Option>)}

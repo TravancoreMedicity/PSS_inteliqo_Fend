@@ -258,12 +258,6 @@ const NightOffRequestMainPage = () => {
         const todateValue = new Date(newValue);
         const fromdateValue = subDays(new Date(newValue), parseInt(commonSettings?.noff_selct_day_count));
 
-        // console.log("request date:", newValue);
-        // console.log("from date:", fromdateValue);
-        // console.log("to Date:", todateValue);
-
-
-
         if (isValid(fromdateValue) && isValid(todateValue)) {
             // If both dates are valid, update the state
             setFromDate(format(new Date(fromdateValue), 'yyyy-MM-dd'))

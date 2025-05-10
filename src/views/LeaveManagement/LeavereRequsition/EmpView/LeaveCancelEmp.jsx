@@ -21,7 +21,7 @@ const LeaveCancelEmp = ({ open, setOpen, data, setCount }) => {
     const [openBkDrop, setOpenBkDrop] = useState(false)
 
     //DISPLAY THE DATA 
-    const { slno, em_no, em_name, section, reqDate, fromDate, toDate, lve_uniq_no,
+    const { em_no, em_name, section, reqDate, toDate, lve_uniq_no,
         lvDate, leave_slno } = data;
 
 

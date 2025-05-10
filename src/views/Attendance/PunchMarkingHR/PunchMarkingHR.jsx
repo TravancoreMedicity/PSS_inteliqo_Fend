@@ -1,5 +1,5 @@
 // MAIN PAGE PUNCH MARKING HR 
-import React, { Fragment, useState, memo } from 'react'
+import React, { Fragment, useState, memo, useCallback } from 'react'
 import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDrop';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,12 +9,10 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Button, Chip, CssVarsProvider, Sheet, Typography } from '@mui/joy';
 import Input from '@mui/joy/Input';
-import { addDays, addMonths, endOfMonth, format, getMonth, getYear, lastDayOfMonth, startOfMonth, subDays, subMonths } from 'date-fns';
+import { addDays, addMonths, endOfMonth, format, lastDayOfMonth, startOfMonth, subDays, subMonths } from 'date-fns';
 import HourglassEmptyOutlinedIcon from '@mui/icons-material/HourglassEmptyOutlined';
 import { axioslogin } from 'src/views/Axios/Axios';
 import { warningNofity, succesNofity } from 'src/views/CommonCode/Commonfunc';
-// import { useHistory } from 'react-router-dom'
-// import _ from 'underscore'
 import CustomLayout from 'src/views/Component/MuiCustomComponent/CustomLayout';
 import Table from '@mui/joy/Table';
 import { setCommonSetting } from 'src/redux/actions/Common.Action';
@@ -31,16 +29,14 @@ const PunchMarkingHR = () => {
     const [deptList, setDeptList] = useState([]);
     const [openBkDrop, setOpenBkDrop] = useState(false);
     const [value, setValue] = useState(moment(new Date()));
-    const [holidayList, setHolidayList] = useState([]);
     const [empSalary, setEmpSalary] = useState([]);
-    //  const [empList, setEmpList] = useState([]);
 
     //GET REDUX stored information using useSelector
     const commonSettings = useSelector((state) => state?.getCommonSettings)
     const {
         holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
         weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT,
-        max_late_day_count
+        // max_late_day_count
     } = commonSettings;
 
     const shiftInformation = useSelector((state) => state?.getShiftList?.shiftDetails)
@@ -54,20 +50,6 @@ const PunchMarkingHR = () => {
 
     const onProcessClick = async () => {
         setOpenBkDrop(true)
-
-        //GET HOLIDAY LIST START
-        const SelectMonth = getMonth(new Date(value))
-        const SelectYear = getYear(new Date(value))
-
-        const getHolidayPostData = {
-            month: SelectMonth + 1,
-            year: SelectYear
-        }
-        const holiday_data = await axioslogin.post("/attendCal/getHolidayListDateWise/", getHolidayPostData);
-        const { suc, holidaydata } = holiday_data.data;
-        if (suc === 1) setHolidayList(holidaydata)
-        //GET HOLIDAY LIST END
-
         /***
          * 1 -> get all department and sewction info
          * 2 -> get punchmarking hr table data with selected month
@@ -92,12 +74,12 @@ const PunchMarkingHR = () => {
             if (succ === 1) {
                 // IF DATA
                 const punchMarkingTableData = data;
-                const findDept = [...new Set(deptSectionData?.map(e => e.dept_id))]?.map((dept) => {
+                const findDept = [...new Set(deptSectionData?.map(e => e?.dept_id))]?.map((dept) => {
                     return {
                         "dept_id": dept,
-                        "dept_name": deptSectionData?.find(e => e.dept_id === dept)?.dept_name,
-                        "section": deptSectionData?.filter((val) => val.dept_id === dept).map((v) => {
-                            return { ...v, "updated": punchMarkingTableData?.find((e) => v.sect_id === e.deptsec_slno)?.last_update_date ?? moment(startOfMonths).format('YYYY-MM-DD') }
+                        "dept_name": deptSectionData?.find(e => e?.dept_id === dept)?.dept_name,
+                        "section": deptSectionData?.filter((val) => val?.dept_id === dept)?.map((v) => {
+                            return { ...v, "updated": punchMarkingTableData?.find((e) => v?.sect_id === e?.deptsec_slno)?.last_update_date ?? moment(startOfMonths).format('YYYY-MM-DD') }
                         }),
                     }
                 })
@@ -125,8 +107,8 @@ const PunchMarkingHR = () => {
                     const findDept = [...new Set(deptSectionData?.map(e => e.dept_id))]?.map((dept) => {
                         return {
                             "dept_id": dept,
-                            "dept_name": deptSectionData?.find(e => e.dept_id === dept)?.dept_name,
-                            "section": deptSectionData?.filter((val) => val.dept_id === dept).map((v) => {
+                            "dept_name": deptSectionData?.find(e => e?.dept_id === dept)?.dept_name,
+                            "section": deptSectionData?.filter((val) => val?.dept_id === dept)?.map((v) => {
                                 return { ...v, "updated": moment(startOfMonths).format('YYYY-MM-DD') }
                             }),
                         }
@@ -171,7 +153,7 @@ const PunchMarkingHR = () => {
      * ****/
 
     //UPDATE ATTENDANDE PROCESS START HERE
-    const updateAttendanceProcesss = async (deptID, sectID, lastUpdateDate) => {
+    const updateAttendanceProcesss = useCallback(async (deptID, sectID, lastUpdateDate) => {
 
         setOpenBkDrop(true)
         const weekOffPolicyCountMax = weekoff_policy_max_count;
@@ -222,76 +204,22 @@ const PunchMarkingHR = () => {
                 const { su, result_data } = punch_data.data;
                 if (su === 1) {
                     const punchaData = result_data;
-                    // console.log(punchaData?.filter((e) => e.emp_code === '1812'))
-                    const empList = data?.map((e) => e.em_no)
-                    // console.log(empList)
                     // PUNCH MARKING HR PROCESS START
                     const result = await processPunchMarkingHrFunc(
                         postData_getPunchData,
                         punchaData,
-                        empList,
                         shiftInformation,
                         commonSettings,
-                        holidayList,
                         empSalary
                     )
                     const { status, message, errorMessage, dta } = result;
-                    // console.log(result)
                     if (status === 1) {
-                        // console.log(dta.section)
-                        // CALCULATE THE LATE COMMING BASED ON LATES  START HERE
-                        const punch_data = await axioslogin.post("/attendCal/getPunchReportLCCount/", postData_getPunchData); // added on 27/06/2024 10:00 PM (Ajith)
-                        const { success: lcSuccess, data: lcData } = punch_data.data;
-                        if (lcSuccess === 1 && lcData !== null && lcData !== undefined && lcData.length > 0) {
-                            // console.log(lcData)
-                            const filterEMNO = [...new Set(lcData?.map((e) => e.em_no))]
-                            // calculate and update the calculated LOP count 
-                            let lcCount = 0;
-                            const filterLcData = filterEMNO
-                                ?.map((el) => {
-                                    return {
-                                        emNo: el,
-                                        lcArray: lcData?.filter((e) => e.em_no === el)
-                                    }
-                                })
-                                ?.filter((e) => e.lcArray?.length > 3)
-                                ?.map((val) => {
-                                    const newArray = {
-                                        emno: val.emNo,
-                                        punMasterArray: val.lcArray?.map(item => {
-                                            if (item.duty_desc === "LC" && lcCount < max_late_day_count) {
-                                                lcCount++;
-                                                return item;
-                                            } else if (item.duty_desc === "LC" && lcCount >= max_late_day_count) {
-                                                return { ...item, lvereq_desc: "HD" };
-                                            } else {
-                                                return item;
-                                            }
-                                        })
-                                    }
-                                    lcCount = 0
-                                    return newArray
-                                })
-                                ?.map((e) => e.punMasterArray)
-                                ?.flat()
-                                ?.filter((e) => e.lvereq_desc === 'HD' && e.duty_desc === 'LC')
-                                ?.map((e) => e.punch_slno)
-
-                            //console.log("filterLcData", filterLcData)
-                            //UPDATE IN TO PUNCH MASTER TABLE 
-                            if (filterLcData !== null && filterLcData !== undefined && filterLcData?.length > 0) {
-                                await axioslogin.post("/attendCal/updateLCPunchMaster/", filterLcData); // added on 27/06/2024 10:00 PM (Ajith)
-                                // console.log(updateLcInPunchMaster)
-                            }
-                        }
-                        // CALCULATE THE LATE COMMING BASED ON LATES  END HERE
-
                         const filterDeptAndSection = deptList?.map((e) => {
                             return {
-                                "dept_id": e.dept_id,
-                                "dept_name": e.dept_name,
-                                "section": e.section?.map((el) => {
-                                    return dta.section === el.sect_id ? { ...el, updated: dta?.toDayeForUpdatePunchMast } : { ...el }
+                                "dept_id": e?.dept_id,
+                                "dept_name": e?.dept_name,
+                                "section": e?.section?.map((el) => {
+                                    return dta?.section === el?.sect_id ? { ...el, updated: dta?.toDayeForUpdatePunchMast } : { ...el }
                                 }),
                             }
                         })
@@ -308,7 +236,7 @@ const PunchMarkingHR = () => {
                         setOpenBkDrop(false)
                         warningNofity(message, errorMessage)
                     }
-                    // PUNCH MARKING HR PROCESS END
+                    // // PUNCH MARKING HR PROCESS END
                 } else {
                     warningNofity("Error getting punch Data From DB")
                     setOpenBkDrop(false)
@@ -320,7 +248,8 @@ const PunchMarkingHR = () => {
             }
             //GET EMPLOYEE LIST START
         }
-    }
+    }, [commonSettings, em_no, empSalary, holiday_policy_count, shiftInformation, value,
+        weekoff_policy_max_count])
     //FORM DATA 
 
     //DELETE ATTENDANCE MARKING 
@@ -329,7 +258,6 @@ const PunchMarkingHR = () => {
         setOpenBkDrop(true)
         const monthStart = format(startOfMonth(new Date(value)), 'yyyy-MM-dd');
         const monthEnd = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
-        // console.log(dept, section, date, monthStart, monthEnd)
 
         const postDataUpdatePunchMarkHR = {
             loggedEmp: em_no,
@@ -355,7 +283,6 @@ const PunchMarkingHR = () => {
                 const dutyPlanSlno = shiftdetail?.map((e) => e.plan_slno)
                 const updateDutyPlanTable = await axioslogin.post("/attendCal/updateDelStatDutyPlanTable/", dutyPlanSlno);
                 const { susc } = updateDutyPlanTable.data;
-                // console.log(susc, message)
                 if (susc === 1) {
                     // UPDATE PUNCH_MARKING_HR TABLE
                     const updatePunchMarkingHR = await axioslogin.post("/attendCal/updatePunchMarkingHR/", postDataUpdatePunchMarkHR);
@@ -372,22 +299,15 @@ const PunchMarkingHR = () => {
                     setOpenBkDrop(false)
                     warningNofity('Error Updating Delete Status in Duty Plan')
                 }
-                // console.log(dutyPlanSlno)
             } else {
                 setOpenBkDrop(false)
                 warningNofity('Duty Not planned for selected dates')
             }
-            // console.log(succes, shiftdetail)
         } else {
             setOpenBkDrop(false)
             warningNofity('No Employees Found in Selected Department Section')
         }
     }
-
-    // const handleView = useCallback(() => {
-    //     history.push('/Home/PunchDoneList');
-    // }, [history])
-
 
     return (
         <Fragment>
@@ -459,17 +379,6 @@ const PunchMarkingHR = () => {
                                 >
                                     Process
                                 </Button>
-                                {/* <Button
-                                    aria-label="Like"
-                                    variant="outlined"
-                                    color="primary"
-                                    fullWidth
-                                    onClick={handleView}
-                                    startDecorator={<RemoveRedEyeOutlinedIcon />}
-                                    sx={{ mx: 0.5 }}
-                                >
-                                    View
-                                </Button> */}
                             </CssVarsProvider>
                         </Box>
                     </Box>
@@ -493,28 +402,27 @@ const PunchMarkingHR = () => {
                                     {deptList.map((row, index) => (
                                         <Fragment key={index} >
                                             <tr key={index} style={{ backgroundColor: '#829baf' }} >
-                                                <td colSpan={3} >{row.dept_name}</td>
+                                                <td colSpan={3} >{row?.dept_name}</td>
                                                 <td></td>
                                             </tr>
                                             {
                                                 row?.section?.map((e, idx) => (
                                                     <tr key={idx} >
                                                         <td></td>
-                                                        <td>{e.sect_name}</td>
-                                                        {/* <td>{e.updated}</td> */}
+                                                        <td>{e?.sect_name}</td>
                                                         <td>
                                                             {
                                                                 monthStart === e.updated ?
                                                                     <Chip color='neutral' size="sm" variant="solid" startDecorator={<CalendarMonthIcon fontSize='inherit' />}>
-                                                                        {e.updated}
+                                                                        {e?.updated}
                                                                     </Chip> :
                                                                     actSelectDate <= e.updated ?
                                                                         <Chip color='success' size="sm" variant="solid" startDecorator={<CalendarMonthIcon fontSize='inherit' />}>
-                                                                            {e.updated}
+                                                                            {e?.updated}
                                                                         </Chip>
                                                                         :
                                                                         <Chip color="danger" size="sm" variant="solid" startDecorator={<CalendarMonthIcon fontSize='inherit' />}>
-                                                                            {e.updated}
+                                                                            {e?.updated}
                                                                         </Chip>
                                                             }
                                                         </td>
@@ -522,13 +430,13 @@ const PunchMarkingHR = () => {
                                                             <Box sx={{ display: 'flex', justifyContent: 'space-evenly' }} >
                                                                 <Chip
                                                                     color="success"
-                                                                    onClick={(c) => updateAttendanceProcesss(row.dept_id, e.sect_id, e.updated)}
+                                                                    onClick={(c) => updateAttendanceProcesss(row?.dept_id, e?.sect_id, e?.updated)}
                                                                     size="sm"
                                                                     variant="outlined"
                                                                 >Update Attendance</Chip>
                                                                 <Chip
                                                                     color="danger"
-                                                                    onClick={() => deleteAttendanceMarkingProcess(row.dept_id, e.sect_id, e.updated)}
+                                                                    onClick={() => deleteAttendanceMarkingProcess(row?.dept_id, e?.sect_id, e?.updated)}
                                                                     size="sm"
                                                                     variant="outlined"
                                                                 >Delete Process</Chip>

@@ -278,7 +278,7 @@ const OneHourRequest = ({ setRequestType, setCount }) => {
         }
     }, [checkinBox, checkoutBox, cmmn_grace_period, em_dept_section, fromDate, deptApprovalLevel,
         punchData, punchInTime, punchOutTime, reason, em_department, em_id, em_no, loginEmid, loginHod,
-        loginIncharge, masterGroupStatus, selectedShift, setCount])
+        loginIncharge, masterGroupStatus, selectedShift, setCount, setRequestType])
 
     return (
         <Fragment>

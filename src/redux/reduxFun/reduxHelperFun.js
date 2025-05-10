@@ -245,8 +245,6 @@ export const getLeaveReqApprovalLevel = (state) => {
 
 export const getInchargeHodAuthorization = async (masterGroupStatus, deptApprovalLevel, loginHod, loginIncharge, loginEmno) => {
 
-    //console.log(masterGroupStatus, deptApprovalLevel, loginHod, loginIncharge, loginEmno);
-
     const deptLevelApprove = (deptApprovalLevel === 3) ? // 3 -> hod and incharge
         {
             inc_apr: 1,
@@ -298,8 +296,6 @@ export const getInchargeHodAuthorization = async (masterGroupStatus, deptApprova
                     hod_apr_time: null,
                     usCode_hod: null
                 }
-
-    //console.log(deptLevelApprove);
 
     return (masterGroupStatus === true) ?
         {
@@ -788,8 +784,6 @@ export const getEmployeeLeaveRs = (state, hod, incharge, masterGroupStatus, em_i
     const sectionWiseLeaveRequest = state?.getSectLeaveRequests?.sectLeaves
     const sectionWisehalfdayRequest = state?.getSectHalfdayRequests?.sectHalfday
     const sectionWiseMisspunchRequest = state?.getSectMisspunchRequests?.sectMisspunch
-
-    // console.log(sectionWiseMisspunchRequest);
 
     if ((hod === 1 || incharge === 1) && masterGroupStatus === true) {
         const newList = sectionWiseLeaveRequest?.map((val) => {

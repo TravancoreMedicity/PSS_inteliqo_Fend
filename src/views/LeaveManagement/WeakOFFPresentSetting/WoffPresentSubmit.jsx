@@ -83,7 +83,6 @@ const WoffPresentSubmit = ({ employeeData, setCount, setShowForm, setShowtable, 
 
                 const result = await axioslogin.post('common/getShiftdetails/', postData);
                 const { success, data, message } = result.data;
-                // console.log(data);
                 const { lve_tble_updation_flag, punch_slno, holiday_slno, shift_id } = data[0];
 
                 if (success === 1 && shift_id === week_off_day) {

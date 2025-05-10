@@ -31,6 +31,8 @@ export const hr_report_two = [
     { to: '/Home/InductionCalenderReport', name: 'Induction Calender Report', slno: 277 },
     { to: '/Home/EmpPunchReport', name: 'Employee Punch Data Report', slno: 271 },
     { to: '/Home/EmpSaleryReport', name: 'Employee Salary Report', slno: 282 },
+    { to: '/Home/OvertimeReport', name: 'Employee Overtime Report', slno: 297 },
+
 
 ]
 export const hr_report_third = [

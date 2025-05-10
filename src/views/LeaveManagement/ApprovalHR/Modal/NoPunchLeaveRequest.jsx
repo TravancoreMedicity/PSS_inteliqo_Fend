@@ -12,7 +12,8 @@ import { errorNofity, succesNofity, warningNofity } from 'src/views/CommonCode/C
 import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDrop';
 import { addDays, addHours, format, lastDayOfMonth, startOfMonth, subHours } from 'date-fns';
 import { useSelector } from 'react-redux';
-import { getAttendanceCalculation, getLateInTimeIntervel, punchInOutChecking } from 'src/views/Attendance/PunchMarkingHR/punchMarkingHrFunc'
+import { getAttendanceCalculation, getBreakDutyLateInTimeIntervel, getLateInTimeIntervel, punchInOutChecking } from 'src/views/Attendance/PunchMarkingHR/punchMarkingHrFunc'
+import { breakDutyPunchChecking, getBreakDutyAttendance } from 'src/views/Attendance/ShiftUpdation/Function';
 
 const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
 
@@ -39,7 +40,9 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
         notapplicable_shift, //not applicable SHIFT ID
         default_shift, //default SHIFT ID
         noff, // night off SHIFT ID,
-        halfday_time_count
+        break_shift_taken_count,
+        dutyoff,
+        extra_off
     } = commonSettings; //COMMON SETTING
 
     //FIND THE CROSS DAY
@@ -87,7 +90,6 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                         const punch_master_data = await axioslogin.post("/attendCal/attendanceshiftdetl/", punchmastData); //GET PUNCH MASTER DATA
                         const { data } = punch_master_data.data;
 
-
                         let shiftIn = `${format(new Date(nopunchdate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkInTime), 'HH:mm:ss')}`;
                         let shiftOut = crossDayStat === 0 ? `${format(new Date(nopunchdate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}` :
                             `${format(addDays(new Date(nopunchdate), 1), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}`;
@@ -113,65 +115,144 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                     naShift: notapplicable_shift,
                                     defaultShift: default_shift,
                                     noff: noff,
-                                    holidayStatus: crossDay?.holiday_status
+                                    holidayStatus: crossDay?.holiday_status,
+                                    shft_duty_day: crossDay?.shft_duty_day,
+                                    break_shift_status: crossDay?.break_shift_status,
+                                    first_half_in: crossDay?.first_half_in,
+                                    first_half_out: crossDay?.first_half_out,
+                                    second_half_in: crossDay?.second_half_in,
+                                    second_half_out: crossDay?.second_half_out,
+                                    dutyoff: dutyoff,
+                                    extra_off: extra_off
                                 }
 
                                 //FUNCTION FOR MAPPING THE PUNCH IN AND OUT 
-                                return await punchInOutChecking(shiftMergedPunchMaster, punchaData)
+                                // return await punchInOutChecking(shiftMergedPunchMaster, punchaData)
+                                if (shiftMergedPunchMaster?.break_shift_status === 1) {
+                                    return await breakDutyPunchChecking(shiftMergedPunchMaster, punchaData, break_shift_taken_count)
+                                } else {
+                                    return await punchInOutChecking(shiftMergedPunchMaster, punchaData)
+
+                                }
                             })
                         ).then((data) => {
                             const punchMasterMappedData = data?.map((e) => e.value)
                             return Promise.allSettled(
                                 punchMasterMappedData?.map(async (val) => {
-                                    const holidayStatus = val.holiday_status;
+                                    const holidayStatus = val?.holiday_status;
                                     const punch_In = checkinflag === 1 ? new Date(shiftIn) : val.punch_in === null ? null : new Date(val.punch_in);
                                     const punch_out = checkoutflag === 1 ? new Date(shiftOut) : val.punch_out === null ? null : new Date(val.punch_out);
 
-                                    const shift_in = new Date(val.shift_in);
-                                    const shift_out = new Date(val.shift_out);
+                                    const shift_in = new Date(val?.shift_in);
+                                    const shift_out = new Date(val?.shift_out);
 
-                                    const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
+                                    const shft_duty_day = val?.shft_duty_day;
+                                    const salaryLimit = val?.gross_salary > val?.salaryLimit ? true : false;
+                                    //break duty
 
-                                    //SALARY LINMIT
-                                    const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
+                                    const break_shift_status = val?.break_shift_status;
+                                    const break_first_punch_in = checkinflag === 1 ? new Date(shiftIn) : val?.break_first_punch_in === null ? null : new Date(val?.break_first_punch_in);
+                                    const break_first_punch_out = val?.break_first_punch_out === null ? null : new Date(val?.break_first_punch_out);
+                                    const break_second_punch_in = val?.break_second_punch_in === null ? null : new Date(val?.break_second_punch_in);
+                                    const break_second_punch_out = checkoutflag === 1 ? new Date(shiftOut) : val?.break_second_punch_out === null ? null : new Date(val?.break_second_punch_out);
 
-                                    const getAttendanceStatus = await getAttendanceCalculation(
-                                        punch_In,
-                                        shift_in,
-                                        punch_out,
-                                        shift_out,
-                                        cmmn_grace_period,
-                                        getLateInTime,
-                                        holidayStatus,
-                                        val.shift_id,
-                                        val.defaultShift,
-                                        val.naShift,
-                                        val.noff,
-                                        val.woff,
-                                        salaryLimit,
-                                        val.maximumLateInTime,
-                                        halfday_time_count
-                                    )
-                                    return {
-                                        punch_slno: val.punch_slno,
-                                        punch_in: checkinflag === 1 ? format(new Date(punch_In), 'yyyy-MM-dd HH:mm:ss') : val.punch_in,
-                                        punch_out: checkoutflag === 1 ? format(new Date(punch_out), 'yyyy-MM-dd HH:mm:ss') : val.punch_out,
-                                        hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.hrsWorked,
-                                        late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.lateIn,
-                                        early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift) ? 0 : getLateInTime?.earlyOut,
-                                        duty_status: getAttendanceStatus?.duty_status,
-                                        holiday_status: val.holiday_status,
-                                        leave_status: 1,
-                                        lvereq_desc: getAttendanceStatus?.lvereq_desc,
-                                        duty_desc: 'MPP',
-                                        lve_tble_updation_flag: 1,
-                                        status: 1,
-                                        comment: reason,
-                                        em_no: emno,
-                                        duty_day: format(new Date(nopunchdate), 'yyyy-MM-dd'),
-                                        apprvdate: format(new Date(), 'yyyy-MM-dd '),
-                                        us_code: loginem_id,
-                                        slno: slno
+                                    //shift details
+                                    const first_shift_in = `${format(new Date(val?.first_shift_in), 'yyyy-MM-dd HH:mm')} `
+                                    const first_shift_out = `${format(new Date(val?.first_shift_out), 'yyyy-MM-dd HH:mm')} `
+                                    const second_shift_in = `${format(new Date(val?.second_shift_in), 'yyyy-MM-dd HH:mm')} `
+                                    const second_shift_out = `${format(new Date(val?.second_shift_out), 'yyyy-MM-dd HH:mm')} `
+
+                                    if (break_shift_status === 1) {
+                                        const getBreakDutyLateInTime = await getBreakDutyLateInTimeIntervel(
+                                            first_shift_in,
+                                            first_shift_out,
+                                            second_shift_in,
+                                            second_shift_out,
+                                            break_first_punch_in,
+                                            break_first_punch_out,
+                                            break_second_punch_in,
+                                            break_second_punch_out
+                                        )
+
+                                        const getAttendance = await getBreakDutyAttendance(
+                                            first_shift_in, first_shift_out,
+                                            second_shift_in, second_shift_out,
+                                            break_first_punch_in, break_first_punch_out,
+                                            break_second_punch_in, break_second_punch_out,
+                                            cmmn_grace_period, getBreakDutyLateInTime,
+                                            val?.shift_id, val?.defaultShift, val?.naShift,
+                                            val?.noff, val?.woff, val?.dutyoff, val?.extra_off,
+                                            val?.break_shift_status
+
+                                        )
+                                        return {
+                                            punch_slno: val?.punch_slno,
+                                            punch_in: val?.break_first_punch_in === null ? val?.break_first_punch_out : val?.break_first_punch_in,
+                                            punch_out: val?.break_second_punch_out === null ? val?.break_second_punch_in : val?.break_second_punch_out,
+                                            hrs_worked: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
+                                            late_in: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
+                                            early_out: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
+                                            duty_status: getAttendance?.duty_status,
+                                            holiday_status: val?.holiday_status,
+                                            leave_status: 1,
+                                            lvereq_desc: getAttendance?.lvereq_desc,
+                                            duty_desc: 'OHP',
+                                            lve_tble_updation_flag: 1,
+                                            shft_duty_day: val?.shft_duty_day,
+                                            status: 1,
+                                            comment: reason,
+                                            em_no: emno,
+                                            duty_day: format(new Date(nopunchdate), 'yyyy-MM-dd'),
+                                            apprvdate: format(new Date(), 'yyyy-MM-dd '),
+                                            us_code: loginem_id,
+                                            slno: slno
+                                        }
+                                    }
+                                    else {
+                                        const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
+
+                                        const getAttendanceStatus = await getAttendanceCalculation(
+                                            punch_In,
+                                            shift_in,
+                                            punch_out,
+                                            shift_out,
+                                            cmmn_grace_period,
+                                            getLateInTime,
+                                            holidayStatus,
+                                            val.shift_id,
+                                            val.defaultShift,
+                                            val.naShift,
+                                            val.noff,
+                                            val.woff,
+                                            salaryLimit,
+                                            val.maximumLateInTime,
+                                            shft_duty_day,
+                                            val.dutyoff,
+                                            val.extra_off
+                                        )
+
+                                        return {
+                                            punch_slno: val.punch_slno,
+                                            punch_in: val.punch_in,
+                                            punch_out: val.punch_out,
+                                            hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.hrsWorked,
+                                            late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.lateIn,
+                                            early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.earlyOut,
+                                            duty_status: getAttendanceStatus?.duty_status,
+                                            holiday_status: val.holiday_status,
+                                            leave_status: 1,
+                                            lvereq_desc: getAttendanceStatus?.lvereq_desc,
+                                            duty_desc: 'OHP',
+                                            lve_tble_updation_flag: 1,
+                                            shft_duty_day: val.shft_duty_day,
+                                            status: 1,
+                                            comment: reason,
+                                            em_no: emno,
+                                            duty_day: format(new Date(nopunchdate), 'yyyy-MM-dd'),
+                                            apprvdate: format(new Date(), 'yyyy-MM-dd '),
+                                            us_code: loginem_id,
+                                            slno: slno
+                                        }
                                     }
                                 })
                             ).then(async (element) => {
@@ -197,7 +278,8 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
         }
     }, [reason, setCount, setOpen, slno, dept_section, nopunchdate, crossDay, cmmn_early_out,
         cmmn_grace_period, cmmn_late_in, crossDayStat, default_shift, emno, noff, notapplicable_shift,
-        salary_above, week_off_day, checkinflag, checkoutflag, loginem_id, halfday_time_count])
+        salary_above, week_off_day, checkinflag, checkoutflag, loginem_id,
+        dutyoff, extra_off, break_shift_taken_count])
 
     const NoPunchRejectdata = useMemo(() => {
         return {

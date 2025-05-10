@@ -73,41 +73,6 @@ const NightOffRequest = () => {
         } else {
             SetnoffList([]);
         }
-
-        // if (showDetails === 1) {
-        //     try {
-        //         const obj = {
-        //             emp_no: parseInt(employee)
-        //         };
-        //         const result1 = await axioslogin.post('/attandancemarking/getNoffDetails', obj);
-        //         const { success: success1, data: data1 } = result1.data;
-        //         if (success1 === 1) {
-        //             SetnofTable(1);
-        //             SetnoffList(data1);
-        //         } else {
-        //             SetnofTable(0);
-        //             SetnoffList([]);
-        //         }
-
-        //         const empdata = {
-        //             fromDate: moment(fromdate).format('yyyy-MM-DD'),
-        //             todate: moment(todate).format('yyyy-MM-DD'),
-        //             em_no: hod === 0 && incharge === 0 ? em_no : employee
-        //         };
-        //         console.log(empdata);
-
-        //         const result2 = await axioslogin.post('/attandancemarking/getnightoffdata', empdata);
-        //         const { success: success2, data: data2 } = result2.data;
-        //         if (success2 === 1) {
-        //             SetDutyDetails(data2);
-        //         } else {
-        //             SetDutyDetails([]);
-        //         }
-
-        //     } catch (error) {
-        //         console.error("Error fetching NOFF details:", error);
-        //     }
-        // }
     }, [showDetails, employee, fromdate, todate, hod, incharge, em_no]);
 
     useEffect(() => {
@@ -142,7 +107,6 @@ const NightOffRequest = () => {
         //     const result2 = await axioslogin.post('/attandancemarking/getnightoffdata', empdata);
         //     const { success: success2, data: data2 } = result2.data;
         //     if (success2 === 1) {
-        //         console.log(data2);
 
         //         SetDutyDetails(data2);
         //     } else {
@@ -183,7 +147,6 @@ const NightOffRequest = () => {
         //     frmdate: moment(fromdate).format('yyyy-MM-DD'),
         //     todate: moment(todate).format('yyyy-MM-DD')
         // }
-        // console.log("submitdata", submitdata);
 
         // const result = await axioslogin.patch('/attandancemarking/updatenightoff', submitdata)
         // const { success } = result.data

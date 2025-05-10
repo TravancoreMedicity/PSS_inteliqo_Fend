@@ -117,7 +117,6 @@ const HalfDayLeaveRequest = ({ open, setOpen, data, setCount }) => {
                                 })
                             ).then((data) => {
                                 const punchMasterMappedData = data?.map((e) => e.value)
-                                //console.log(punchMasterMappedData);
                                 return Promise.allSettled(
                                     punchMasterMappedData?.map(async (val) => {
 

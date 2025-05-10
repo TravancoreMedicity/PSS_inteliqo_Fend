@@ -25,7 +25,6 @@ const EmployeeProfileCardFooter = ({ id }) => {
         const data = new FormData();
         data.append("em_id", id.no)
         data.append("file", file)
-        console.log(id.no)
         const result = await axioslogin.post('/upload/upload', data);
         const { success, message } = result.data;
         if (success === 1) {
