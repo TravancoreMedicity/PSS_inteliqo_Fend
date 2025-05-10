@@ -69,7 +69,6 @@ const AppHeader = () => {
   };
   //getting employee id
   const empid = useSelector((state) => {
-    // console.log(state)
     const status = state?.getProfileData?.lodingStatus
     if (status === false) {
       hrmLogout()

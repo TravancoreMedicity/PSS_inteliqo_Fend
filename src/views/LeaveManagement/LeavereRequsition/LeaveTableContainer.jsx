@@ -155,7 +155,7 @@ const LeaveTableContainer = ({ count, setCount, requestType, requestUser }) => {
             setCount(0)
         }
 
-    }, [requestType, selectedEmp, dispatch, count])
+    }, [requestType, selectedEmp, dispatch, count, setCount])
 
 
 

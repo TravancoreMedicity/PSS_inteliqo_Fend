@@ -166,11 +166,10 @@ const AnnualProcessComponent = ({
                 // if the Employee is under Contact and under Probation Or trainging
                 const newYearDate = startOfYear(new Date());
                 const endYearDate = lastDayOfYear(new Date());
-                // console.log(compareAsc(new Date(probationEndDate), new Date()))
                 if (compareAsc(new Date(probationEndDate), new Date()) === -1) {
                     return { message: 0 }
                     // const a = subYears(new Date(), -1) // For calcualting the Next Year
-                    // console.log(a)
+
                 } else {
                     //For Probation Start Date
                     const proStartDate = (StartOfYear, probationStart, probationEndDate) => {
@@ -262,19 +261,14 @@ const AnnualProcessComponent = ({
             contract: contractStartEndDate === undefined ? 1 : contractStartEndDate,
         }
 
-        // console.log(calculatedDate)
-
         //Final Result for StartDate and EndDate
         //const dateStart = (calculatedDate.regular !== 1 && !calculatedDate.regular.message) ? calculatedDate.regular.startDate : (calculatedDate.contract !== 1 && !calculatedDate.contract.message) ? calculatedDate.contract.startDate : moment(new Date()).format('YYYY-MM-DD')
         const dateEnd = (calculatedDate.regular !== 1 && !calculatedDate.regular.message) ? calculatedDate.regular.endDate : (calculatedDate.contract !== 1 && !calculatedDate.contract.message) ? calculatedDate.contract.endDate : moment(new Date()).format('YYYY-MM-DD')
         // function for casual leave
         const setcasleave = async () => {
-            //console.log(subMonths(new Date(), 1))
-            //console.log(ecat_cont === 1 ? new Date(em_contract_end_date) : ecat_prob === 1 ? new Date(em_prob_end_date) : moment(lastDayOfYear(new Date())).format('YYYY-MM-DD'))
             // var dateresult = eachMonthOfInterval({ start: subMonths(new Date(), 1), end: ecat_cont === 1 ? new Date(em_contract_end_date) : ecat_prob === 1 ? new Date(em_prob_end_date) : moment(lastDayOfYear(new Date())).format('YYYY-MM-DD') })
             var dateresult = eachMonthOfInterval({ start: new Date(), end: new Date(dateEnd) })
 
-            // console.log(dateStart, dateEnd);
             /*--- Casual Leave Start and End date 
                 Start Date --> Current date as start date Later need to check the current month total working 
                 Greater than 15 or not / If greater than 15 only need to add the Current month Casual Leave 

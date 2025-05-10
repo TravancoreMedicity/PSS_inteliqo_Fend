@@ -12,9 +12,6 @@ import DeptSectionSelect from 'src/views/LeaveManagement/NightOff/DeptSectionSel
 import { useMemo } from 'react';
 import { infoNofity, warningNofity } from 'src/views/CommonCode/Commonfunc';
 import { axioslogin } from 'src/views/Axios/Axios';
-// import { AttendanceViewFun, DeptWiseAttendanceViewFun } from './Functions';
-// import { useSelector } from 'react-redux';
-// import _ from 'underscore';
 import JoyCheckbox from 'src/views/MuiComponents/JoyComponent/JoyCheckbox';
 import { useCallback } from 'react';
 import Table from '@mui/joy/Table';
@@ -29,24 +26,15 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
     const empid = useMemo(() => em_id, [em_id])
     const [value, setValue] = useState(moment(new Date()));
     const [deptSection, setDeptSection] = useState(0)
-    // const [dateArray, setDateArray] = useState([])
-    //const [empArray, setEmpArray] = useState([])
     const [self, setSelf] = useState(false)
-    // const [mainArray, setMainArray] = useState([])
-
     const [tableArray, settableArray] = useState([])
     const [daysNum, setdaysNum] = useState([])
     const [daysStr, setdaysStr] = useState([])
 
-    // get holiday 
-    //const holiday = useSelector((state) => state.getHolidayList, _.isEqual);
-
-    // const holidayList = useMemo(() => holiday, [holiday]);
-
     const state = useSelector((state) => state?.getCommonSettings)
     const { salary_above } = state;
 
-    const getData = async () => {
+    const getData = useCallback(async () => {
         if (deptSection === 0) {
             warningNofity("Please Select Any Department Section")
         } else {
@@ -56,9 +44,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
             const result1 = await axioslogin.post("/attendCal/emplist/show", getEmpData);
             const { success, data } = result1.data
             if (success === 1) {
-                const arr = data && data.map((val, index) => {
-                    return val.em_no
-                })
+                const arr = data && data.map((val) => val.em_no)
                 const postdata = {
                     em_no: arr,
                     from: moment(startOfMonth(new Date(value))).format('YYYY-MM-DD'),
@@ -130,7 +116,7 @@ const InchargeHodCompnt = ({ em_id, em_no }) => {
                 infoNofity("No employee Under given Condition")
             }
         }
-    }
+    }, [deptSection, salary_above, value])
 
 
     const selfdata = useCallback(async () => {

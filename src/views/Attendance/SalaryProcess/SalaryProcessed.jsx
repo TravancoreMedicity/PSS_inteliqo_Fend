@@ -76,52 +76,71 @@ const SalaryProcessed = () => {
                 const { success, data } = result.data
                 if (success === 1) {
                     const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data?.filter((value) => value.emp_id === val.em_id)
-                        const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
-                        const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
-                            || val.lvereq_desc === 'LC')).length
-                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'EOFF')).length
+                        const empwise = data?.filter((value) => value?.emp_id === val?.em_id)
+                        //total halfday count
+                        const totalHD = (empwise?.filter(val => val?.lvereq_desc === 'HD'
+                            || val?.lvereq_desc === 'CHD' || val?.lvereq_desc === 'EGHD'))?.length
+                        //total nightshift present count
+                        const totalnightshift = (empwise?.filter(val => val?.night_off_flag === 1 && (val?.lvereq_desc === 'P'
+                            || val?.lvereq_desc === 'OHP' || val?.lvereq_desc === 'OBS'
+                            || val?.lvereq_desc === 'LC')))?.length
+                        //total no of night off
+                        const totalNOFF = (empwise?.filter(val => val?.lvereq_desc === 'NOFF'))?.length
+                        //total no of double duty
+                        const totalDp = (empwise?.filter(val => val?.lvereq_desc === 'DP'))?.length
+                        //total no of doff
+                        const totaldpOff = (empwise?.filter(val => val?.lvereq_desc === 'DOFF'))?.length
 
+                        //total normal duty present count
+                        const totalnormalpresent = (empwise?.filter(val => val?.night_off_flag === 0 && (val.lvereq_desc === 'P'
+                            || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
+                            || val.lvereq_desc === 'LC')))?.length
+
+                        //total no of weekoff
                         const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
 
-                        const totalDp = (empwise?.filter(val => val.lvereq_desc === 'DP')).length
-                        const totaldpOff = (empwise?.filter(val => val.lvereq_desc === 'DOFF')).length
-
-                        const onedaySalary = val.gross_salary / getDaysInMonth(new Date(value))
+                        const onedaySalary = val?.gross_salary / getDaysInMonth(new Date(value))
 
                         const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
 
                         const totalDays = getDaysInMonth(new Date(value))
-                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp + totaldpOff
-                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
-                        const paydaySalay = (val.gross_salary / totalDays) * presentDays
 
-                        const egWOFF = presentDays >= 24 ? commonSettings?.week_off_count :
-                            presentDays < 24 && presentDays >= 18 ? commonSettings?.week_off_count - 1 :
-                                presentDays < 18 && presentDays >= 12 ? commonSettings?.week_off_count - 2 :
-                                    presentDays < 12 && presentDays >= 6 ? commonSettings?.week_off_count - 3 : 0
+                        const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
+                            totalnormalpresent < 24 && totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
+                                totalnormalpresent < 18 && totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
+                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 : 0
+
+                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff
+                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
+                        const paydaySalay = (val?.gross_salary / totalDays) * presentDays
 
 
                         return {
-                            em_no: val.em_no,
-                            em_name: val.em_name,
-                            branch_name: val.branch_name,
-                            dept_name: val.dept_name,
-                            sect_name: val.sect_name,
-                            ecat_name: val.ecat_name,
-                            inst_emp_type: val.inst_emp_type,
-                            empSalary: val.gross_salary,
-                            em_account_no: val.em_account_no,
+                            em_no: val?.em_no,
+                            em_name: val?.em_name,
+                            branch_name: val?.branch_name,
+                            dept_name: val?.dept_name,
+                            sect_name: val?.sect_name,
+                            ecat_name: val?.ecat_name,
+                            inst_emp_type: val?.inst_emp_type,
+                            empSalary: val?.gross_salary,
+                            em_account_no: val?.em_account_no,
                             totalDays: getDaysInMonth(new Date(value)),
                             totallopCount: totallopCount,
                             totalHD: totalHD,
                             eligibleWeekOff: egWOFF,
                             takenWeekoff: totalWOFF,
                             remainingOff: egWOFF - totalWOFF,
+
                             totalDp: totalDp,
                             eligibledoff: totalDp,
                             takendoff: totaldpOff,
                             remainingDoff: extraDp,
+
+                            eligibleNoff: Math.floor(totalnightshift / 2),
+                            takenNOFF: totalNOFF,
+                            remainingNOFF: Math.floor(totalnightshift / 2) - totalNOFF,
+
                             paydays: presentDays,
                             lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
                             totalSalary: Math.round(paydaySalay / 10) * 10,
@@ -156,52 +175,79 @@ const SalaryProcessed = () => {
                 if (success === 1) {
 
                     const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data?.filter((value) => value.emp_id === val.em_id)
-                        const totalHD = (empwise?.filter(val => val.lvereq_desc === 'HD' || val.lvereq_desc === 'CHD' || val.lvereq_desc === 'EGHD')).length
-                        const totalWork = (empwise?.filter(val => val.lvereq_desc === 'P' || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
-                            || val.lvereq_desc === 'LC')).length
-                        const totalOff = (empwise?.filter(val => val.lvereq_desc === 'WOFF' || val.lvereq_desc === 'NOFF' || val.lvereq_desc === 'EOFF')).length
+                        const empwise = data?.filter((value) => value?.emp_id === val?.em_id)
+                        //total halfday count
+                        const totalHD = (empwise?.filter(val => val?.lvereq_desc === 'HD'
+                            || val?.lvereq_desc === 'CHD' || val?.lvereq_desc === 'EGHD'))?.length
+                        //total nightshift present count
+                        const totalnightshift = (empwise?.filter(val => val?.night_off_flag === 1 && (val?.lvereq_desc === 'P'
+                            || val?.lvereq_desc === 'OHP' || val?.lvereq_desc === 'OBS'
+                            || val?.lvereq_desc === 'LC')))?.length
+                        //total no of night off
+                        const totalNOFF = (empwise?.filter(val => val?.lvereq_desc === 'NOFF'))?.length
+                        //total no of double duty
+                        const totalDp = (empwise?.filter(val => val?.lvereq_desc === 'DP'))?.length
+                        //total no of doff
+                        const totaldpOff = (empwise?.filter(val => val?.lvereq_desc === 'DOFF'))?.length
 
+                        //total normal duty present count
+                        const totalnormalpresent = (empwise?.filter(val => val?.night_off_flag === 0 && (val.lvereq_desc === 'P'
+                            || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
+                            || val.lvereq_desc === 'LC')))?.length
+
+                        //total no of weekoff
                         const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
 
-                        const totalDp = (empwise?.filter(val => val.lvereq_desc === 'DP')).length
-                        const totaldpOff = (empwise?.filter(val => val.lvereq_desc === 'DOFF')).length
-
-                        const onedaySalary = val.gross_salary / getDaysInMonth(new Date(value))
+                        const onedaySalary = val?.gross_salary / getDaysInMonth(new Date(value))
 
                         const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
 
                         const totalDays = getDaysInMonth(new Date(value))
-                        const presentDays = totalWork + (totalHD * 0.5) + totalOff + totalDp + totaldpOff
-                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
-                        const paydaySalay = (val.gross_salary / totalDays) * presentDays
 
-                        const egWOFF = presentDays >= 24 ? commonSettings?.week_off_count :
-                            presentDays < 24 && presentDays >= 18 ? commonSettings?.week_off_count - 1 :
-                                presentDays < 18 && presentDays >= 12 ? commonSettings?.week_off_count - 2 :
-                                    presentDays < 12 && presentDays >= 6 ? commonSettings?.week_off_count - 3 : 0
+
+
+                        const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
+                            totalnormalpresent < 24 && totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
+                                totalnormalpresent < 18 && totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
+                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 :
+                                        (totalDp * 2) >= 24 ? commonSettings?.week_off_count :
+                                            (totalDp * 2) < 24 && (totalDp * 2) >= 18 ? commonSettings?.week_off_count - 1 :
+                                                (totalDp * 2) < 18 && (totalDp * 2) >= 12 ? commonSettings?.week_off_count - 2 :
+                                                    (totalDp * 2) < 12 && (totalDp * 2) >= 6 ? commonSettings?.week_off_count - 3 :
+                                                        0
+
+                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff + totalWOFF + (egWOFF - totalWOFF)
+                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
+                        const paydaySalay = (val?.gross_salary / totalDays) * presentDays
 
 
                         return {
-                            em_no: val.em_no,
-                            em_name: val.em_name,
-                            branch_name: val.branch_name,
-                            dept_name: val.dept_name,
-                            sect_name: val.sect_name,
-                            ecat_name: val.ecat_name,
-                            inst_emp_type: val.inst_emp_type,
-                            empSalary: val.gross_salary,
-                            em_account_no: val.em_account_no,
+                            em_no: val?.em_no,
+                            em_name: val?.em_name,
+                            branch_name: val?.branch_name,
+                            dept_name: val?.dept_name,
+                            sect_name: val?.sect_name,
+                            ecat_name: val?.ecat_name,
+                            inst_emp_type: val?.inst_emp_type,
+                            empSalary: val?.gross_salary,
+                            em_account_no: val?.em_account_no,
                             totalDays: getDaysInMonth(new Date(value)),
                             totallopCount: totallopCount,
                             totalHD: totalHD,
+
                             eligibleWeekOff: egWOFF,
                             takenWeekoff: totalWOFF,
                             remainingOff: egWOFF - totalWOFF,
+
                             totalDp: totalDp,
                             eligibledoff: totalDp,
                             takendoff: totaldpOff,
                             remainingDoff: extraDp,
+
+                            eligibleNoff: Math.floor(totalnightshift / 2),
+                            takenNOFF: totalNOFF,
+                            remainingNOFF: Math.floor(totalnightshift / 2) - totalNOFF,
+
                             paydays: presentDays,
                             lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
                             totalSalary: Math.round(paydaySalay / 10) * 10,
@@ -230,13 +276,20 @@ const SalaryProcessed = () => {
         { headerName: 'Total Days ', field: 'totalDays' },
         { headerName: 'No Of Half Day LOP(HD)', field: 'totalHD', minWidth: 250 },
         { headerName: 'Total LOP', field: 'totallopCount' },
+
         { headerName: 'Eligible WOFF', field: 'eligibleWeekOff' },
         { headerName: 'Taken WOFF', field: 'takenWeekoff' },
         { headerName: 'Remaining WOFF', field: 'remainingOff' },
+
         { headerName: 'Total DP', field: 'totalDp' },
         { headerName: 'Eligible DOFF', field: 'eligibledoff' },
         { headerName: 'Taken DOFF', field: 'takendoff' },
         { headerName: 'Remaining DOFF', field: 'remainingDoff' },
+
+        { headerName: 'Eligible NOFF', field: 'eligibleNoff' },
+        { headerName: 'Taken NOFF', field: 'takenNOFF' },
+        { headerName: 'Remaining NOFF', field: 'remainingNOFF' },
+
         { headerName: 'Total Pay Day', field: 'paydays' },
         { headerName: 'LOP Amount ', field: 'lopAmount' },
         { headerName: 'Total Salary', field: 'totalSalary' },

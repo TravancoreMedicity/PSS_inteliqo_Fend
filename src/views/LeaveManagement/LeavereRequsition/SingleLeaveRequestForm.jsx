@@ -110,12 +110,10 @@ const SingleLeaveRequestForm = () => {
 
         const singleLeveData = CommonLeaveType?.filter((val) => val.llvetype_slno === singleLeaveType)
         const { cmn_lv_balance } = singleLeveData?.[0];
-        // console.log(singleLeveData)
 
         if (success === 1) {
             warningNofity("Attendance Marking Processed ! Contact HRD")
         } else {
-            // console.log(cmn_lv_balance, totalDays)
 
             if (cmn_lv_balance >= totalDays) {
 

@@ -176,7 +176,7 @@ const MonthlySalaryProcess = () => {
             warningNofity("Error Getting the Department Details")
             setOpenBkDrop(false)
         }
-    }, [value, deptartments, deptartmentSection])
+    }, [value, deptartments, deptartmentSection, commonSettings, em_no])
 
 
 

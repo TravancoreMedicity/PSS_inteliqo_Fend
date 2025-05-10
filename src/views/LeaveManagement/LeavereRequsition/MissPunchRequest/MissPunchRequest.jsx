@@ -2,7 +2,7 @@ import { Box, Button, Checkbox, Grid, Input, Sheet, Textarea, Tooltip } from '@m
 import { Paper } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { format, lastDayOfMonth, startOfMonth } from 'date-fns';
+import { addDays, format, lastDayOfMonth, startOfMonth } from 'date-fns';
 import moment from 'moment';
 import React, { useCallback, memo, useState, useMemo, useEffect } from 'react'
 import { useSelector } from 'react-redux';
@@ -13,20 +13,6 @@ import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDro
 import { employeeNumber } from 'src/views/Constant/Constant';
 
 const MissPunchRequest = ({ setRequestType, setCount }) => {
-
-    // const dispatch = useDispatch();
-    // const { FETCH_LEAVE_REQUEST, LEAVE_REQ_DEFAULT } = Actiontypes;
-
-    // const changeForm = useCallback(() => {
-    //     let requestType = { requestType: 0 };
-    //     dispatch({ type: FETCH_LEAVE_REQUEST, payload: requestType })
-    //     dispatch({ type: LEAVE_REQ_DEFAULT })
-    //     setReason('')
-    //     setFromDate(moment(new Date()))
-    //     setShiftDesc('Data Not Found')
-    //     setCheckInCheck(false)
-    //     setCheckOutCheck(false)
-    // }, [dispatch, FETCH_LEAVE_REQUEST, LEAVE_REQ_DEFAULT])
 
     const [fromDate, setFromDate] = useState(moment(new Date()))
     // const [shiftData, setShiftData] = useState({})
@@ -46,6 +32,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
 
     const [shft_chkin_time, setshft_chkin_time] = useState()
     const [shft_chkout_time, setshft_chkout_time] = useState()
+    const [shiftDetails, setShiftDetails] = useState({})
 
 
     const selectedEmpInform = useSelector((state) => getSelectedEmpInformation(state))
@@ -79,6 +66,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
         const result = await axioslogin.post('LeaveRequest/gethafdayshift/', postData);
         const { success, data } = result.data;
         if (success === 1) {
+            setShiftDetails(data[0]);
             const { plan_slno, shift_id, shft_desc, shft_chkin_time, shft_chkout_time, } = data[0];
             setShiftDesc(shft_desc)
             setCheckin(format(new Date(shft_chkin_time), 'hh:mm'))
@@ -133,7 +121,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
                 checkinflag: checkInCheck === true ? 1 : 0,
                 checkintime: `${format(new Date(fromDate), 'yyyy-MM-dd')} ${format(new Date(shft_chkin_time), 'HH:mm')}`,
                 checkoutflag: checkOutCheck === true ? 1 : 0,
-                checkouttime: `${format(new Date(fromDate), 'yyyy-MM-dd')} ${format(new Date(shft_chkout_time), 'HH:mm')}`,
+                checkouttime: shiftDetails?.shft_cross_day === 0 ? `${format(new Date(fromDate), 'yyyy-MM-dd')} ${format(new Date(shft_chkout_time), 'HH:mm')}` : `${format(addDays(new Date(fromDate), 1), 'yyyy-MM-dd')} ${format(new Date(shft_chkout_time), 'HH:mm')}`,
                 nopunchdate: format(new Date(fromDate), 'yyyy-MM-dd'),  // mispunch date
                 attendance_marking_month: format(startOfMonth(new Date(fromDate)), 'yyyy-MM-dd'),
                 plan_slno: planSlno,
@@ -214,7 +202,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
         }
     }, [reason, checkInCheck, checkOutCheck, em_department, em_dept_section, em_id, em_no, fromDate,
         planSlno, shiftId, loginEmno, loginHod, loginIncharge, masterGroupStatus, setRequestType,
-        shft_chkin_time, shft_chkout_time, setCount, deptApprovalLevel, shiftDesc
+        shft_chkin_time, shft_chkout_time, setCount, deptApprovalLevel, shiftDesc, shiftDetails
     ])
 
     return (
@@ -257,9 +245,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
                         paddingX: 2,
                         paddingY: 1.15,
                         borderRadius: 5,
-                        // height: 10,
                         '& > div': { p: 2, boxShadow: 'sm', borderRadius: 'xs', display: 'flex' },
-                        // backgroundColor: 'green'
                     }}>
                         <Checkbox
                             overlay
@@ -280,9 +266,7 @@ const MissPunchRequest = ({ setRequestType, setCount }) => {
                         paddingX: 2,
                         paddingY: 1.15,
                         borderRadius: 5,
-                        // height: 10,
                         '& > div': { p: 2, boxShadow: 'sm', borderRadius: 'xs', display: 'flex' },
-                        // backgroundColor: 'green'
                     }}>
                         <Checkbox
                             overlay

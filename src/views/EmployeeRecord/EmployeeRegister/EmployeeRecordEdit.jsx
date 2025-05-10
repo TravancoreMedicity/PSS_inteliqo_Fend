@@ -397,7 +397,6 @@ const EmployeeRecordEdit = () => {
         }
         //}
         // if (contractflag === 1) {
-        //     console.log("cvbv");
         // updateContractEmp(submitdata)
 
         // if (isBefore(new Date(cont_date), new Date()) && cont_date !== '2000-01-31') {
@@ -406,7 +405,6 @@ const EmployeeRecordEdit = () => {
         //     updateContractEmp(submitdata)
         // }
         // } else {
-        //     console.log("bm ,");
         // if (isBefore(new Date(probdate), new Date()) && probdate !== '2000-01-31') {
         //     infoNofity("Employee Probation date already Exceeded!!You Can Edit This Employee Through Company Information!")
         // } else {

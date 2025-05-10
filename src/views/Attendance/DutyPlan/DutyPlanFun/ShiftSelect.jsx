@@ -21,7 +21,6 @@ const ShiftSelect = ({ data }) => {
     const { notapplicable_shift, default_shift, week_off_day } = commonSettings;
 
     const [shift, setShift] = useState(default_shift);
-    // console.log(shiftData)
     const { plan_slno,
         emp_id,
         shift_id,

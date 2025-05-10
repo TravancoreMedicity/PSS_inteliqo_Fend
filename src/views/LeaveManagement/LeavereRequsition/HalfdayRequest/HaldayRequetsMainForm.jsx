@@ -73,7 +73,6 @@ const HaldayRequetsMainForm = () => {
         second_half_in,
         second_half_out
     } = shiftData || {};
-    // console.log(shiftData)
 
     const changeForm = useCallback(() => {
         let requestType = { requestType: 0 };
@@ -87,7 +86,6 @@ const HaldayRequetsMainForm = () => {
 
     useEffect(() => {
         if (totalAllowedData?.length > 0) {
-            // console.log(totalAllowedData?.length)
             const allowedHalfdayLeaveData = totalAllowedData?.filter((val) => (val.type === 1) && val.balance > 0)
             setLeaveType(allowedHalfdayLeaveData);
         }
@@ -199,7 +197,6 @@ const HaldayRequetsMainForm = () => {
                     const second_half_inTime = `${moment(fromDate).format('YYYY-MM-DD')} ${moment(second_half_in).format('HH:mm')}`;
                     const second_half_outTime = `${moment(fromDate).format('YYYY-MM-DD')} ${moment(second_half_out).format('HH:mm')}`;
 
-                    // console.log(moment(first_half_in).format('hh:mm'))
                     const halfdaysavedata = {
                         checkIn: shiftTime === 1 ? first_half_inTime : second_half_inTime,
                         checkOut: shiftTime === 1 ? first_half_outTime : second_half_outTime,

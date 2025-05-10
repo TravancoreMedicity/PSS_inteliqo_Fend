@@ -81,22 +81,6 @@ const JobDescriptionViewTable = () => {
         const data = params.api.getSelectedRows()
         const { summary_slno } = data[0]
         setId(summary_slno)
-        // try {
-        //     console.log("fsgjfhnd");
-        //     console.log(summary_slno);
-        //     dispatch(setJobSummary(summary_slno))
-        // }
-        // catch (exceptionVar) {
-        //     // console.log("err");
-        //     setDownload(0)
-        // }
-        // finally {
-        //     //console.log("finally");
-
-        //     setDownload(1)
-        // }
-
-
         dispatch(setJobSummary(summary_slno)).then(() => {
             setDownload(1)
         })
@@ -194,21 +178,6 @@ const JobDescriptionViewTable = () => {
 
     useEffect(() => {
         if (downloads === 1) {
-            // try {
-            //     pdfdownlod(objective, desig, scope, branch_name,
-            //         working_hour, reporting_dept, equipment_used,
-            //         dept, sect, date, revisiondate, docno, jDuty,
-            //         jPerformance, jCompetency, jQualify,
-            //         experience_year, is_female, is_male, age_from, age_to)
-            // } catch (exceptionVar) {
-            //     console.log("err");
-            //     setDownload(0)
-            // } finally {
-            //     console.log("finally");
-
-            //     setDownload(0)
-            // }
-
             pdfdownlod(objective, desig, scope, branch_name,
                 working_hour, reporting_dept, equipment_used,
                 dept, sect, date, revisiondate, docno, jDuty,
