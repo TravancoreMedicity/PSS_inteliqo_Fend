@@ -103,10 +103,23 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
         } else {
             if (isValid(punch_In) === true && isValid(punch_out) === true) {
                 const getAttendance = await getAttendanceCalculation(
-                    punch_In, shift_In, punch_out, shift_out, cmmn_grace_period,
-                    getLateInTime, holidayStatus, shiftId, default_shift,
-                    notapplicable_shift, noff, week_off_day, salary_above, cmmn_late_in,
-                    dutyoff, extra_off
+                    punch_In,
+                    shift_In,
+                    punch_out,
+                    shift_out,
+                    cmmn_grace_period,
+                    getLateInTime,
+                    holidayStatus,
+                    shiftId,
+                    default_shift,
+                    notapplicable_shift,
+                    noff,
+                    week_off_day,
+                    salary_above,
+                    cmmn_late_in,
+                    crossDay?.shft_duty_day,
+                    dutyoff,
+                    extra_off
                 )
                 const postData = {
                     punch_in: inTime,
@@ -137,7 +150,7 @@ const ShiftModal = ({ open, setOpen, data, punchData, punchMast, setTableArray }
 
     }, [inTime, outTime, shiftIn, shiftOut, data, default_shift, notapplicable_shift, noff,
         week_off_day, salary_above, cmmn_late_in, cmmn_grace_period, setOpen, setTableArray,
-        dutyoff, extra_off])
+        dutyoff, extra_off, crossDay])
 
     return (
         <Modal

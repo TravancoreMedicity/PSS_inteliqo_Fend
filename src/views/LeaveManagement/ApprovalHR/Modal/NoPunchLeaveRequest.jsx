@@ -140,9 +140,8 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                             return Promise.allSettled(
                                 punchMasterMappedData?.map(async (val) => {
                                     const holidayStatus = val?.holiday_status;
-                                    const punch_In = checkinflag === 1 ? new Date(shiftIn) : val.punch_in === null ? null : new Date(val.punch_in);
-                                    const punch_out = checkoutflag === 1 ? new Date(shiftOut) : val.punch_out === null ? null : new Date(val.punch_out);
-
+                                    const punch_In = checkinflag === 1 ? new Date(val?.shift_in) : val?.punch_in === null ? new Date(val?.shift_in) : new Date(val?.punch_in);
+                                    const punch_out = checkoutflag === 1 ? new Date(val?.shift_out) : val?.punch_out === null ? new Date(val?.shift_out) : new Date(val?.punch_out);
                                     const shift_in = new Date(val?.shift_in);
                                     const shift_out = new Date(val?.shift_out);
 
@@ -151,23 +150,21 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                     //break duty
 
                                     const break_shift_status = val?.break_shift_status;
-                                    const break_first_punch_in = checkinflag === 1 ? new Date(shiftIn) : val?.break_first_punch_in === null ? null : new Date(val?.break_first_punch_in);
-                                    const break_first_punch_out = val?.break_first_punch_out === null ? null : new Date(val?.break_first_punch_out);
-                                    const break_second_punch_in = val?.break_second_punch_in === null ? null : new Date(val?.break_second_punch_in);
-                                    const break_second_punch_out = checkoutflag === 1 ? new Date(shiftOut) : val?.break_second_punch_out === null ? null : new Date(val?.break_second_punch_out);
-
+                                    const break_first_punch_in = checkinflag === 1 ? new Date(val?.shift_in) : val?.break_first_punch_in === null ? new Date(val?.shift_in) : new Date(val?.break_first_punch_in);
+                                    const break_first_punch_out = val?.break_first_punch_out === null ? new Date(val?.first_half_out) : new Date(val?.break_first_punch_out);
+                                    const break_second_punch_in = val?.break_second_punch_in === null ? new Date(val?.second_half_in) : new Date(val?.break_second_punch_in);
+                                    const break_second_punch_out = checkoutflag === 1 ? new Date(val?.shift_out) : val?.break_second_punch_out === null ? new Date(val?.shift_out) : new Date(val?.break_second_punch_out);
                                     //shift details
-                                    const first_shift_in = `${format(new Date(val?.first_shift_in), 'yyyy-MM-dd HH:mm')} `
-                                    const first_shift_out = `${format(new Date(val?.first_shift_out), 'yyyy-MM-dd HH:mm')} `
-                                    const second_shift_in = `${format(new Date(val?.second_shift_in), 'yyyy-MM-dd HH:mm')} `
-                                    const second_shift_out = `${format(new Date(val?.second_shift_out), 'yyyy-MM-dd HH:mm')} `
-
+                                    const first_half_shift_in = val?.first_half_in === null ? null : `${format(new Date(val?.first_half_in), 'yyyy-MM-dd HH:mm')} `;
+                                    const first_half_shift_out = val?.first_half_out === null ? null : `${format(new Date(val?.first_half_out), 'yyyy-MM-dd HH:mm')} `;
+                                    const second_half_shift_in = val?.second_half_in === null ? null : `${format(new Date(val?.second_half_in), 'yyyy-MM-dd HH:mm')} `;
+                                    const second_half_shift_out = val?.second_half_out === null ? null : `${format(new Date(val?.second_half_out), 'yyyy-MM-dd HH:mm')} `;
                                     if (break_shift_status === 1) {
                                         const getBreakDutyLateInTime = await getBreakDutyLateInTimeIntervel(
-                                            first_shift_in,
-                                            first_shift_out,
-                                            second_shift_in,
-                                            second_shift_out,
+                                            first_half_shift_in,
+                                            first_half_shift_out,
+                                            second_half_shift_in,
+                                            second_half_shift_out,
                                             break_first_punch_in,
                                             break_first_punch_out,
                                             break_second_punch_in,
@@ -175,8 +172,8 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                         )
 
                                         const getAttendance = await getBreakDutyAttendance(
-                                            first_shift_in, first_shift_out,
-                                            second_shift_in, second_shift_out,
+                                            first_half_shift_in, first_half_shift_out,
+                                            second_half_shift_in, second_half_shift_out,
                                             break_first_punch_in, break_first_punch_out,
                                             break_second_punch_in, break_second_punch_out,
                                             cmmn_grace_period, getBreakDutyLateInTime,
@@ -196,7 +193,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                             holiday_status: val?.holiday_status,
                                             leave_status: 1,
                                             lvereq_desc: getAttendance?.lvereq_desc,
-                                            duty_desc: 'OHP',
+                                            duty_desc: 'MPP',
                                             lve_tble_updation_flag: 1,
                                             shft_duty_day: val?.shft_duty_day,
                                             status: 1,
@@ -233,8 +230,8 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
 
                                         return {
                                             punch_slno: val.punch_slno,
-                                            punch_in: val.punch_in,
-                                            punch_out: val.punch_out,
+                                            punch_in: format(new Date(punch_In), 'yyyy-MM-dd HH:mm'),
+                                            punch_out: format(new Date(punch_out), 'yyyy-MM-dd HH:mm'),
                                             hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.hrsWorked,
                                             late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.lateIn,
                                             early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.earlyOut,
@@ -242,7 +239,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                             holiday_status: val.holiday_status,
                                             leave_status: 1,
                                             lvereq_desc: getAttendanceStatus?.lvereq_desc,
-                                            duty_desc: 'OHP',
+                                            duty_desc: 'MPP',
                                             lve_tble_updation_flag: 1,
                                             shft_duty_day: val.shft_duty_day,
                                             status: 1,
@@ -267,12 +264,25 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                 }
                                 else {
                                     errorNofity(message)
+                                    setOpenBkDrop(false)
                                 }
+                            }).catch((error) => {
+                                setOpenBkDrop(false)
+                                return { status: 0, message: "Error Processing while saving contact IT", errorMessage: error }// if no return all updation
                             })
+
+                        }).catch((error) => {
+                            setOpenBkDrop(false)
+                            return { status: 0, message: "Error Processing while saving contact IT", errorMessage: error }// if no return all updation
                         })
+
+                    } else {
+                        setOpenBkDrop(false)
+                        warningNofity("There Is No Punch Data!")
                     }
                 }
             } else {
+                setOpenBkDrop(false)
                 errorNofity("Error getting PunchMarkingHR ")
             }
         }
