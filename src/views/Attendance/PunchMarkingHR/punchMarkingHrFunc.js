@@ -1,4 +1,4 @@
-import { addDays, addHours, addMinutes, differenceInHours, differenceInMinutes, format, isAfter, isBefore, isValid, max, min, subDays, subHours, subMinutes } from "date-fns";
+import { addDays, addHours, addMinutes, differenceInHours, differenceInMinutes, format, isAfter, isBefore, isEqual, isValid, max, min, subDays, subHours, subMinutes } from "date-fns";
 import { axioslogin } from "src/views/Axios/Axios";
 import { getBreakDutyAttendance } from "../ShiftUpdation/Function";
 
@@ -332,7 +332,7 @@ export const getAttendanceCalculation = async (
     //HALF DAY CALCULATION
     const totalShiftInMInits = differenceInMinutes(new Date(shift_out), new Date(shift_in))
     const halfDayInMinits = totalShiftInMInits / 2;
-    const halfDayStartTime = addMinutes(shift_in, halfDayInMinits - 1)
+    const halfDayStartTime = addMinutes(shift_in, halfDayInMinits)
 
     if (checkShiftIdStatus === true) {
 
@@ -341,8 +341,8 @@ export const getAttendanceCalculation = async (
 
             // *****EMPLOYEE HAVE BOTH THE PUNCH******
 
-            const isBeforeHafDayInTime = isBefore(punch_In, halfDayStartTime); //for check -> punch in before half day start in time
-            const isAfterHalfDayOutTime = isAfter(punch_out, halfDayStartTime)
+            const isBeforeHafDayInTime = isBefore(punch_In, halfDayStartTime) || isEqual(punch_In, halfDayStartTime); //for check -> punch in before half day start in time
+            const isAfterHalfDayOutTime = isAfter(punch_out, halfDayStartTime) || isEqual(punch_out, halfDayStartTime)
 
             const workingHours = differenceInHours(new Date(punch_out), new Date(punch_In)) > 6;
             const halfDayWorkingHour = differenceInHours(new Date(punch_out), new Date(punch_In)) >= 4;
@@ -384,6 +384,7 @@ export const getAttendanceCalculation = async (
                                                     (earlyOut > 0 && earlyOut > maximumLateInTime) && lateIn > maximumLateInTime && isBeforeHafDayInTime === false && halfDayWorkingHour === false ?
                                                         { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'in and out less tha half day time' } :
                                                         { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Lose off Pay' }
+
 
 
             } else {
