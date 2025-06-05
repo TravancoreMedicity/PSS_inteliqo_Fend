@@ -105,12 +105,19 @@ const SalaryProcessed = () => {
 
                         const totalDays = getDaysInMonth(new Date(value))
 
+
+
                         const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
                             totalnormalpresent < 24 && totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
                                 totalnormalpresent < 18 && totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
-                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 : 0
+                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 :
+                                        (totalDp * 2) >= 24 ? commonSettings?.week_off_count :
+                                            (totalDp * 2) < 24 && (totalDp * 2) >= 18 ? commonSettings?.week_off_count - 1 :
+                                                (totalDp * 2) < 18 && (totalDp * 2) >= 12 ? commonSettings?.week_off_count - 2 :
+                                                    (totalDp * 2) < 12 && (totalDp * 2) >= 6 ? commonSettings?.week_off_count - 3 :
+                                                        0
 
-                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff
+                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff + totalWOFF + (egWOFF - totalWOFF)
                         const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
                         const paydaySalay = (val?.gross_salary / totalDays) * presentDays
 

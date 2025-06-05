@@ -89,11 +89,6 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                         const punchaData = result_data;
                         const punch_master_data = await axioslogin.post("/attendCal/attendanceshiftdetl/", punchmastData); //GET PUNCH MASTER DATA
                         const { data } = punch_master_data.data;
-
-                        let shiftIn = `${format(new Date(nopunchdate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkInTime), 'HH:mm:ss')}`;
-                        let shiftOut = crossDayStat === 0 ? `${format(new Date(nopunchdate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}` :
-                            `${format(addDays(new Date(nopunchdate), 1), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}`;
-
                         return Promise.allSettled(
                             data?.map(async (row, index) => {
 
