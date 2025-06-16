@@ -140,8 +140,8 @@ export const processPunchMarkingHrFunc = async (
                             )
                             return {
                                 punch_slno: val?.punch_slno,
-                                punch_in: val?.break_first_punch_in === null ? val?.break_first_punch_out : val?.break_first_punch_in,
-                                punch_out: val?.break_second_punch_out === null ? val?.break_second_punch_in : val?.break_second_punch_out,
+                                punch_in: val?.break_first_punch_in === null ? val?.break_second_punch_out : val?.break_first_punch_in,
+                                punch_out: val?.break_second_punch_out === null ? val?.break_first_punch_out : val?.break_second_punch_out,
                                 hrs_worked: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
                                 late_in: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
                                 early_out: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
@@ -174,7 +174,8 @@ export const processPunchMarkingHrFunc = async (
                                 val.maximumLateInTime,
                                 shft_duty_day,
                                 val.dutyoff,
-                                val.extra_off
+                                val.extra_off,
+                                val.duty_day
                             )
 
                             return {
@@ -532,8 +533,6 @@ export const getLateInTimeIntervel = async (punch_In, shift_in, punch_out, shift
     }
 }
 
-
-
 export const getBreakDutyLateInTimeIntervel = async (
     first_shift_in,
     first_shift_out,
@@ -562,19 +561,12 @@ export const getBreakDutyLateInTimeIntervel = async (
 
     if (
         isValidDate(BreakFirstPunchIn) && isValidDate(BreakFirstPunchOut) &&
-        BreakFirstPunchIn !== null && BreakFirstPunchOut !== null &&
-        BreakFirstPunchIn !== undefined && BreakFirstPunchOut !== undefined
-
+        isValidDate(BreakSecondPunchIn) && isValidDate(BreakSecondPunchOut)
     ) {
-
+        //ALL PUNCH OK
         const firstShiftHoursWorked = differenceInMinutes(BreakFirstPunchOut, BreakFirstPunchIn);
-        const secondShiftHoursWorked =
-            isValidDate(BreakSecondPunchIn) &&
-                isValidDate(BreakSecondPunchOut) &&
-                BreakSecondPunchIn !== null && BreakSecondPunchOut !== null &&
-                BreakSecondPunchIn !== undefined && BreakSecondPunchOut !== undefined
-                ? differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn)
-                : 0
+        const secondShiftHoursWorked = differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn)
+
         const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
 
         const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
@@ -590,24 +582,13 @@ export const getBreakDutyLateInTimeIntervel = async (
             secondEarlyOut: secondEarlyOut
         };
     }
-
-    //first punch is null
-    else if (
-        // isValidDate(BreakFirstPunchIn) &&
-        isValidDate(BreakFirstPunchOut) &&
-        BreakFirstPunchIn === null && BreakFirstPunchOut !== null &&
-        BreakFirstPunchIn !== undefined && BreakFirstPunchOut !== undefined
-
+    else if (//FIRST PUNCH IS NULL, 3 punch ok
+        !isValidDate(BreakFirstPunchIn) && isValidDate(BreakFirstPunchOut) &&
+        isValidDate(BreakSecondPunchIn) && isValidDate(BreakSecondPunchOut)
     ) {
+        const firstShiftHoursWorked = 0;
+        const secondShiftHoursWorked = differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn)
 
-        const firstShiftHoursWorked = (BreakFirstPunchIn !== null && BreakFirstPunchOut !== null) ? differenceInMinutes(BreakFirstPunchOut, BreakFirstPunchIn) : 0;
-        const secondShiftHoursWorked =
-            isValidDate(BreakSecondPunchIn) &&
-                isValidDate(BreakSecondPunchOut) &&
-                BreakSecondPunchIn !== null && BreakSecondPunchOut !== null &&
-                BreakSecondPunchIn !== undefined && BreakSecondPunchOut !== undefined
-                ? differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn)
-                : 0
         const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
 
         const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
@@ -622,21 +603,72 @@ export const getBreakDutyLateInTimeIntervel = async (
             firstEarlyOut: firstEarlyOut,
             secondEarlyOut: secondEarlyOut
         };
-    }
-    else if (
-        // isValidDate(BreakFirstPunchIn) &&
-        isValidDate(BreakFirstPunchOut) &&
-        BreakFirstPunchIn !== null && BreakFirstPunchOut === null &&
-        BreakFirstPunchIn !== undefined && BreakFirstPunchOut !== undefined
+    } else if (//second punch not ok
+        isValidDate(BreakFirstPunchIn) && !isValidDate(BreakFirstPunchOut) &&
+        isValidDate(BreakSecondPunchIn) && isValidDate(BreakSecondPunchOut)
     ) {
-        const firstShiftHoursWorked = (BreakFirstPunchIn !== null && BreakFirstPunchOut !== null) ? differenceInMinutes(BreakFirstPunchOut, BreakFirstPunchIn) : 0;
-        const secondShiftHoursWorked =
-            isValidDate(BreakSecondPunchIn) &&
-                isValidDate(BreakSecondPunchOut) &&
-                BreakSecondPunchIn !== null && BreakSecondPunchOut !== null &&
-                BreakSecondPunchIn !== undefined && BreakSecondPunchOut !== undefined
-                ? differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn)
-                : 0
+        const firstShiftHoursWorked = 0;
+        const secondShiftHoursWorked = differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn);
+
+        const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
+        const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
+        const secondLateIn = isAfter(BreakSecondPunchIn, SecondShiftIn) ? differenceInMinutes(BreakSecondPunchIn, SecondShiftIn) : 0;
+        const firstEarlyOut = isBefore(BreakFirstPunchOut, FirstShiftOut) ? differenceInMinutes(BreakFirstPunchOut, FirstShiftOut) : 0;
+        const secondEarlyOut = isBefore(BreakSecondPunchOut, SecondShiftOut) ? differenceInMinutes(BreakSecondPunchOut, SecondShiftOut) : 0;
+
+        return {
+            hrsWorked: totalWorkingHours,
+            firstLateIn: firstLateIn,
+            secondLateIn: secondLateIn,
+            firstEarlyOut: firstEarlyOut,
+            secondEarlyOut: secondEarlyOut
+        };
+    }
+    else if (// no first half two punch
+        !isValidDate(BreakFirstPunchIn) && !isValidDate(BreakFirstPunchOut) &&
+        isValidDate(BreakSecondPunchIn) && isValidDate(BreakSecondPunchOut)
+    ) {
+        const firstShiftHoursWorked = 0;
+        const secondShiftHoursWorked = differenceInMinutes(BreakSecondPunchOut, BreakSecondPunchIn);
+
+        const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
+        const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
+        const secondLateIn = isAfter(BreakSecondPunchIn, SecondShiftIn) ? differenceInMinutes(BreakSecondPunchIn, SecondShiftIn) : 0;
+        const firstEarlyOut = isBefore(BreakFirstPunchOut, FirstShiftOut) ? differenceInMinutes(BreakFirstPunchOut, FirstShiftOut) : 0;
+        const secondEarlyOut = isBefore(BreakSecondPunchOut, SecondShiftOut) ? differenceInMinutes(BreakSecondPunchOut, SecondShiftOut) : 0;
+
+        return {
+            hrsWorked: totalWorkingHours,
+            firstLateIn: firstLateIn,
+            secondLateIn: secondLateIn,
+            firstEarlyOut: firstEarlyOut,
+            secondEarlyOut: secondEarlyOut
+        };
+    } else if (//second two punch not ok
+        isValidDate(BreakFirstPunchIn) && isValidDate(BreakFirstPunchOut) &&
+        !isValidDate(BreakSecondPunchIn) && !isValidDate(BreakSecondPunchOut)
+    ) {
+        const firstShiftHoursWorked = differenceInMinutes(BreakFirstPunchOut, BreakFirstPunchIn);
+        const secondShiftHoursWorked = 0;
+        const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
+        const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
+        const secondLateIn = isAfter(BreakSecondPunchIn, SecondShiftIn) ? differenceInMinutes(BreakSecondPunchIn, SecondShiftIn) : 0;
+        const firstEarlyOut = isBefore(BreakFirstPunchOut, FirstShiftOut) ? differenceInMinutes(BreakFirstPunchOut, FirstShiftOut) : 0;
+        const secondEarlyOut = isBefore(BreakSecondPunchOut, SecondShiftOut) ? differenceInMinutes(BreakSecondPunchOut, SecondShiftOut) : 0;
+
+        return {
+            hrsWorked: totalWorkingHours,
+            firstLateIn: firstLateIn,
+            secondLateIn: secondLateIn,
+            firstEarlyOut: firstEarlyOut,
+            secondEarlyOut: secondEarlyOut
+        };
+    } else if (// last punch not ok
+        isValidDate(BreakFirstPunchIn) && isValidDate(BreakFirstPunchOut) &&
+        isValidDate(BreakSecondPunchIn) && !isValidDate(BreakSecondPunchOut)
+    ) {
+        const firstShiftHoursWorked = differenceInMinutes(BreakFirstPunchOut, BreakFirstPunchIn);
+        const secondShiftHoursWorked = 0
         const totalWorkingHours = firstShiftHoursWorked + secondShiftHoursWorked;
         const firstLateIn = isAfter(BreakFirstPunchIn, FirstShiftIn) ? differenceInMinutes(BreakFirstPunchIn, FirstShiftIn) : 0;
         const secondLateIn = isAfter(BreakSecondPunchIn, SecondShiftIn) ? differenceInMinutes(BreakSecondPunchIn, SecondShiftIn) : 0;
@@ -673,36 +705,77 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
     const second_shift_in = `${format(new Date(shiftMergedPunchMaster?.duty_day), 'yyyy-MM-dd')} ${format(new Date(shiftMergedPunchMaster?.second_half_in), 'HH:mm')}`;
     const second_shift_out = `${format(new Date(shiftMergedPunchMaster?.duty_day), 'yyyy-MM-dd')} ${format(new Date(shiftMergedPunchMaster?.second_half_out), 'HH:mm')}`;
 
-    //find start-end time to taken brk duty day punches
+    /***
+    * find start-end time to taken brk duty day punches by adding a count
+    * if break duty 5 AM - 20 PM
+    * first half    5 AM - 10 AM
+    * second half   15 PM - 20 PM
+    * 
+    * if break_shift_taken_count=2
+    * first half punch in start from 3 AM
+    * second half punch out end to 22 PM 
+    */
     const first_punch_start_time = subHours(new Date(first_shift_in), break_shift_taken_count)
     const second_punch_end_time = addHours(new Date(second_shift_out), break_shift_taken_count)
 
-    //filter punch time
-    const punchBasedonDutyday = employeeBasedPunchData?.map((e) => new Date(e.punch_time))?.filter((e) => e >= first_punch_start_time && e <= second_punch_end_time);
+    //filter punch time with punch start time and punch end time
+    /**
+     * filter the punch based on particular day  
+     * punch between 3 AM - 22 PM
+     */
+    const punchBasedonDutyday = employeeBasedPunchData?.map((e) => new Date(e?.punch_time))?.filter((e) => e >= first_punch_start_time && e <= second_punch_end_time);
 
+    /**
+     * First half punch difference in time
+     * 5 AM - 10 AM => 5 hrs
+     * So, punch taken to 2.5 hrs
+     */
     const first_shift_differ = differenceInHours(new Date(first_shift_out), new Date(first_shift_in)) / 2;
+    /**
+     * Second half punch difference in time
+     * 15 PM - 20 PM => 5 hrs
+     * So, punch taken to 2.5 hrs
+     */
     const second_shift_differ = differenceInHours(new Date(second_shift_out), new Date(second_shift_in)) / 2;
-
+    /**
+     * Adding 2.5 hrs to calculate First punch end time
+     * 7.30 AM
+     */
     const first_punch_in_end_time = addHours(new Date(first_shift_in), new Date(first_shift_differ));
+    /**
+     * Minusing 2.5 hrs from the second half punch out time.
+     * 19.30 PM
+     */
     const second_punch_out_start_time = subHours(new Date(second_shift_out), new Date(second_shift_differ));
 
+    /**
+     * First half punch in bteween 3 AM - 7.30 AM
+     * Second half punch out bteween 19.30 PM - 22 PM 
+     */
     const sorted_first_punch_in = punchBasedonDutyday?.filter((e) => e >= first_punch_start_time && e <= first_punch_in_end_time)
     const sorted_second_punch_out = punchBasedonDutyday?.filter((e) => e >= new Date(second_punch_out_start_time) && e <= second_punch_end_time)
 
-    const FIRST_PUNCH = min(sorted_first_punch_in)
-    const FOURTH_PUNCH = max(sorted_second_punch_out)
+    const FIRST_PUNCH = min(sorted_first_punch_in)//first half punch in time
+    const FOURTH_PUNCH = max(sorted_second_punch_out)//second half punch out time
 
-    //to find second and third punch
-    const intermediateTime = differenceInMinutes(new Date(second_shift_in), new Date(first_shift_out))
-    const halfOfintermediateTime = intermediateTime / 2;
-    const first_punch_out_end_time = addMinutes(new Date(first_shift_out), halfOfintermediateTime)
-    const second_punch_in_start_time = subMinutes(new Date(second_shift_in), halfOfintermediateTime)
+    /**
+     * to find second and third punch
+     * find break time btw 10 AM - 15 PM
+     */
+    const intermediateTime = differenceInHours(new Date(second_shift_in), new Date(first_shift_out)) / 2;
+    //adding 2.5 to 10 AM, 12.30 PM
+    const first_punch_out_end_time = addHours(new Date(first_shift_out), new Date(intermediateTime));
+    //second punch in start tim e from 12.30 PM
+    const second_punch_in_start_time = subHours(new Date(second_shift_in), new Date(intermediateTime));
+    // taking punch bteween 10 AM - 15 PM
+    const punchbetweenbreaktime = punchBasedonDutyday?.filter((e) => e > new Date(first_shift_out) && e <= new Date(second_shift_in))
 
-    const sorted_first_punch_out = punchBasedonDutyday?.filter((e) => e >= new Date(first_shift_in) && e <= first_punch_out_end_time)
-    const soted_second_punch_in = punchBasedonDutyday?.filter((e) => e > second_punch_in_start_time && e <= new Date(second_shift_out))
+    const sorted_first_punch_out = punchBasedonDutyday?.filter((e) => e > new Date(first_punch_in_end_time) && e <= first_punch_out_end_time)
+    const sorted_second_punch_in = punchBasedonDutyday?.filter((e) => e > second_punch_in_start_time && e < new Date(second_punch_out_start_time))
 
     const SECOND_PUNCH = max(sorted_first_punch_out)
-    const THIRD_PUNCH = min(soted_second_punch_in)
+    const THIRD_PUNCH = min(sorted_second_punch_in)
+    const inbtwpunch = max(punchbetweenbreaktime)
 
     return {
         ...shiftMergedPunchMaster,
@@ -715,8 +788,12 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
         shiftOutStart: null,
         shiftOutEnd: null,
         break_first_punch_in: isValid(FIRST_PUNCH) === true ? format(FIRST_PUNCH, 'yyyy-MM-dd HH:mm') : null,
-        break_first_punch_out: isValid(SECOND_PUNCH) === true ? format(SECOND_PUNCH, 'yyyy-MM-dd HH:mm') : null,
-        break_second_punch_in: isValid(THIRD_PUNCH) === true ? format(THIRD_PUNCH, 'yyyy-MM-dd HH:mm') : null,
+        break_first_punch_out: isValid(FIRST_PUNCH) === false ? null
+            : isValid(FOURTH_PUNCH) === false && isValid(SECOND_PUNCH) === false ? format(inbtwpunch, 'yyyy-MM-dd HH:mm')
+                : isValid(SECOND_PUNCH) === true ? format(SECOND_PUNCH, 'yyyy-MM-dd HH:mm') : null,
+        break_second_punch_in: isValid(FOURTH_PUNCH) === false ? null
+            : isValid(FIRST_PUNCH) === false && isValid(THIRD_PUNCH) === false ? format(inbtwpunch, 'yyyy-MM-dd HH:mm')
+                : isValid(THIRD_PUNCH) === true ? format(THIRD_PUNCH, 'yyyy-MM-dd HH:mm') : null,
         break_second_punch_out: isValid(FOURTH_PUNCH) === true ? format(FOURTH_PUNCH, 'yyyy-MM-dd HH:mm') : null,
         first_shift_in: first_shift_in,
         first_shift_out: first_shift_out,
@@ -725,6 +802,7 @@ const BreakDutypunchInOutMapping = async (shiftMergedPunchMaster, employeeBasedP
 
     }
 }
+
 
 const punchInOutMapping = async (shiftMergedPunchMaster, employeeBasedPunchData) => {
 
@@ -810,9 +888,9 @@ export const processShiftPunchMarkingHrFunc = async (
         default_shift, //default SHIFT ID
         noff, // night off SHIFT ID,
         max_late_day_count,
-        break_shift_taken_count,
-        dutyoff,
-        extra_off
+        break_shift_taken_count,//break shift count taken = 2
+        dutyoff, //duty off dhift ID
+        extra_off // extra off SHIFT ID
     } = commonSettings; //COMMON SETTING
     //GET DUTY PLAN AND CHECK DUTY PLAN IS EXCIST OR NOT
     const getDutyPlan = await axioslogin.post("/attendCal/getDutyPlanBySection/", postData_getPunchData); //GET DUTY PLAN DAAT
@@ -855,23 +933,22 @@ export const processShiftPunchMarkingHrFunc = async (
                         extra_off: extra_off
                     }
                     const employeeBasedPunchData = punchaData?.filter((e) => parseInt(e?.emp_code) === parseInt(data?.em_no))
-                    //Functions for break duty and Normal duty
+
+                    //Functions for break duty 
                     if (shiftMergedPunchMaster?.break_shift_status === 1) {
                         return await BreakDutypunchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData, break_shift_taken_count)
                     } else {
+                        //punch taken function for normal duty
                         return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
-
                     }
-                    //FUNCTION FOR MAPPING THE PUNCH IN AND OUT 
-                    // return await punchInOutMapping(shiftMergedPunchMaster, employeeBasedPunchData)
                 })
 
             ).then((data) => {
 
-                const punchMasterMappedData = data?.map((e) => e.value)
-
+                const punchMasterMappedData = data?.map((e) => e?.value)
                 return Promise.allSettled(
                     punchMasterMappedData?.map(async (val) => {
+
                         const holidayStatus = val?.holiday_status;
                         const punch_In = val?.punch_in === null ? null : new Date(val?.punch_in);
                         const punch_out = val?.punch_out === null ? null : new Date(val?.punch_out);
@@ -881,7 +958,7 @@ export const processShiftPunchMarkingHrFunc = async (
 
                         const shft_duty_day = val?.shft_duty_day;
                         const salaryLimit = val?.gross_salary > val?.salaryLimit ? true : false;
-                        // const duty_day = val?.duty_day;
+
                         //break duty
 
                         const break_shift_status = val?.break_shift_status;
@@ -916,13 +993,14 @@ export const processShiftPunchMarkingHrFunc = async (
                                 cmmn_grace_period, getBreakDutyLateInTime,
                                 val?.shift_id, val?.defaultShift, val?.naShift,
                                 val?.noff, val?.woff, val?.dutyoff, val?.extra_off,
-                                val?.break_shift_status
+                                val?.break_shift_status, val?.duty_day
 
                             )
+
                             return {
                                 punch_slno: val?.punch_slno,
-                                punch_in: val?.break_first_punch_in === null ? val?.break_first_punch_out : val?.break_first_punch_in,
-                                punch_out: val?.break_second_punch_out === null ? val?.break_second_punch_in : val?.break_second_punch_out,
+                                punch_in: (val?.break_first_punch_in === null || val?.break_first_punch_out === null) ? val?.break_second_punch_in : val?.break_first_punch_in,
+                                punch_out: (val?.break_second_punch_out === null || val?.break_second_punch_in === null) ? val?.break_first_punch_out : val?.break_second_punch_out,
                                 hrs_worked: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
                                 late_in: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
                                 early_out: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
@@ -955,7 +1033,8 @@ export const processShiftPunchMarkingHrFunc = async (
                                 val.maximumLateInTime,
                                 shft_duty_day,
                                 val.dutyoff,
-                                val.extra_off
+                                val.extra_off,
+                                val?.duty_day
                             )
 
                             return {
