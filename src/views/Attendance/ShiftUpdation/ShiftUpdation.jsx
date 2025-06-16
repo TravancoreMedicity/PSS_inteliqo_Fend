@@ -168,7 +168,7 @@ const ShiftUpdation = () => {
                     warningNofity("Punch Marking Monthly Process Done !! can't do the Process !! ")
                     setDisable(true)
 
-                    /////////////// ONLY FOR DISPLAYING PUNCHMARKING DATA AFTER 
+                    /////////////// ONLY FOR DISPLAYING MONTHLY ATTENDANCE AFTER MONTHLY PUNCH MARKING PROCESS
                     const getPunchMast_PostData = {
                         fromDate_punchMaster: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
                         toDate_punchMaster: format(lastDayOfMonth(new Date(value)), 'yyyy-MM-dd'),
@@ -323,7 +323,6 @@ const ShiftUpdation = () => {
                                         return ' 0';
                                     }
 
-
                                     const days = Math.floor(minutes / (24 * 60));
                                     const hours = Math.floor((minutes % (24 * 60)) / 60);
                                     const mins = minutes % 60;
@@ -409,10 +408,8 @@ const ShiftUpdation = () => {
             <CustomBackDrop open={openBkDrop} text="Please wait !. Leave Detailed information Updation In Process" />
             <CustomLayout title="Punch In/Out Marking" displayClose={true} >
                 <Box sx={{ width: '100%', }}>
-
                     {
                         self === true ?
-
                             <Box sx={{ display: 'flex', py: 0.5, width: '100%', }}>
                                 <Box sx={{ flex: 1, px: 0.5, pl: 1, width: '20%', }} >
                                     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -561,15 +558,8 @@ const ShiftUpdation = () => {
                                             <SectionBsdEmployee getEmploy={getEmployee} />
                                         </Box>
                                     </Box> :
-
                                         hod === 1 || incharge === 1 ?
-
                                             <Box sx={{ display: 'flex', width: '60%', }}>
-
-                                                {/* <Box sx={{ flex: 1, px: 0.5 }}>
-                                            <DepartmentDropRedx getDept={changeDept} />
-                                        </Box> */}
-
                                                 <Box sx={{ flex: 1, px: 0.5 }}>
                                                     <HodWiseDeptSection detSection={section} setSectionValue={changeSection} />
                                                 </Box>
@@ -577,10 +567,6 @@ const ShiftUpdation = () => {
                                                     <HodWiseEmpList section={section} setEmployee={getEmployee} />
                                                 </Box>
                                             </Box> :
-
-
-
-
                                             <Box sx={{ display: 'flex', py: 0, width: '60%', }}>
 
                                                 <Box sx={{ flex: 1, px: 0.5, width: '25%', }}>
@@ -657,7 +643,6 @@ const ShiftUpdation = () => {
                                 </Box>
                             </Box>
                     }
-
                     <Box sx={{ flex: 1, pt: 0.5 }} >
                         <TableContainer component={Paper}>
                             <Table sx={{ backgroundColor: '#F3F6F9' }} size="small" >
@@ -673,11 +658,8 @@ const ShiftUpdation = () => {
                                         <TableCell size='small' padding='none' align="center" rowSpan={2} sx={{ color: '#003A75', fontWeight: 550 }}>EGO</TableCell>
                                         <TableCell size='small' padding='none' align="center" rowSpan={2} sx={{ color: '#003A75', fontWeight: 550 }}></TableCell>
                                         <TableCell size='small' padding='none' align="center" rowSpan={2} sx={{ color: '#003A75', fontWeight: 550 }}></TableCell>
-                                        {/* <TableCell size='small' padding='none' align="center" rowSpan={2} sx={{ color: '#003A75', fontWeight: 550 }}></TableCell> */}
-
                                     </TableRow>
                                     <TableRow hover >
-                                        {/* <TableCell>Date</TableCell> */}
                                         <TableCell size='small' padding='none' align="center" sx={{ color: '#003A75', fontWeight: 550 }}>In Time</TableCell>
                                         <TableCell size='small' padding='none' align="center" sx={{ color: '#003A75', fontWeight: 550 }}>Out Time</TableCell>
                                         <TableCell size='small' padding='none' align="center" sx={{ color: '#003A75', fontWeight: 550 }}>In Time</TableCell>

@@ -8,7 +8,6 @@ export const getBreakDutyAttendance = async (
     cmmn_grace_period, getBreakDutyLateInTime,
     shiftId, defaultShift, NAShift, NightOffShift,
     WoffShift, dutyoff, extra_off, break_shift_status,
-
 ) => {
 
     const { firstLateIn, secondLateIn, firstEarlyOut, secondEarlyOut } = getBreakDutyLateInTime;
@@ -20,22 +19,21 @@ export const getBreakDutyAttendance = async (
 
     if (checkShiftIdStatus === true && parseInt(break_shift_status) === 1) {
 
-
         //new validation
         // Check if the "break_first_punch_in" time is before or equal to the "first_shift_in" time
-        const IsBeforeFirstInPuch = isBefore(new Date(break_first_punch_in), new Date(first_shift_in)) ||
+        const IsBeforeFirstInPuch = break_first_punch_in === null ? false : isBefore(new Date(break_first_punch_in), new Date(first_shift_in)) ||
             isEqual(new Date(break_first_punch_in), new Date(first_shift_in));
 
         // Check if the "break_second_punch_in" time is before or equal to the "second_shift_in" time
-        const IsBeforeSecondInPuch = isBefore(new Date(break_second_punch_in), new Date(second_shift_in)) ||
+        const IsBeforeSecondInPuch = break_second_punch_in === null ? false : isBefore(new Date(break_second_punch_in), new Date(second_shift_in)) ||
             isEqual(new Date(break_second_punch_in), new Date(second_shift_in));
 
         // Check if the "break_first_punch_out" time is after or equal to the "first_shift_out" time
-        const IsAfterFirstOutPuch = isAfter(new Date(break_first_punch_out), new Date(first_shift_out)) ||
+        const IsAfterFirstOutPuch = break_first_punch_out === null ? false : isAfter(new Date(break_first_punch_out), new Date(first_shift_out)) ||
             isEqual(new Date(break_first_punch_out), new Date(first_shift_out));
 
         // Check if the "break_second_punch_out" time is after or equal to the "second_shift_out" time
-        const IsAfterSecondOutPuch = isAfter(new Date(break_second_punch_out), new Date(second_shift_out)) ||
+        const IsAfterSecondOutPuch = break_second_punch_out === null ? false : isAfter(new Date(break_second_punch_out), new Date(second_shift_out)) ||
             isEqual(new Date(break_second_punch_out), new Date(second_shift_out));
 
         return firstEarlyOut === 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
@@ -47,8 +45,6 @@ export const getBreakDutyAttendance = async (
                 && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === true ?
                 { duty_status: 1, duty_desc: 'P', lvereq_desc: 'P', duty_remark: 'second Present' }
 
-
-
                 //first punch greater than 5.10 
                 : firstEarlyOut === 0 && secondEarlyOut === 0 && (firstLateIn > cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
                     && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === true ?
@@ -59,35 +55,36 @@ export const getBreakDutyAttendance = async (
                         && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === true ?
                         { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'EGHD', duty_remark: 'second halfday' }
 
-                        //first punch out early before 12 pm and ( first late in & second late in btw 10 minut)
-                        : firstEarlyOut < 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
-                            && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === false && IsAfterSecondOutPuch === true ?
-                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'First early out' }
+                        //second two punch ok, no first two punch
+                        : firstEarlyOut === 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
+                            && (IsBeforeFirstInPuch === false || IsAfterFirstOutPuch === false) && IsBeforeSecondInPuch === true && IsAfterSecondOutPuch === true ?
+                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'second half punch only' }
 
-                            //second punch out early before 12 pm and ( first late in & second late in btw 10 minut)
-                            : firstEarlyOut === 0 && secondEarlyOut < 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
-                                && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === false ?
-                                { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'second early out' }
+                            //first punch out early before 12 pm and ( first late in & second late in btw 10 minut)
+                            : firstEarlyOut < 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
+                                && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === false && IsAfterSecondOutPuch === true ?
+                                { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'First early out' }
 
-                                //first punch after 5.10 & first punch out before 12pm
-                                : firstEarlyOut < 0 && secondEarlyOut === 0 && (firstLateIn > cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
-                                    && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === false && IsAfterSecondOutPuch === true ?
-                                    { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'second two punch ok' }
+                                //second punch out early before 12 pm and ( first late in & second late in btw 10 minut)
+                                : firstEarlyOut === 0 && secondEarlyOut < 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
+                                    && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === false ?
+                                    { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'second early out' }
 
-                                    //second in punch after 18.10 & second punch out before 21 pm
-                                    : firstEarlyOut === 0 && secondEarlyOut < 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn > cmmn_grace_period)
-                                        && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === false ?
-                                        { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'first two punch ok' }
+                                    //first punch after 5.10 & first punch out before 12pm
+                                    : firstEarlyOut < 0 && secondEarlyOut === 0 && (firstLateIn > cmmn_grace_period) && (secondLateIn === 0 || secondLateIn <= cmmn_grace_period)
+                                        && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === false && IsAfterSecondOutPuch === true ?
+                                        { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'second two punch ok' }
 
-                                        : firstEarlyOut === 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn > cmmn_grace_period)
+                                        //second in punch after 18.10 & second punch out before 21 pm
+                                        : firstEarlyOut === 0 && secondEarlyOut < 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn > cmmn_grace_period)
                                             && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === false ?
-                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'first punch in late two punch ok' }
+                                            { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'first two punch ok' }
 
-                                            : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Absent' };
+                                            : firstEarlyOut === 0 && secondEarlyOut === 0 && (firstLateIn === 0 || firstLateIn <= cmmn_grace_period) && (secondLateIn > cmmn_grace_period)
+                                                && (IsBeforeFirstInPuch === false || IsBeforeSecondInPuch === false) && IsAfterFirstOutPuch === true && IsAfterSecondOutPuch === false ?
+                                                { duty_status: 0.5, duty_desc: 'HD', lvereq_desc: 'HD', duty_remark: 'first punch in late two punch ok' }
 
-
-
-
+                                                : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'Absent' };
     } else {
         return shiftId === defaultShift
             ? { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no duty plan' }
@@ -101,10 +98,7 @@ export const getBreakDutyAttendance = async (
                             ? { duty_status: 1, duty_desc: 'EOFF', lvereq_desc: 'EOFF', duty_remark: 'extra off' }
                             : { duty_status: 0, duty_desc: 'A', lvereq_desc: 'A', duty_remark: 'no applicable' };
     }
-
 }
-
-
 export const breakDutyPunchChecking = async (shiftMergedPunchMaster, employeeBasedPunchData, break_shift_taken_count) => {
 
     //BREAK DUTY SHIFT
