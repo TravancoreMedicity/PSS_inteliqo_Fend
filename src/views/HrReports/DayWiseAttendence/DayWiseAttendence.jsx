@@ -65,9 +65,9 @@ const DayWiseAttendence = () => {
         default_shift, //default SHIFT ID
         noff,// night off SHIFT ID
         break_shift_taken_count,
-        holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
-        weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT
-        weekoff_policy_min_count,
+        // holiday_policy_count, //HOLIDAY PRESENT AND ABSENT CHECKING COUNT 
+        // weekoff_policy_max_count, // WEEK OFF ELIGIBLE MAX DAY COUNT
+        // weekoff_policy_min_count,
         dutyoff,
         extra_off
     } = commonSettings; //COMMON SETTING
@@ -409,8 +409,9 @@ const DayWiseAttendence = () => {
             }
 
         }
-    }, [fromdate, todate, postPunchData, shiftInformation, cmmn_early_out, deptSecName, deptName, holidayList,
-        cmmn_grace_period,
+    }, [fromdate, todate, postPunchData, shiftInformation, cmmn_early_out,
+        deptSecName, deptName, holidayList, break_shift_taken_count,
+        cmmn_grace_period, dutyoff, extra_off,
         cmmn_late_in,
         salary_above,
         week_off_day,

@@ -59,7 +59,6 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
         notapplicable_shift, //not applicable SHIFT ID
         default_shift, //default SHIFT ID
         noff, // night off SHIFT ID
-        halfday_time_count,
         comp_hour_count,
         break_shift_taken_count,
         dutyoff,
@@ -172,9 +171,9 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
                         const punch_master_data = await axioslogin.post("/attendCal/attendanceshiftdetl/", punchmastData); //GET PUNCH MASTER DATA
                         const { success, data } = punch_master_data.data;
                         if (success === 1) {
-                            let shiftIn = `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkInTime), 'HH:mm:ss')}`;
-                            let shiftOut = crossDayStat === 0 ? `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}` :
-                                `${format(addDays(new Date(dutyDate), 1), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}`;
+                            // let shiftIn = `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkInTime), 'HH:mm:ss')}`;
+                            // let shiftOut = crossDayStat === 0 ? `${format(new Date(dutyDate), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}` :
+                            //     `${format(addDays(new Date(dutyDate), 1), 'yyyy-MM-dd')} ${format(new Date(crossDay?.checkOutTime), 'HH:mm:ss')}`;
 
                             return Promise.allSettled(
                                 data?.map(async (row, index) => {
