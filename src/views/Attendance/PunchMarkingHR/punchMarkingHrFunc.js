@@ -1,4 +1,4 @@
-import { addDays, addHours, addMinutes, differenceInHours, differenceInMinutes, format, isAfter, isBefore, isEqual, isValid, max, min, subDays, subHours, subMinutes } from "date-fns";
+import { addDays, addHours, addMinutes, differenceInHours, differenceInMinutes, format, isAfter, isBefore, isEqual, isValid, max, min, subDays, subHours } from "date-fns";
 import { axioslogin } from "src/views/Axios/Axios";
 import { getBreakDutyAttendance } from "../ShiftUpdation/Function";
 
@@ -1001,9 +1001,9 @@ export const processShiftPunchMarkingHrFunc = async (
                                 punch_slno: val?.punch_slno,
                                 punch_in: (val?.break_first_punch_in === null || val?.break_first_punch_out === null) ? val?.break_second_punch_in : val?.break_first_punch_in,
                                 punch_out: (val?.break_second_punch_out === null || val?.break_second_punch_in === null) ? val?.break_first_punch_out : val?.break_second_punch_out,
-                                hrs_worked: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
-                                late_in: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
-                                early_out: (val?.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
+                                hrs_worked: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.hrsWorked,
+                                late_in: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.lateIn,
+                                early_out: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getBreakDutyLateInTime?.earlyOut,
                                 duty_status: getAttendance?.duty_status,
                                 holiday_status: val?.holiday_status,
                                 leave_status: val?.leave_status,
@@ -1024,40 +1024,40 @@ export const processShiftPunchMarkingHrFunc = async (
                                 cmmn_grace_period,
                                 getLateInTime,
                                 holidayStatus,
-                                val.shift_id,
-                                val.defaultShift,
-                                val.naShift,
-                                val.noff,
-                                val.woff,
+                                val?.shift_id,
+                                val?.defaultShift,
+                                val?.naShift,
+                                val?.noff,
+                                val?.woff,
                                 salaryLimit,
-                                val.maximumLateInTime,
+                                val?.maximumLateInTime,
                                 shft_duty_day,
-                                val.dutyoff,
-                                val.extra_off,
+                                val?.dutyoff,
+                                val?.extra_off,
                                 val?.duty_day
                             )
 
                             return {
-                                punch_slno: val.punch_slno,
-                                punch_in: val.punch_in,
-                                punch_out: val.punch_out,
-                                hrs_worked: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.hrsWorked,
-                                late_in: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.lateIn,
-                                early_out: (val.shift_id === week_off_day || val.shift_id === noff || val.shift_id === notapplicable_shift || val.shift_id === default_shift || val.shift_id === dutyoff || val.shift_id === extra_off) ? 0 : getLateInTime?.earlyOut,
+                                punch_slno: val?.punch_slno,
+                                punch_in: val?.punch_in,
+                                punch_out: val?.punch_out,
+                                hrs_worked: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getLateInTime?.hrsWorked,
+                                late_in: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getLateInTime?.lateIn,
+                                early_out: (val?.shift_id === week_off_day || val?.shift_id === noff || val?.shift_id === notapplicable_shift || val?.shift_id === default_shift || val?.shift_id === dutyoff || val?.shift_id === extra_off) ? 0 : getLateInTime?.earlyOut,
                                 duty_status: getAttendanceStatus?.duty_status,
-                                holiday_status: val.holiday_status,
-                                leave_status: val.leave_status,
+                                holiday_status: val?.holiday_status,
+                                leave_status: val?.leave_status,
                                 lvereq_desc: getAttendanceStatus?.lvereq_desc,
                                 duty_desc: getAttendanceStatus?.duty_desc,
-                                lve_tble_updation_flag: val.lve_tble_updation_flag,
-                                shft_duty_day: val.shft_duty_day
+                                lve_tble_updation_flag: val?.lve_tble_updation_flag,
+                                shft_duty_day: val?.shft_duty_day
                             }
                         }
                     })
 
                 ).then(async (element) => {
                     // REMOVE LEAVE REQUESTED DATA FROM THIS DATA
-                    const processedData = element?.map((e) => e.value)?.filter((v) => v.lve_tble_updation_flag === 0)
+                    const processedData = element?.map((e) => e?.value)?.filter((v) => v?.lve_tble_updation_flag === 0)
 
                     // PUNCH MASTER UPDATION
                     const postDataForUpdatePunchMaster = {

@@ -168,7 +168,7 @@ const ShiftMaster = () => {
         else {
             setnoff_min_days(mindays)
         }
-    }, [noff_count])
+    }, [noff_count, noff_selct_day_count])
 
     const TosetMaxDays = useCallback((e) => {
         const maxdays = e.target.value;
@@ -179,7 +179,7 @@ const ShiftMaster = () => {
         else {
             setnoff_max_days(maxdays)
         }
-    }, [noff_count])
+    }, [noff_count, noff_selct_day_count])
 
     //caslculating the shift duration in minutes
     const x = moment(checkIn).format("YYYY-MM-DD HH:mm:ss")
