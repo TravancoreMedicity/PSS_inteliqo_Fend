@@ -218,7 +218,7 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
                                 return Promise.allSettled(
                                     punchMasterMappedData?.map(async (val) => {
 
-                                        const holidayStatus = val.holiday_status;
+                                        const holidayStatus = val?.holiday_status;
                                         const punch_In = checkInFlag === 1 ? new Date(val?.shift_in) : val.punch_in === null ? new Date(val?.shift_in) : new Date(val.punch_in);
                                         const punch_out = checkOutFlag === 1 ? new Date(val?.shift_out) : val.punch_out === null ? new Date(val?.shift_out) : new Date(val.punch_out);
 
@@ -227,23 +227,28 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
                                         const shft_duty_day = val?.shft_duty_day;
 
                                         //SALARY LINMIT
-                                        const salaryLimit = val.gross_salary > val.salaryLimit ? true : false;
+                                        const salaryLimit = val?.gross_salary > val?.salaryLimit ? true : false;
 
                                         //break duty
 
                                         const break_shift_status = val?.break_shift_status;
-                                        const break_first_punch_in = checkInFlag === 1 ? new Date(val?.shift_in) : val?.break_first_punch_in === null ? new Date(val?.shift_in) : new Date(val?.break_first_punch_in);
-                                        const break_first_punch_out = val?.break_first_punch_out === null ? new Date(val?.first_half_out) : new Date(val?.break_first_punch_out);
-                                        const break_second_punch_in = val?.break_second_punch_in === null ? new Date(val?.second_half_in) : new Date(val?.break_second_punch_in);
-                                        const break_second_punch_out = checkOutFlag === 1 ? new Date(val?.shift_out) : val?.break_second_punch_out === null ? new Date(val?.shift_out) : new Date(val?.break_second_punch_out);
 
-                                        //shift details
-                                        const first_half_shift_in = val?.first_half_in === null ? null : `${format(new Date(val?.first_half_in), 'yyyy-MM-dd HH:mm')} `;
-                                        const first_half_shift_out = val?.first_half_out === null ? null : `${format(new Date(val?.first_half_out), 'yyyy-MM-dd HH:mm')} `;
-                                        const second_half_shift_in = val?.second_half_in === null ? null : `${format(new Date(val?.second_half_in), 'yyyy-MM-dd HH:mm')} `;
-                                        const second_half_shift_out = val?.second_half_out === null ? null : `${format(new Date(val?.second_half_out), 'yyyy-MM-dd HH:mm')} `;
 
                                         if (break_shift_status === 1) {
+
+                                            const break_first_punch_in = checkInFlag === 1 ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}`
+                                                : val?.break_first_punch_in === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}` : `${format(new Date(val?.break_first_punch_in), 'yyyy-MM-dd HH:mm')}`;
+                                            const break_first_punch_out = val?.break_first_punch_out === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_out), 'HH:mm')}` : `${format(new Date(val?.break_first_punch_out), 'yyyy-MM-dd HH:mm')}`;
+                                            const break_second_punch_in = val?.break_second_punch_in === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_in), 'HH:mm')} ` : `${format(new Date(val?.break_second_punch_in), 'yyyy-MM-dd HH:mm')}`;
+                                            const break_second_punch_out = checkOutFlag === 1 ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_shift_out), 'HH:mm')}`
+                                                : val?.break_second_punch_out === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_shift_out), 'HH:mm')}` : `${format(new Date(val?.break_second_punch_out), 'yyyy-MM-dd HH:mm')}`;
+
+                                            //shift details
+                                            const first_half_shift_in = val?.first_half_in === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}`;
+                                            const first_half_shift_out = val?.first_half_out === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_out), 'HH:mm')}`;
+                                            const second_half_shift_in = val?.second_half_in === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_in), 'HH:mm')} `;
+                                            const second_half_shift_out = val?.second_half_out === null ? null : ` ${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_out), 'HH:mm')} `;
+
                                             const getBreakDutyLateInTime = await getBreakDutyLateInTimeIntervel(
                                                 first_half_shift_in,
                                                 first_half_shift_out,
@@ -381,6 +386,10 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
         default_shift, loginem_id, noff, notapplicable_shift, salary_above,
         slno, week_off_day, break_shift_taken_count, dutyoff, extra_off])
 
+    const handleModalClose = useCallback(() => {
+        setOpen(false)
+        setOpenBkDrop(false)
+    }, [setOpen])
 
     return (
         <Fragment>
@@ -389,8 +398,7 @@ const OneHourReqstModal = ({ open, setOpen, data, setCount }) => {
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
                 open={open}
-                onClose={() => setOpen(false)
-                }
+                onClose={handleModalClose}
                 sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
                 <ModalDialog size="lg"  >

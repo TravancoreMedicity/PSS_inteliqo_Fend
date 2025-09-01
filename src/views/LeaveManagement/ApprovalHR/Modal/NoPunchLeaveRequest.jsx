@@ -134,6 +134,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                             const punchMasterMappedData = data?.map((e) => e.value)
                             return Promise.allSettled(
                                 punchMasterMappedData?.map(async (val) => {
+
                                     const holidayStatus = val?.holiday_status;
                                     const punch_In = checkinflag === 1 ? new Date(val?.shift_in) : val?.punch_in === null ? new Date(val?.shift_in) : new Date(val?.punch_in);
                                     const punch_out = checkoutflag === 1 ? new Date(val?.shift_out) : val?.punch_out === null ? new Date(val?.shift_out) : new Date(val?.punch_out);
@@ -142,19 +143,25 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
 
                                     const shft_duty_day = val?.shft_duty_day;
                                     const salaryLimit = val?.gross_salary > val?.salaryLimit ? true : false;
-                                    //break duty
-
+                                    //break dut
                                     const break_shift_status = val?.break_shift_status;
-                                    const break_first_punch_in = checkinflag === 1 ? new Date(val?.shift_in) : val?.break_first_punch_in === null ? new Date(val?.shift_in) : new Date(val?.break_first_punch_in);
-                                    const break_first_punch_out = val?.break_first_punch_out === null ? new Date(val?.first_half_out) : new Date(val?.break_first_punch_out);
-                                    const break_second_punch_in = val?.break_second_punch_in === null ? new Date(val?.second_half_in) : new Date(val?.break_second_punch_in);
-                                    const break_second_punch_out = checkoutflag === 1 ? new Date(val?.shift_out) : val?.break_second_punch_out === null ? new Date(val?.shift_out) : new Date(val?.break_second_punch_out);
-                                    //shift details
-                                    const first_half_shift_in = val?.first_half_in === null ? null : `${format(new Date(val?.first_half_in), 'yyyy-MM-dd HH:mm')} `;
-                                    const first_half_shift_out = val?.first_half_out === null ? null : `${format(new Date(val?.first_half_out), 'yyyy-MM-dd HH:mm')} `;
-                                    const second_half_shift_in = val?.second_half_in === null ? null : `${format(new Date(val?.second_half_in), 'yyyy-MM-dd HH:mm')} `;
-                                    const second_half_shift_out = val?.second_half_out === null ? null : `${format(new Date(val?.second_half_out), 'yyyy-MM-dd HH:mm')} `;
+
                                     if (break_shift_status === 1) {
+
+
+                                        const break_first_punch_in = checkinflag === 1 ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}`
+                                            : val?.break_first_punch_in === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}` : `${format(new Date(val?.break_first_punch_in), 'yyyy-MM-dd HH:mm')}`;
+                                        const break_first_punch_out = val?.break_first_punch_out === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_out), 'HH:mm')}` : `${format(new Date(val?.break_first_punch_out), 'yyyy-MM-dd HH:mm')}`;
+                                        const break_second_punch_in = val?.break_second_punch_in === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_in), 'HH:mm')} ` : `${format(new Date(val?.break_second_punch_in), 'yyyy-MM-dd HH:mm')}`;
+                                        const break_second_punch_out = checkoutflag === 1 ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_shift_out), 'HH:mm')}`
+                                            : val?.break_second_punch_out === null ? `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_shift_out), 'HH:mm')}` : `${format(new Date(val?.break_second_punch_out), 'yyyy-MM-dd HH:mm')}`;
+
+                                        //shift details
+                                        const first_half_shift_in = val?.first_half_in === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_in), 'HH:mm')}`;
+                                        const first_half_shift_out = val?.first_half_out === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.first_half_out), 'HH:mm')}`;
+                                        const second_half_shift_in = val?.second_half_in === null ? null : `${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_in), 'HH:mm')} `;
+                                        const second_half_shift_out = val?.second_half_out === null ? null : ` ${format(new Date(val?.duty_day), 'yyyy-MM-dd')} ${format(new Date(val?.second_half_out), 'HH:mm')} `;
+
                                         const getBreakDutyLateInTime = await getBreakDutyLateInTimeIntervel(
                                             first_half_shift_in,
                                             first_half_shift_out,
@@ -201,6 +208,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                         }
                                     }
                                     else {
+
                                         const getLateInTime = await getLateInTimeIntervel(punch_In, shift_in, punch_out, shift_out)
 
                                         const getAttendanceStatus = await getAttendanceCalculation(
@@ -249,6 +257,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                                 })
                             ).then(async (element) => {
                                 const { value } = element[0];
+
                                 const resultdel = await axioslogin.patch(`/LeaveRequestApproval/HrNopunch`, value);
                                 const { success, message } = await resultdel.data;
                                 if (success === 1) {
@@ -314,6 +323,10 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
         }
     }, [NoPunchRejectdata, setCount, setOpen])
 
+    const modalClose = useCallback(() => {
+        setOpen(false)
+        setOpenBkDrop(false)
+    }, [setOpen])
 
     return (
         <Fragment>
@@ -322,7 +335,7 @@ const NoPunchLeaveRequest = ({ open, setOpen, data, setCount, count }) => {
                 aria-labelledby="modal-title"
                 aria-describedby="modal-desc"
                 open={open}
-                onClose={() => setOpen(false)}
+                onClose={modalClose}
                 sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
                 <ModalDialog size="lg"  >
