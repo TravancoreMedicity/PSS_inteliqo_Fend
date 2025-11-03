@@ -5,7 +5,6 @@ import { useState } from 'react';
 import Autocomplete from '@mui/joy/Autocomplete';
 import { useEffect } from 'react';
 
-
 const SectionBsdEmployee = ({ getEmploy }) => {
 
     //EMPLOYEE INFOR BASED ON SELECTED DEPT & SECTION
@@ -14,15 +13,7 @@ const SectionBsdEmployee = ({ getEmploy }) => {
     //SELECTED STATE FOR EMP NAME AND CODE
     const [value, setValue] = useState(empInfm[0]);
     const [inputValue, setInputValue] = useState('');
-
-    // useEffect(() => {
-    //     empInform.length > 0 && setEmpInform(empInform)
-    //     empInform.length === 0 && setEmpInform(empInform)
-
-    //     empInform.length === 0 && setValue([{ em_id: 0, em_name: 'Employee Name' }])
-    //     empInform.length === 0 && setInputValue('')
-    // }, [empInform])
-
+   
     useEffect(() => {
         if (empInform.length !== 0) {
             setEmpInform(empInform)
@@ -35,7 +26,6 @@ const SectionBsdEmployee = ({ getEmploy }) => {
             }
         }
         else {
-
             setEmpInform([])
             return
         }
@@ -49,7 +39,6 @@ const SectionBsdEmployee = ({ getEmploy }) => {
             clearOnBlur
             onChange={(event, newValue) => {
                 setValue(newValue);
-                // getEmploy(newValue)
             }}
             inputValue={inputValue}
             onInputChange={(event, newInputValue) => {
@@ -59,7 +48,9 @@ const SectionBsdEmployee = ({ getEmploy }) => {
             loadingText="Loading..."
             freeSolo
             isOptionEqualToValue={(option, value) => option.em_id === value.em_name}
-            getOptionLabel={option => option.em_name || ''}
+            getOptionLabel={(option) =>
+                `${option.em_name} (${option.em_no ? option.em_no : ""})`
+            }
             options={empInfm}
             sx={{ width: '100%' }}
         />

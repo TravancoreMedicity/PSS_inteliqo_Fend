@@ -249,7 +249,7 @@ const PunchMarkingHR = () => {
             //GET EMPLOYEE LIST START
         }
     }, [commonSettings, em_no, empSalary, holiday_policy_count, shiftInformation, value,
-        weekoff_policy_max_count])
+        weekoff_policy_max_count,deptList])
     //FORM DATA 
 
     //DELETE ATTENDANCE MARKING 

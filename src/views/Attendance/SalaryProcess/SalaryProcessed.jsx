@@ -23,6 +23,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { DeptWiseAttendanceViewFun } from '../AttendanceView/Functions'
 import { getHolidayList } from 'src/redux/actions/LeaveProcess.action'
 import { ExporttoExcel } from 'src/views/HrReports/DayWiseAttendence/ExportToExcel'
+import CustomBackDrop from 'src/views/Component/MuiCustomComponent/CustomBackDrop'
 
 const SalaryProcessed = () => {
 
@@ -34,6 +35,7 @@ const SalaryProcessed = () => {
     const [all, setAll] = useState(false)
     const [mainArray, setArray] = useState([])
     const [processBtn, setProcessBtn] = useState(false)
+     const [openBkDrop, setOpenBkDrop] = useState(false)
 
     useEffect(() => {
         dispatch(setDepartment());
@@ -45,230 +47,138 @@ const SalaryProcessed = () => {
 
 
     //Common settings
-    const commonState = useSelector((state) => state.getCommonSettings);
+    const commonState = useSelector((state) => state?.getCommonSettings);
     const commonSettings = useMemo(() => commonState, [commonState]);
     const deptSect = useSelector((state) => state?.getDeptSectList?.deptSectionList)
     const departments = useSelector((state) => state?.getdept?.departmentlist)
     const allDept = useMemo(() => departments, [departments])
     const allSection = useMemo(() => deptSect, [deptSect])
-    const holiday = useSelector((state) => state.getHolidayList);
+    const holiday = useSelector((state) => state?.getHolidayList);
     const holidayList = useMemo(() => holiday, [holiday]);
 
     const onClickProcess = useCallback(async () => {
-        setProcessBtn(true)
-        if (all === true) {
-            const deptArray = allDept?.map(val => val.dept_id)
-            const sectArray = allSection?.map(val => val.sect_id)
-            const getEmpData = {
-                em_department: deptArray,
-                em_dept_section: sectArray,
+    setProcessBtn(true);
+    setOpenBkDrop(true)
+    try {
+        if (!isValid(value) || value === null) {
+            warningNofity("Invalid or empty date selected!");
+            return;
+        }
+
+        const fromDate = format(startOfMonth(new Date(value)), 'yyyy-MM-dd');
+        const toDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
+        const totalDays = getDaysInMonth(new Date(value));
+
+        const getEmpData = all === true
+            ? {
+                em_department: allDept?.map(val => val?.dept_id),
+                em_dept_section: allSection?.map(val => val?.sect_id),
             }
-            const result1 = await axioslogin.post("/payrollprocess/getAllEmployee", getEmpData);
-            const { succes, dataa: employeeData } = result1.data
-            if (succes === 1 && isValid(value) && value !== null) {
-                const arr = employeeData && employeeData.map((val) => val.em_id)
-                const postdata = {
-                    emp_id: arr,
-                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                }
-                const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
-                const { success, data } = result.data
-                if (success === 1) {
-                    const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data?.filter((value) => value?.emp_id === val?.em_id)
-                        //total halfday count
-                        const totalHD = (empwise?.filter(val => val?.lvereq_desc === 'HD'
-                            || val?.lvereq_desc === 'CHD' || val?.lvereq_desc === 'EGHD'))?.length
-                        //total nightshift present count
-                        const totalnightshift = (empwise?.filter(val => val?.night_off_flag === 1 && (val?.lvereq_desc === 'P'
-                            || val?.lvereq_desc === 'OHP' || val?.lvereq_desc === 'OBS'
-                            || val?.lvereq_desc === 'LC')))?.length
-                        //total no of night off
-                        const totalNOFF = (empwise?.filter(val => val?.lvereq_desc === 'NOFF'))?.length
-                        //total no of double duty
-                        const totalDp = (empwise?.filter(val => val?.lvereq_desc === 'DP'))?.length
-                        //total no of doff
-                        const totaldpOff = (empwise?.filter(val => val?.lvereq_desc === 'DOFF'))?.length
-
-                        //total normal duty present count
-                        const totalnormalpresent = (empwise?.filter(val => val?.night_off_flag === 0 && (val.lvereq_desc === 'P'
-                            || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
-                            || val.lvereq_desc === 'LC')))?.length
-
-                        //total no of weekoff
-                        const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
-
-                        const onedaySalary = val?.gross_salary / getDaysInMonth(new Date(value))
-
-                        const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
-
-                        const totalDays = getDaysInMonth(new Date(value))
-
-
-
-                        const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
-                            totalnormalpresent < 24 && totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
-                                totalnormalpresent < 18 && totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
-                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 :
-                                        (totalDp * 2) >= 24 ? commonSettings?.week_off_count :
-                                            (totalDp * 2) < 24 && (totalDp * 2) >= 18 ? commonSettings?.week_off_count - 1 :
-                                                (totalDp * 2) < 18 && (totalDp * 2) >= 12 ? commonSettings?.week_off_count - 2 :
-                                                    (totalDp * 2) < 12 && (totalDp * 2) >= 6 ? commonSettings?.week_off_count - 3 :
-                                                        0
-
-                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff + totalWOFF + (egWOFF - totalWOFF)
-                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
-                        const paydaySalay = (val?.gross_salary / totalDays) * presentDays
-
-
-                        return {
-                            em_no: val?.em_no,
-                            em_name: val?.em_name,
-                            branch_name: val?.branch_name,
-                            dept_name: val?.dept_name,
-                            sect_name: val?.sect_name,
-                            ecat_name: val?.ecat_name,
-                            inst_emp_type: val?.inst_emp_type,
-                            empSalary: val?.gross_salary,
-                            em_account_no: val?.em_account_no,
-                            totalDays: getDaysInMonth(new Date(value)),
-                            totallopCount: totallopCount,
-                            totalHD: totalHD,
-                            eligibleWeekOff: egWOFF,
-                            takenWeekoff: totalWOFF,
-                            remainingOff: egWOFF - totalWOFF,
-
-                            totalDp: totalDp,
-                            eligibledoff: totalDp,
-                            takendoff: totaldpOff,
-                            remainingDoff: extraDp,
-
-                            eligibleNoff: Math.floor(totalnightshift / 2),
-                            takenNOFF: totalNOFF,
-                            remainingNOFF: Math.floor(totalnightshift / 2) - totalNOFF,
-
-                            paydays: presentDays,
-                            lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
-                            totalSalary: Math.round(paydaySalay / 10) * 10,
-                        }
-                    })
-                    setArray(finalDataArry)
-                }
-                else {
-                    warningNofity("No Punch Details")
-                }
-            } else {
-                warningNofity("Error While Fetching data!")
-            }
-
-        } else {
-            const getEmpData = {
+            : {
                 em_department: dept,
                 em_dept_section: deptSection,
-            }
-            const result1 = await axioslogin.post("/payrollprocess/getEmpNoDeptWise", getEmpData);
-            const { succes, dataa: employeeData } = result1.data
-            if (succes === 1 && isValid(value) && value !== null) {
+            };
 
-                const arr = employeeData?.map((val) => val.em_id)
-                const postdata = {
-                    emp_id: arr,
-                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                }
-                const result = await axioslogin.post("/payrollprocess/punchbiId", postdata);
-                const { success, data } = result.data
-                if (success === 1) {
+        const empEndpoint = all
+            ? "/payrollprocess/getAllEmployee"
+            : "/payrollprocess/getEmpNoDeptWise";
 
-                    const finalDataArry = employeeData?.map((val) => {
-                        const empwise = data?.filter((value) => value?.emp_id === val?.em_id)
-                        //total halfday count
-                        const totalHD = (empwise?.filter(val => val?.lvereq_desc === 'HD'
-                            || val?.lvereq_desc === 'CHD' || val?.lvereq_desc === 'EGHD'))?.length
-                        //total nightshift present count
-                        const totalnightshift = (empwise?.filter(val => val?.night_off_flag === 1 && (val?.lvereq_desc === 'P'
-                            || val?.lvereq_desc === 'OHP' || val?.lvereq_desc === 'OBS'
-                            || val?.lvereq_desc === 'LC')))?.length
-                        //total no of night off
-                        const totalNOFF = (empwise?.filter(val => val?.lvereq_desc === 'NOFF'))?.length
-                        //total no of double duty
-                        const totalDp = (empwise?.filter(val => val?.lvereq_desc === 'DP'))?.length
-                        //total no of doff
-                        const totaldpOff = (empwise?.filter(val => val?.lvereq_desc === 'DOFF'))?.length
+        const result1 = await axioslogin.post(empEndpoint, getEmpData);
+        const { succes, dataa: employeeData } = result1.data;
 
-                        //total normal duty present count
-                        const totalnormalpresent = (empwise?.filter(val => val?.night_off_flag === 0 && (val.lvereq_desc === 'P'
-                            || val.lvereq_desc === 'OHP' || val.lvereq_desc === 'OBS'
-                            || val.lvereq_desc === 'LC')))?.length
+        if (succes !== 1 || !employeeData?.length) {
+            warningNofity("No Employee Found for the selected filters.");
+            setOpenBkDrop(false)
+            return;
 
-                        //total no of weekoff
-                        const totalWOFF = (empwise?.filter(val => val.lvereq_desc === 'WOFF')).length
-
-                        const onedaySalary = val?.gross_salary / getDaysInMonth(new Date(value))
-
-                        const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
-
-                        const totalDays = getDaysInMonth(new Date(value))
-
-
-
-                        const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
-                            totalnormalpresent < 24 && totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
-                                totalnormalpresent < 18 && totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
-                                    totalnormalpresent < 12 && totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 :
-                                        (totalDp * 2) >= 24 ? commonSettings?.week_off_count :
-                                            (totalDp * 2) < 24 && (totalDp * 2) >= 18 ? commonSettings?.week_off_count - 1 :
-                                                (totalDp * 2) < 18 && (totalDp * 2) >= 12 ? commonSettings?.week_off_count - 2 :
-                                                    (totalDp * 2) < 12 && (totalDp * 2) >= 6 ? commonSettings?.week_off_count - 3 :
-                                                        0
-
-                        const presentDays = totalnormalpresent + (totalHD * 0.5) + totalnightshift + totalDp + totaldpOff + totalWOFF + (egWOFF - totalWOFF)
-                        const totallopCount = getDaysInMonth(new Date(value)) - presentDays;
-                        const paydaySalay = (val?.gross_salary / totalDays) * presentDays
-
-
-                        return {
-                            em_no: val?.em_no,
-                            em_name: val?.em_name,
-                            branch_name: val?.branch_name,
-                            dept_name: val?.dept_name,
-                            sect_name: val?.sect_name,
-                            ecat_name: val?.ecat_name,
-                            inst_emp_type: val?.inst_emp_type,
-                            empSalary: val?.gross_salary,
-                            em_account_no: val?.em_account_no,
-                            totalDays: getDaysInMonth(new Date(value)),
-                            totallopCount: totallopCount,
-                            totalHD: totalHD,
-
-                            eligibleWeekOff: egWOFF,
-                            takenWeekoff: totalWOFF,
-                            remainingOff: egWOFF - totalWOFF,
-
-                            totalDp: totalDp,
-                            eligibledoff: totalDp,
-                            takendoff: totaldpOff,
-                            remainingDoff: extraDp,
-
-                            eligibleNoff: Math.floor(totalnightshift / 2),
-                            takenNOFF: totalNOFF,
-                            remainingNOFF: Math.floor(totalnightshift / 2) - totalNOFF,
-
-                            paydays: presentDays,
-                            lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
-                            totalSalary: Math.round(paydaySalay / 10) * 10,
-                        }
-                    })
-                    setArray(finalDataArry)
-                } else {
-                    warningNofity("No Punch Details or Not a Valid date")
-                }
-            } else {
-                warningNofity("No Employee Under this Department || Department Section")
-            }
         }
-    }, [value, all, dept, deptSection, commonSettings])
+
+        const empIds = employeeData?.map(val => val?.em_id);
+
+        const postdata = { emp_id: empIds, from: fromDate, to: toDate };
+        const result2 = await axioslogin.post("/payrollprocess/punchbiId", postdata);
+        const { success, data } = result2.data;
+
+        if (success !== 1 || !data?.length) {
+            warningNofity("No Punch Details found.");
+            setOpenBkDrop(false)
+            return;
+        }
+
+        const finalDataArry = employeeData?.map((val) => {
+                
+            const empwise = data?.filter((entry) => entry?.emp_id === val?.em_id);
+
+            const totalHD = empwise?.filter(val => ['HD', 'CHD', 'EGHD'].includes(val?.lvereq_desc))?.length || 0;
+            const extranight = empwise?.filter(val =>
+                val?.night_off_flag === 1 &&
+                ['P', 'OHP', 'OBS', 'LC'].includes(val?.lvereq_desc)
+            )?.length || 0;
+  
+            const totalnormalpresent = empwise?.filter(val =>
+                val?.night_off_flag === 0 &&
+                ['P', 'OHP', 'OBS', 'LC'].includes(val?.lvereq_desc)
+            )?.length || 0;
+
+            const totalDp = empwise?.filter(val => val?.lvereq_desc === 'DP')?.length || 0;
+            const totaldpOff = empwise?.filter(val => val?.lvereq_desc === 'DOFF')?.length || 0;
+            const totalWOFF = empwise?.filter(val => val?.lvereq_desc === 'WOFF')?.length || 0;
+
+            const egWOFF = totalnormalpresent >= 24 ? commonSettings?.week_off_count :
+                totalnormalpresent >= 18 ? commonSettings?.week_off_count - 1 :
+                    totalnormalpresent >= 12 ? commonSettings?.week_off_count - 2 :
+                        totalnormalpresent >= 6 ? commonSettings?.week_off_count - 3 :
+                            (totalDp * 2) >= 24 ? commonSettings?.week_off_count :
+                                (totalDp * 2) >= 18 ? commonSettings?.week_off_count - 1 :
+                                    (totalDp * 2) >= 12 ? commonSettings?.week_off_count - 2 :
+                                        (totalDp * 2) >= 6 ? commonSettings?.week_off_count - 3 :
+                                            0;
+
+            const extranightday=extranight>8?(extranight-8)*0.5:0
+
+            const extraDp = totalDp === totaldpOff ? 0 : totalDp - totaldpOff;
+            const presentDays = totalnormalpresent + (totalHD * 0.5) +  totalDp + totaldpOff + totalWOFF + (egWOFF - totalWOFF)+extranightday;
+            const totallopCount = totalDays - presentDays;
+            const onedaySalary = val?.gross_salary / totalDays;
+            const paydaySalary = (val?.gross_salary / totalDays) * presentDays;
+
+            return {
+                em_no: val?.em_no,
+                em_name: val?.em_name,
+                branch_name: val?.branch_name,
+                dept_name: val?.dept_name,
+                sect_name: val?.sect_name,
+                ecat_name: val?.ecat_name,
+                inst_emp_type: val?.inst_emp_type,
+                empSalary: val?.gross_salary,
+                em_account_no: val?.em_account_no,
+                totalDays,
+                totallopCount,
+                totalHD,
+
+                eligibleWeekOff: egWOFF,
+                takenWeekoff: totalWOFF,
+                remainingOff: egWOFF - totalWOFF,
+
+                totalDp,
+                eligibledoff: totalDp,
+                takendoff: totaldpOff,
+                remainingDoff: extraDp,
+
+                paydays: presentDays,
+                lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
+                totalSalary: Math.round(paydaySalary / 10) * 10,
+            };
+        });
+
+        setArray(finalDataArry);
+        setOpenBkDrop(false)
+    } catch (error) {
+        warningNofity("Something went wrong during processing.");
+        setOpenBkDrop(false)
+    }
+}, [value, all, dept, deptSection, allDept, allSection, commonSettings]);
+
 
     const [column] = useState([
         { headerName: 'ID', field: 'em_no' },
@@ -293,10 +203,6 @@ const SalaryProcessed = () => {
         { headerName: 'Taken DOFF', field: 'takendoff' },
         { headerName: 'Remaining DOFF', field: 'remainingDoff' },
 
-        { headerName: 'Eligible NOFF', field: 'eligibleNoff' },
-        { headerName: 'Taken NOFF', field: 'takenNOFF' },
-        { headerName: 'Remaining NOFF', field: 'remainingNOFF' },
-
         { headerName: 'Total Pay Day', field: 'paydays' },
         { headerName: 'LOP Amount ', field: 'lopAmount' },
         { headerName: 'Total Salary', field: 'totalSalary' },
@@ -304,195 +210,131 @@ const SalaryProcessed = () => {
 
     const downloadFormat = useCallback(async () => {
 
-        if (processBtn === false) {
-            warningNofity("Please Select Any Option!!")
-        }
-        else if (processBtn === true && all === true) {
-            const deptArray = allDept?.map(val => val.dept_id)
-            const sectArray = allSection?.map(val => val.sect_id)
-            const getEmpData = {
+    const isValidDate = isValid(value) && value !== null;
+
+    // Date Range helpers
+    const fromDate = format(startOfMonth(new Date(value)), 'yyyy-MM-dd');
+    const toDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd');
+    const dateRange = eachDayOfInterval({ start: new Date(fromDate), end: new Date(toDate) })
+        .map(e => format(new Date(e), 'yyyy-MM-dd'));
+
+    // Helper to format employee data
+    const formatEmployeeData = (punchData) => {
+        const uniqueEmpNos = [...new Set(punchData?.map(e => e.em_no))];
+
+        return uniqueEmpNos.map((el) => {
+            const empArray = punchData.filter(e => e?.em_no === el);
+            const empInfo = empArray.find(e => e?.em_no === el);
+
+            return {
+                em_no: empInfo?.em_no,
+                em_name: empInfo?.em_name,
+                dept_name: empInfo?.dept_name,
+                sect_name: empInfo?.sect_name,
+                arr: dateRange.map((date) => {
+                    const attendance = empArray.find(em => em?.duty_day === date);
+                    return {
+                        attDate: date,
+                        duty_date: attendance?.duty_date ?? date,
+                        duty_status: attendance?.duty_status ?? 0,
+                        em_name: attendance?.em_name ?? empInfo?.em_name,
+                        em_no: attendance?.em_no ?? empInfo?.em_no,
+                        emp_id: attendance?.emp_id ?? empInfo?.emp_id,
+                        hld_desc: attendance?.hld_desc ?? null,
+                        holiday_slno: attendance?.holiday_slno ?? 0,
+                        holiday_status: attendance?.holiday_status ?? 0,
+                        leave_status: attendance?.leave_status ?? 0,
+                        duty_desc: attendance?.duty_desc ?? 'A',
+                        lvereq_desc: attendance?.lvereq_desc ?? 'A',
+                    };
+                }),
+            };
+        });
+    };
+
+    // Excel Export Helper
+    const exportToExcel = async (formattedData) => {
+        const fileName = "Attendance_Report";
+
+        const values = await DeptWiseAttendanceViewFun(fromDate, holidayList);
+
+        const headers = ["Name", "Emp Id", "Department", "Department Section", ...values?.map(val => val?.date)];
+        const days = ["Days", "", "", "", ...values?.map(val => val?.holiday === 1 ? val?.holidayDays?.toLowerCase() : val?.days)];
+
+        const rows = formattedData?.map(row => [
+            row?.em_name,
+            row?.em_no,
+            row?.dept_name,
+            row?.sect_name,
+            ...row?.arr.map(val => val?.lvereq_desc),
+        ]);
+
+        const excelData = [headers, days, ...rows];
+        ExporttoExcel(excelData, fileName);
+    };
+
+    // Main Logic
+    if (!processBtn) {
+        warningNofity("Please Select Any Option!!");
+        return;
+    }
+
+    try {
+        let empDataResponse;
+
+        if (all) {
+            const deptArray = allDept?.map(val => val?.dept_id);
+            const sectArray = allSection?.map(val => val?.sect_id);
+            empDataResponse = await axioslogin.post("/payrollprocess/getAllEmployee", {
                 em_department: deptArray,
                 em_dept_section: sectArray,
-            }
-            const result1 = await axioslogin.post("/payrollprocess/getAllEmployee", getEmpData);
-            const { succes, dataa: employeeData } = result1.data
-            if (succes === 1 && isValid(value) && value !== null) {
-
-                const arr = employeeData?.map((val) => val.em_no)
-                const postdata = {
-                    em_no: arr,
-                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                }
-                const result = await axioslogin.post("/payrollprocess/getPunchmastData", postdata);
-                const { success, data: punchMasteData } = result.data
-                if (success === 1) {
-
-                    const dateRange = eachDayOfInterval({ start: new Date(startOfMonth(new Date(value))), end: new Date(endOfMonth(new Date(value))) })
-                        ?.map(e => format(new Date(e), 'yyyy-MM-dd'));
-
-                    const resultss = [...new Set(punchMasteData?.map(e => e.em_no))]?.map((el) => {
-                        const empArray = punchMasteData?.filter(e => e.em_no === el)
-                        let emName = empArray?.find(e => e.em_no === el).em_name;
-                        let emNo = empArray?.find(e => e.em_no === el).em_no;
-                        let emId = empArray?.find(e => e.em_no === el).emp_id;
-                        let deptName = empArray?.find(e => e.em_no === el).dept_name;
-                        let sectName = empArray?.find(e => e.em_no === el).sect_name;
-
-                        return {
-                            em_no: el,
-                            em_name: emName,
-                            dept_name: deptName,
-                            sect_name: sectName,
-                            arr: dateRange?.map((e) => {
-                                return {
-                                    attDate: e,
-                                    duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
-                                    duty_status: empArray?.find(em => em.duty_day === e)?.duty_status ?? 0,
-                                    em_name: empArray?.find(em => em.duty_day === e)?.em_name ?? emName,
-                                    em_no: empArray?.find(em => em.duty_day === e)?.em_no ?? emNo,
-                                    emp_id: empArray?.find(em => em.duty_day === e)?.emp_id ?? emId,
-                                    hld_desc: empArray?.find(em => em.duty_day === e)?.hld_desc ?? null,
-                                    holiday_slno: empArray?.find(em => em.duty_day === e)?.holiday_slno ?? 0,
-                                    holiday_status: empArray?.find(em => em.duty_day === e)?.holiday_status ?? 0,
-                                    leave_status: empArray?.find(em => em.duty_day === e)?.leave_status ?? 0,
-                                    duty_desc: empArray?.find(em => em.duty_day === e)?.duty_desc ?? 'A',
-                                    lvereq_desc: empArray?.find(em => em.duty_day === e)?.lvereq_desc ?? 'A',
-                                }
-                            }),
-                        }
-                    })
-
-                    DeptWiseAttendanceViewFun(format(startOfMonth(new Date(value)), 'yyyy-MM-dd'), holidayList).then((values) => {
-                        const fileName = "Attendance_Report";
-                        const headers = ["Name", "Emp Id", "Department", "Department Section", ...values.map(val => val.date)];
-                        const days = ["Days", "", "", "", ...values.map(val => val.holiday === 1 ? val.holidayDays.toLowerCase() : val.days)];
-                        // Rows for Excel file
-                        const rows = resultss.map(row => {
-                            const rowData = [
-                                row.em_name,
-                                row.em_no,
-                                row.dept_name,
-                                row.sect_name,
-                                ...row.arr.map(val => val.lvereq_desc)
-                            ];
-                            return rowData;
-                        });
-
-                        // Prepare data for Excel export
-                        const excelData = [headers, days, ...rows];
-
-                        // Call ExporttoExcel function
-                        ExporttoExcel(excelData, fileName);
-
-                    })
-                } else {
-                    warningNofity("No Punch Details or Not a Valid date")
-                }
-            } else {
-                warningNofity("Error While Fetching data!")
-            }
-
+            });
         } else {
-            const getEmpData = {
+            empDataResponse = await axioslogin.post("/payrollprocess/getEmpNoDeptWise", {
                 em_department: dept,
                 em_dept_section: deptSection,
-            }
-            const result1 = await axioslogin.post("/payrollprocess/getEmpNoDeptWise", getEmpData);
-            const { succes, dataa: employeeData } = result1.data
-            if (succes === 1 && isValid(value) && value !== null) {
-
-
-                const arr = employeeData?.map((val) => val.em_no)
-                const postdata = {
-                    em_no: arr,
-                    from: format(startOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                    to: format(endOfMonth(new Date(value)), 'yyyy-MM-dd'),
-                }
-                const result = await axioslogin.post("/payrollprocess/getPunchmastData", postdata);
-                const { success, data: punchMasteData } = result.data
-                if (success === 1) {
-
-                    const dateRange = eachDayOfInterval({ start: new Date(startOfMonth(new Date(value))), end: new Date(endOfMonth(new Date(value))) })
-                        ?.map(e => format(new Date(e), 'yyyy-MM-dd'));
-
-                    const resultss = [...new Set(punchMasteData?.map(e => e.em_no))]?.map((el) => {
-                        const empArray = punchMasteData?.filter(e => e.em_no === el)
-                        let emName = empArray?.find(e => e.em_no === el).em_name;
-                        let emNo = empArray?.find(e => e.em_no === el).em_no;
-                        let emId = empArray?.find(e => e.em_no === el).emp_id;
-                        let deptName = empArray?.find(e => e.em_no === el).dept_name;
-                        let sectName = empArray?.find(e => e.em_no === el).sect_name;
-
-                        return {
-                            em_no: el,
-                            em_name: emName,
-                            dept_name: deptName,
-                            sect_name: sectName,
-                            arr: dateRange?.map((e) => {
-
-                                return {
-                                    attDate: e,
-                                    duty_date: empArray?.find(em => em.duty_day === e)?.duty_date ?? e,
-                                    duty_status: empArray?.find(em => em.duty_day === e)?.duty_status ?? 0,
-                                    em_name: empArray?.find(em => em.duty_day === e)?.em_name ?? emName,
-                                    em_no: empArray?.find(em => em.duty_day === e)?.em_no ?? emNo,
-                                    emp_id: empArray?.find(em => em.duty_day === e)?.emp_id ?? emId,
-                                    hld_desc: empArray?.find(em => em.duty_day === e)?.hld_desc ?? null,
-                                    holiday_slno: empArray?.find(em => em.duty_day === e)?.holiday_slno ?? 0,
-                                    holiday_status: empArray?.find(em => em.duty_day === e)?.holiday_status ?? 0,
-                                    leave_status: empArray?.find(em => em.duty_day === e)?.leave_status ?? 0,
-                                    duty_desc: empArray?.find(em => em.duty_day === e)?.duty_desc ?? 'A',
-                                    lvereq_desc: empArray?.find(em => em.duty_day === e)?.lvereq_desc ?? 'A',
-                                }
-                            }),
-                        }
-                    })
-
-
-
-                    DeptWiseAttendanceViewFun(format(startOfMonth(new Date(value)), 'yyyy-MM-dd'), holidayList).then((values) => {
-                        const fileName = "Attendance_Report";
-                        const headers = ["Name", "Emp Id", "Department", "Department Section", ...values.map(val => val.date)];
-                        const days = ["Days", "", "", "", ...values.map(val => val.holiday === 1 ? val.holidayDays.toLowerCase() : val.days)];
-                        // Rows for Excel file
-                        const rows = resultss.map(row => {
-                            const rowData = [
-                                row.em_name,
-                                row.em_no,
-                                row.dept_name,
-                                row.sect_name,
-                                ...row.arr.map(val => val.lvereq_desc)
-                            ];
-                            return rowData;
-                        });
-
-                        // Prepare data for Excel export
-                        const excelData = [headers, days, ...rows];
-
-                        // Call ExporttoExcel function
-                        ExporttoExcel(excelData, fileName);
-
-                    })
-                } else {
-                    warningNofity("No Punch Details or Not a Valid date")
-                }
-            } else {
-                warningNofity("No Employee Under this Department || Department Section")
-            }
+            });
         }
-    }, [value, all, dept, deptSection, allDept, allSection, processBtn, holidayList])
+
+        const { succes, dataa: employeeData } = empDataResponse.data;
+
+        if (succes !== 1 || !isValidDate) {
+            warningNofity(all ? "Error While Fetching data!" : "No Employee Under this Department || Department Section");
+            return;
+        }
+
+        const emNoArray = employeeData?.map(emp => emp.em_no);
+        const punchResponse = await axioslogin.post("/payrollprocess/getPunchmastData", {
+            em_no: emNoArray,
+            from: fromDate,
+            to: toDate,
+        });
+
+        const { success, data: punchData } = punchResponse.data;
+
+        if (success !== 1) {
+            warningNofity("No Punch Details or Not a Valid date");
+            return;
+        }
+
+        const formattedEmployeeData = formatEmployeeData(punchData);
+        await exportToExcel(formattedEmployeeData);
+
+    } catch (error) {
+        warningNofity("An unexpected error occurred!");
+    }
+}, [value, all, dept, deptSection, allDept, allSection, processBtn, holidayList]);
 
 
     return (
         <ReportLayout title="Salary Reports" data={[column]} displayClose={true} >
+             <CustomBackDrop open={openBkDrop} text="Please wait !. Salary information Updation In Process" />
             <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column' }} >
                 <Box sx={{ mt: 1, ml: 0.5, display: 'flex', flex: { xs: 4, sm: 4, md: 4, lg: 4, xl: 3, }, flexDirection: 'row', }}>
                     <Box sx={{ flex: 1, px: 0.5 }} >
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
                             <DatePicker
                                 views={['year', 'month']}
-                                // minDate={subMonths(new Date(), 1)}
                                 maxDate={addMonths(new Date(), 1)}
                                 value={value}
                                 onChange={(newValue) => {
@@ -526,28 +368,20 @@ const SalaryProcessed = () => {
                     <Box sx={{ px: 1, display: 'flex', flex: { xs: 0, sm: 0, md: 0, lg: 0, xl: 1, }, justifyContent: 'flex-start' }} >
                         <CssVarsProvider>
                             <Button aria-label="Like" variant="outlined" color='success'
-                                sx={{
-                                    // color: '#90caf9'
-                                }}
                                 startDecorator={<RotateRightIcon />}
                                 endDecorator={'Process'}
                                 onClick={onClickProcess}
                             >
-
                             </Button>
                         </CssVarsProvider>
                     </Box>
                     <Box sx={{ px: 1, display: 'flex', flex: { xs: 0, sm: 0, md: 0, lg: 0, xl: 1, }, justifyContent: 'flex-start' }} >
                         <CssVarsProvider>
                             <Button aria-label="Like" variant="outlined" color='primary'
-                                sx={{
-                                    // color: '#90caf9'
-                                }}
                                 startDecorator={<ArrowDownwardIcon />}
                                 endDecorator={'Download Attendance Format'}
                                 onClick={downloadFormat}
                             >
-
                             </Button>
                         </CssVarsProvider>
                     </Box>

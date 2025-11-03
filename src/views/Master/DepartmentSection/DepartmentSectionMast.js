@@ -1,4 +1,4 @@
-import { Box, Button, CssVarsProvider } from '@mui/joy'
+import { Box, Button, CssVarsProvider, Typography } from '@mui/joy'
 import { Grid, IconButton } from '@mui/material'
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { ToastContainer } from 'react-toastify'
@@ -36,6 +36,7 @@ const DepartmentSectionMast = () => {
     const [tableData, setTableData] = useState([])
     const [flag, setFlag] = useState(0)
     const [slno, setSlno] = useState(0)
+    const [woffcount,setwoffcount]=useState(0)
 
 
     const [deptsubtype, setdeptsubtype] = useState({
@@ -67,9 +68,10 @@ const DepartmentSectionMast = () => {
             authorization_hod: hodstatus,
             sect_status: sectionStatus,
             create_user: employeeNumber(),
-            dept_sub_sect: general === true ? 1 : ot === true ? 2 : icu === true ? 3 : er === true ? 4 : 0
+            dept_sub_sect: general === true ? 1 : ot === true ? 2 : icu === true ? 3 : er === true ? 4 : 0,
+            woffcount:woffcount
         }
-    }, [deptSectionName, dept, inchargestatus, hodstatus, sectionStatus, general, icu, ot, er])
+    }, [deptSectionName, dept, inchargestatus, hodstatus, sectionStatus, general, icu, ot, er,woffcount])
 
 
     const updateData = useMemo(() => {
@@ -81,9 +83,10 @@ const DepartmentSectionMast = () => {
             dept_id: dept,
             edit_user: employeeNumber(),
             sect_id: slno,
-            dept_sub_sect: general === true ? 1 : ot === true ? 2 : icu === true ? 3 : er === true ? 4 : 0
+            dept_sub_sect: general === true ? 1 : ot === true ? 2 : icu === true ? 3 : er === true ? 4 : 0,
+            woffcount:woffcount
         }
-    }, [deptSectionName, dept, inchargestatus, hodstatus, sectionStatus, general, icu, ot, er, slno])
+    }, [deptSectionName, dept, inchargestatus, hodstatus, sectionStatus, general, icu, ot, er, slno,woffcount])
 
     // reset from fn
     const resetSectionDept = useCallback(() => {
@@ -128,6 +131,7 @@ const DepartmentSectionMast = () => {
         { headerName: 'Sub Section', field: 'sub_sect_name', filter: true, width: 150 },
         { headerName: 'Incharge Authorization', field: 'incharge', filter: true, width: 150 },
         { headerName: 'HOD Authorization', field: 'hod', filter: true, width: 150 },
+         { headerName: 'WOFF Count', field: 'woffcount', filter: true, width: 150 },
         { headerName: 'Status ', field: 'status', width: 100 },
         {
             headerName: 'Edit', cellRenderer: params =>
@@ -237,6 +241,21 @@ const DepartmentSectionMast = () => {
                                     checked={general}
                                     name="general"
                                     onchange={(e) => updateSectionStatus(e)}
+                                />
+                            </Box>
+                        </Box>
+                        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', }}>
+                            <Box sx={{ flex: 1, px: 0.5 }} >
+                                <Typography level="body1">WOFF Count</Typography>
+                            </Box>
+                            <Box sx={{ flex: 1, px: 0.5 }} >
+                                <InputComponent
+                                    placeholder={''}
+                                    type="text"
+                                    size="sm"
+                                    name="woffcount"
+                                    value={woffcount}
+                                    onchange={(e) => setwoffcount(e.target.value)}
                                 />
                             </Box>
                         </Box>
