@@ -267,8 +267,8 @@ const ShiftMasterEdit = () => {
         night_off_flag: nightoff === false ? 0 : 1,
         shft_status: shift_status === true ? 1 : 0,
         break_shift_status: break_shift_status === true ? 1 : 0,
-        noff_min_days: parseInt(noff_min_days),
-        noff_max_days: parseInt(noff_max_days),
+        noff_min_days:nightoff === true ? parseInt(noff_min_days):0,
+        noff_max_days:nightoff === true ? parseInt(noff_max_days):0,
     }
     // console.log('checkIn')
 

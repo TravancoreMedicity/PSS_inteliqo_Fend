@@ -3,7 +3,7 @@ import { Actiontypes } from "../constants/action.type";
 const { FETCH_DEPT_SHIFT_DATA, FETCH_EMP_DETAILS } = Actiontypes
 
 export const getdeptShift = (postData) => async (dispatch) => {
-    const result = await axioslogin.post('/departmentshift/shift', postData)
+    const result = await axioslogin.post('/departmentshift', postData)
     const { success, data } = await result.data;
     if (success === 1) {
         const { shft_code } = data[0]
