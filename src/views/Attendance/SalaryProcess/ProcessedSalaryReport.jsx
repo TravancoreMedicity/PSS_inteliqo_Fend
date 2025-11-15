@@ -79,6 +79,7 @@ const ProcessedSalaryReport = () => {
             }
             const result1 = await axioslogin.post("/payrollprocess/getPayrollDetailsByDept", getEmpData);
             const { success, data: employeeData } = result1.data
+                  
             if (success === 1) {
                 setArray(employeeData)
                 setOpenBkDrop(false)
@@ -290,23 +291,24 @@ const ProcessedSalaryReport = () => {
         { headerName: 'Account Number', field: 'em_account_no' },
         { headerName: 'IFSC Number', field: 'ifsc_number' },
         { headerName: 'Total Days ', field: 'total_days' },
-        { headerName: 'Leave Count', field: 'leave_count' },
-        { headerName: 'No Of LC Count', field: 'lc_count' },
+        { headerName: 'No Of Half Day LOP(HD)', field: 'totalHD', minWidth: 250 },
         { headerName: 'Total LOP', field: 'total_lop_count' },
-        { headerName: 'Total Pay Day', field: 'total_pay_days' },
-        { headerName: 'LOP Amount ', field: 'lop_amount' },
+
         { headerName: 'Eligible WOFF', field: 'eligibile_woff_count' },
         { headerName: 'Taken WOFF', field: 'taken_woff_count' },
         { headerName: 'Remaining WOFF', field: 'remaining_woff_count' },
+
         { headerName: 'Total DP', field: 'dp_count' },
         { headerName: 'Eligible DOFF', field: 'eligible_doff_count' },
         { headerName: 'Taken DOFF', field: 'taken_doff_count' },
         { headerName: 'Remaining DOFF', field: 'remaining_doff_count' },
+
+        { headerName: 'Total Pay Day', field: 'total_pay_days' },
+        { headerName: 'LOP Amount ', field: 'lop_amount' },
         { headerName: 'Gross Salary ', field: 'gross_salary' },
         { headerName: 'Total Salary', field: 'total_salary' },
-
     ])
-
+    
     return (
         <ReportLayout title="Salary Reports" data={mainArray} displayClose={true} >
             <CustomBackDrop open={openBkDrop} text="!!! Please wait...Generating Salary Sheet.... Do not Refesh or Reload the Browser !!!" />

@@ -594,7 +594,7 @@ const onClickProcess = useCallback(async () => {
   }, [value, all, dept, deptSection, allDept, allSection, processBtn, holidayList])
 
   return (
-    <ReportLayout title="Salary Reports" data={[column]} displayClose={true}>
+    <ReportLayout title="Salary Reports" data={mainArray} displayClose={true}>
       <CustomBackDrop
         open={openBkDrop}
         text="Please wait !. Salary information Updation In Process"
