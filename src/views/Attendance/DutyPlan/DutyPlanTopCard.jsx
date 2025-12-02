@@ -105,17 +105,40 @@ const DutyPlanTopCard = () => {
     const getUpdatedShiftId = useSelector((state) => state.getUpdatedShiftId, _.isEqual);
     const shiftId = useMemo(() => getUpdatedShiftId, [getUpdatedShiftId]);
 
-    const onClickSaveShiftUpdation = useCallback(async (e) => {
-        e.preventDefault();
-        const updateShiftChanges = await axioslogin.patch("/plan", shiftId)
-        const { success, message } = updateShiftChanges.data
-        if (success === 1) {
-            succesNofity("Duty Plan Updated")
-        }
-        else {
-            errorNofity(message)
-        }
-    }, [shiftId])
+    const onClickSaveShiftUpdation = useCallback(
+        async (e) => {
+            e.preventDefault()
+
+            // Group and count
+            const grouped = shiftId.reduce((acc, item) => {
+                if (item.shift_id === String(commonSettings?.week_off_day) && item.em_id) {
+                    acc[item.em_id] = (acc[item.em_id] || 0) + 1
+                }
+                return acc
+            }, {})
+
+            // Convert to array of objects
+            const resultArray = Object.keys(grouped).map((key) => ({
+                em_id: Number(key),
+                count: grouped[key],
+            }))
+
+            const noOfWOff = resultArray?.filter((k) => k?.count > commonSettings?.week_off_count)
+
+            if (noOfWOff?.length === 0) {
+                const updateShiftChanges = await axioslogin.patch('/plan', shiftId)
+                const { success, message } = updateShiftChanges.data
+                if (success === 1) {
+                    succesNofity('Duty Plan Updated')
+                } else {
+                    errorNofity(message)
+                }
+            } else {
+                warningNofity('An Employee Have More Than ' + commonSettings?.week_off_count + ' OFF')
+            }
+        },
+        [shiftId, commonSettings],
+    )
 
     useEffect(() => {
         const getEmployeeRight = async () => {
