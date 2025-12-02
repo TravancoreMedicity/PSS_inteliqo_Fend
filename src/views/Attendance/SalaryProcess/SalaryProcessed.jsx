@@ -62,170 +62,6 @@ const SalaryProcessed = () => {
   const holiday = useSelector((state) => state?.getHolidayList)
   const holidayList = useMemo(() => holiday, [holiday])
 
-  // const onClickProcess = useCallback(async () => {
-  //   setProcessBtn(true)
-  //   setOpenBkDrop(true)
-  //   try {
-  //     if (!isValid(value) || value === null) {
-  //       warningNofity('Invalid or empty date selected!')
-  //       return
-  //     }
-
-  //     const fromDate = format(startOfMonth(new Date(value)), 'yyyy-MM-dd')
-  //     const toDate = format(endOfMonth(new Date(value)), 'yyyy-MM-dd')
-  //     const totalDays = getDaysInMonth(new Date(value))
-
-  //     const getEmpData =
-  //       all === true
-  //         ? {
-  //             em_department: allDept?.map((val) => val?.dept_id),
-  //             em_dept_section: allSection?.map((val) => val?.sect_id),
-  //           }
-  //         : {
-  //             em_department: dept,
-  //             em_dept_section: deptSection,
-  //           }
-
-  //     const empEndpoint = all
-  //       ? '/payrollprocess/getAllEmployee'
-  //       : '/payrollprocess/getEmpNoDeptWise'
-
-  //     const result1 = await axioslogin.post(empEndpoint, getEmpData)
-  //     const { succes, dataa: employeeData } = result1.data
-
-  //     if (succes !== 1 || !employeeData?.length) {
-  //       warningNofity('No Employee Found for the selected filters.')
-  //       setOpenBkDrop(false)
-  //       return
-  //     }
-
-  //     const empIds = employeeData?.map((val) => val?.em_id)
-
-  //     const postdata = { emp_id: empIds, from: fromDate, to: toDate }
-  //     const result2 = await axioslogin.post('/payrollprocess/punchbiId', postdata)
-  //     const { success, data } = result2.data
-
-  //     if (success !== 1 || !data?.length) {
-  //       warningNofity('No Punch Details found.')
-  //       setOpenBkDrop(false)
-  //       return
-  //     }
-
-  //     const finalDataArry = employeeData?.map((val) => {
-  //       const empwise = data?.filter((entry) => entry?.emp_id === val?.em_id)
-
-  //       const totalHD =
-  //         empwise?.filter((val) => ['HD', 'CHD', 'EGHD'].includes(val?.lvereq_desc))?.length || 0
-  //       const extranight =
-  //         empwise?.filter(
-  //           (val) =>
-  //             val?.night_off_flag === 1 &&
-  //             val?.shft_duty_day === 1 &&
-  //             ['P', 'OHP', 'OBS', 'LC'].includes(val?.lvereq_desc),
-  //         )?.length || 0
-
-  //       const totalnormalpresent =
-  //         empwise?.filter(
-  //           (val) =>
-  //             val?.night_off_flag === 0 &&
-  //             val?.shft_duty_day === 1 &&
-  //             ['P', 'OHP', 'OBS', 'LC'].includes(val?.lvereq_desc),
-  //         )?.length || 0
-
-  //       const totalPresent = totalnormalpresent + extranight
-  //       const caluculatedEligibleNightoffCount = extranight > 8 ? (extranight - 8) * 0.5 : 0
-
-  //       const totalDp =
-  //         empwise?.filter(
-  //           (val) =>
-  //             val?.lvereq_desc === 'DP' && val?.shft_duty_day === 2 && val?.night_off_flag === 0,
-  //         )?.length || 0
-
-  //       const noOFFDp =
-  //         empwise?.filter(
-  //           (val) =>
-  //             val?.lvereq_desc === 'DP' && val?.shft_duty_day === 2 && val?.night_off_flag === 1,
-  //         )?.length || 0
-  //       const takenDOFF = empwise?.filter((val) => val?.lvereq_desc === 'DOFF')?.length || 0
-  //       const takenWOFF = empwise?.filter((val) => val?.lvereq_desc === 'WOFF')?.length || 0
-
-  //       const egWOFFforNormalduty =
-  //         totalPresent >= 24
-  //           ? commonSettings?.week_off_count
-  //           : totalPresent >= 18
-  //           ? commonSettings?.week_off_count - 1
-  //           : totalPresent >= 12
-  //           ? commonSettings?.week_off_count - 2
-  //           : totalPresent >= 6
-  //           ? commonSettings?.week_off_count - 3
-  //           : 0
-  //       const egWOFFforDp =
-  //         totalDp * 2 >= 24
-  //           ? commonSettings?.week_off_count
-  //           : totalDp * 2 >= 18
-  //           ? commonSettings?.week_off_count - 1
-  //           : totalDp * 2 >= 12
-  //           ? commonSettings?.week_off_count - 2
-  //           : totalDp * 2 >= 6
-  //           ? commonSettings?.week_off_count - 3
-  //           : 0
-
-  //       const totalEGWOFF = egWOFFforNormalduty + egWOFFforDp
-
-  //       const extraDp = (totalDp || noOFFDp) === takenDOFF ? 0 : (totalDp || noOFFDp) - takenDOFF
-
-  //       const presentDays =
-  //         totalPresent +
-  //         totalHD * 0.5 +
-  //         totalDp +
-  //         takenDOFF +
-  //         takenWOFF +
-  //         (totalEGWOFF - takenWOFF) +
-  //         noOFFDp +
-  //         caluculatedEligibleNightoffCount
-  //       //const presentDays = totalPresent + (totalHD * 0.5) +  takenWOFF + (totalEGWOFF - takenWOFF) +caluculatedEligibleNightoffCount ;
-
-  //       const totallopCount = totalDays - presentDays
-  //       const onedaySalary = val?.gross_salary / totalDays
-  //       const paydaySalary = (val?.gross_salary / totalDays) * presentDays
-
-  //       return {
-  //         em_no: val?.em_no,
-  //         em_name: val?.em_name,
-  //         branch_name: val?.branch_name,
-  //         dept_name: val?.dept_name,
-  //         sect_name: val?.sect_name,
-  //         ecat_name: val?.ecat_name,
-  //         inst_emp_type: val?.inst_emp_type,
-  //         empSalary: val?.gross_salary,
-  //         em_account_no: val?.em_account_no,
-  //         totalDays,
-  //         totallopCount,
-  //         totalHD,
-
-  //         eligibleWeekOff: totalEGWOFF,
-  //         takenWeekoff: takenWOFF,
-  //         remainingOff: totalEGWOFF - takenWOFF,
-
-  //         totalDp: noOFFDp || totalDp,
-  //         eligibledoff: noOFFDp || totalDp,
-  //         takendoff: takenDOFF,
-  //         remainingDoff: extraDp,
-
-  //         paydays: presentDays,
-  //         lopAmount: Math.round((onedaySalary * totallopCount) / 10) * 10,
-  //         totalSalary: Math.round(paydaySalary / 10) * 10,
-  //       }
-  //     })
-
-  //     setArray(finalDataArry)
-  //     setOpenBkDrop(false)
-  //   } catch (error) {
-  //     warningNofity('Something went wrong during processing.')
-  //     setOpenBkDrop(false)
-  //   }
-  // }, [value, all, dept, deptSection, allDept, allSection, commonSettings])
-
   // Define the function using useCallback to memoize it and prevent unnecessary re-renders
 const onClickProcess = useCallback(async () => {
   // Disable process button and show backdrop loader
@@ -317,7 +153,7 @@ const onClickProcess = useCallback(async () => {
             val?.shft_duty_day === 1 &&
             ['P', 'OHP', 'OBS', 'LC'].includes(val?.lvereq_desc),
         )?.length || 0
-
+      
       // Total present days = normal + extra night shifts
       const totalPresent = totalnormalpresent + extranight
 
@@ -366,23 +202,48 @@ const onClickProcess = useCallback(async () => {
           ? commonSettings?.week_off_count - 3
           : 0
 
+          //const egw=(totalPresent+ totalDp * 2)
+          
+          const totalEGWOFF=   (totalPresent+ totalDp * 2) >= 24
+          ? commonSettings?.week_off_count
+          : (totalPresent+ totalDp * 2) >= 18
+          ? commonSettings?.week_off_count - 1
+          : (totalPresent+ totalDp * 2) >= 12
+          ? commonSettings?.week_off_count - 2
+          : (totalPresent+ totalDp * 2) >= 6
+          ? commonSettings?.week_off_count - 3
+          : 0
+      
       // Total eligible week offs
-      const totalEGWOFF = egWOFFforNormalduty + egWOFFforDp
+      //const totalEGWOFF = egWOFFforNormalduty + egWOFFforDp
 
+      
       // Extra DOFFs remaining after taken ones
       const extraDp = (totalDp || noOFFDp) === takenDOFF ? 0 : (totalDp || noOFFDp) - takenDOFF
 
-      // Calculate total payable days
-      const presentDays =
-        totalPresent +
+      const eligibleCalculatedOff=totalEGWOFF+caluculatedEligibleNightoffCount;
+      
+      const takenNightCalulatedOff=extranight*0.5
+      
+        // Calculate total payable days
+      const presentDays = takenNightCalulatedOff>eligibleCalculatedOff?totalPresent +
         totalHD * 0.5 +
         totalDp +
         takenDOFF +
-        takenWOFF +
-        (totalEGWOFF - takenWOFF) +
+        noOFFDp +takenNightCalulatedOff:totalPresent +
+        totalHD * 0.5 +
+        totalDp +
+        takenDOFF +
         noOFFDp +
+        takenWOFF+
+        (totalEGWOFF -takenWOFF)+
         caluculatedEligibleNightoffCount
-
+        const xx=totalPresent +
+        totalHD * 0.5 +
+        totalDp +
+        takenDOFF +
+        noOFFDp +takenNightCalulatedOff
+    
       // Calculate Loss of Pay (LOP)
       const totallopCount = totalDays - presentDays
 
