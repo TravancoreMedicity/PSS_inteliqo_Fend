@@ -39,34 +39,48 @@ const ShiftSelect = ({ data }) => {
 
   const shiftChangeFun = async (e) => {
     let changedShiftId = e.target.value
+   
+    if (Number(changedShiftId)=== Number(week_off_day) ) {
 
-    const postData = {
-      start_date: format(startOfMonth(new Date(duty_day)), 'yyyy-MM-dd'),
-      end_date: format(lastDayOfMonth(new Date(duty_day)), 'yyyy-MM-dd'),
-      emp_id: emp_id,
-    }
-    const result = await axioslogin.post('/plan', postData)
-    const { success, data } = result.data
-    if (success === 1) {
+      const postData = {
+        start_date: format(startOfMonth(new Date(duty_day)), 'yyyy-MM-dd'),
+        end_date: format(lastDayOfMonth(new Date(duty_day)), 'yyyy-MM-dd'),
+        emp_id: emp_id,
+      }
+      const result = await axioslogin.post('/plan', postData)
+      const { success, data } = result.data
+      if (success === 1) {
 
-      const noOfWOff = data?.filter((k) => k?.shift_id === week_off_day)
+        const noOfWOff = data?.filter((k) => k?.shift_id === week_off_day)
 
-      if (noOfWOff?.length > week_off_count) {
-        warningNofity('Cannot Add More Than' + week_off_count + '  WOFF In Dutyplan')
-      } else {
-        let offDay = e.target.value === week_off_day.toString() ? 1 : 0
-        setShift(changedShiftId)
-        setBgColor(1)
-        const newShiftObj = {
-          plan_slno: plan_slno,
-          shift_id: changedShiftId,
-          em_id: emp_id,
-          offday: offDay,
+        if (noOfWOff?.length > week_off_count) {
+          warningNofity('Cannot Add More Than' + week_off_count + '  WOFF In Dutyplan')
+        } else {
+          let offDay = e.target.value === week_off_day.toString() ? 1 : 0
+          setShift(changedShiftId)
+          setBgColor(1)
+          const newShiftObj = {
+            plan_slno: plan_slno,
+            shift_id: changedShiftId,
+            em_id: emp_id,
+            offday: offDay,
+          }
+          dispatch({ type: FETCH_UPDATED_SHIFT_ID, payload: newShiftObj })
         }
-        dispatch({ type: FETCH_UPDATED_SHIFT_ID, payload: newShiftObj })
+      } else {
+        errorNofity('Error While Getting Employee Dutyplan!')
       }
     } else {
-      errorNofity('Error While Getting Employee Dutyplan!')
+      let offDay = e.target.value === week_off_day.toString() ? 1 : 0
+      setShift(changedShiftId)
+      setBgColor(1)
+      const newShiftObj = {
+        plan_slno: plan_slno,
+        shift_id: changedShiftId,
+        em_id: emp_id,
+        offday: offDay,
+      }
+      dispatch({ type: FETCH_UPDATED_SHIFT_ID, payload: newShiftObj })
     }
   }
   // setShift(shift_id)
