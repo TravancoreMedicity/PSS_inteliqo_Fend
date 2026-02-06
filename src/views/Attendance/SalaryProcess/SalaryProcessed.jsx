@@ -178,45 +178,17 @@ const onClickProcess = useCallback(async () => {
       const takenDOFF = empwise?.filter((val) => val?.lvereq_desc === 'DOFF')?.length || 0
       const takenWOFF = empwise?.filter((val) => val?.lvereq_desc === 'WOFF')?.length || 0
 
-      // Calculate eligible week off for normal duty based on present days
-      const egWOFFforNormalduty =
-        totalPresent >= 24
-          ? commonSettings?.week_off_count
-          : totalPresent >= 18
-          ? commonSettings?.week_off_count - 1
-          : totalPresent >= 12
-          ? commonSettings?.week_off_count - 2
-          : totalPresent >= 6
-          ? commonSettings?.week_off_count - 3
-          : 0
-
-      // Calculate eligible week off for DP duty
-      const egWOFFforDp =
-        totalDp * 2 >= 24
-          ? commonSettings?.week_off_count
-          : totalDp * 2 >= 18
-          ? commonSettings?.week_off_count - 1
-          : totalDp * 2 >= 12
-          ? commonSettings?.week_off_count - 2
-          : totalDp * 2 >= 6
-          ? commonSettings?.week_off_count - 3
-          : 0
-
           //const egw=(totalPresent+ totalDp * 2)
           
-          const totalEGWOFF=   (totalPresent+ totalDp * 2) >= 24
+          const totalEGWOFF=   (totalPresent+ totalDp * 2 + totalHD * 0.5) >= 24
           ? commonSettings?.week_off_count
-          : (totalPresent+ totalDp * 2) >= 18
+          : (totalPresent+ totalDp * 2 + totalHD * 0.5) >= 18
           ? commonSettings?.week_off_count - 1
-          : (totalPresent+ totalDp * 2) >= 12
+          : (totalPresent+ totalDp * 2 + totalHD * 0.5) >= 12
           ? commonSettings?.week_off_count - 2
-          : (totalPresent+ totalDp * 2) >= 6
+          : (totalPresent+ totalDp * 2  + totalHD * 0.5) >= 6
           ? commonSettings?.week_off_count - 3
           : 0
-      
-      // Total eligible week offs
-      //const totalEGWOFF = egWOFFforNormalduty + egWOFFforDp
-
       
       // Extra DOFFs remaining after taken ones
       const extraDp = (totalDp || noOFFDp) === takenDOFF ? 0 : (totalDp || noOFFDp) - takenDOFF
